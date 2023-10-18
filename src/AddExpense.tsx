@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import Button from '@mui/material/Button';
+import TextField from '@mui/material/TextField';
 
 const AddExpense: React.FC = () => {
   const [description, setDescription] = useState<string>('');
@@ -21,19 +23,25 @@ const AddExpense: React.FC = () => {
 
   return (
     <div>
-      <input
-        type="text"
-        placeholder="Description"
+      <h2>Add Expense</h2>
+      <TextField
+        label="Description"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-      <input
+      <TextField
+        label="Amount"
         type="number"
-        placeholder="Amount"
         value={amount}
         onChange={(e) => setAmount(Number(e.target.value))}
       />
-      <button onClick={addExpense}>Add Expense</button>
+      <Button
+        variant="contained"
+        color="primary"
+        onClick={addExpense}
+      >
+        Add Expense
+      </Button>
     </div>
   );
 }
