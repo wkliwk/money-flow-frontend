@@ -1,0 +1,32 @@
+env:
+  browser: true
+  es2021: true
+extends:
+  - standard-with-typescript
+  - plugin:react/recommended
+  - airbnb
+  - 'plugin:@typescript-eslint/recommended'
+  - prettier
+  - 'prettier/react'
+  - 'prettier/@typescript-eslint'
+parserOptions:
+  ecmaVersion: latest
+plugins:
+  - react
+  - @typescript-eslint
+rules:
+  react/jsx-filename-extension:
+    - 'error'
+    - extensions:
+        - '.js'
+        - '.jsx'
+        - '.ts'
+        - '.tsx'
+settings:
+  'import/resolver':
+    node:
+      extensions:
+        - '.js'
+        - '.jsx'
+        - '.ts'
+        - '.tsx'
