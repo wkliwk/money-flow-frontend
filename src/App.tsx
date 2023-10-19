@@ -1,7 +1,5 @@
-// src/App.tsx
-
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link as NavLink } from 'react-router-dom'; // Use Link as NavLink
+import { BrowserRouter as Router, Route, Routes, Link as NavLink } from 'react-router-dom';
 import AddExpense from './AddExpense';
 import ExpenseList from './ExpenseList';
 import EditExpense from './EditExpense';
@@ -9,9 +7,9 @@ import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
-import List from '@mui/material/List';
-import ListItem from '@mui/material/ListItem';
-import ListItemText from '@mui/material/ListItemText';
+import Tabs from '@mui/material/Tabs';
+import Tab from '@mui/material/Tab';
+
 function App() {
   return (
     <div>
@@ -22,18 +20,10 @@ function App() {
       </AppBar>
       <Container>
         <Router>
-          <List component="nav">
-            <ListItem button>
-              <NavLink to="/" style={{ textDecoration: 'none' }}>
-                <ListItemText primary="Expense List" />
-              </NavLink>
-            </ListItem>
-            <ListItem button>
-              <NavLink to="/add" style={{ textDecoration: 'none' }}>
-                <ListItemText primary="Add Expense" />
-              </NavLink>
-            </ListItem>
-          </List>
+          <Tabs value={window.location.pathname} indicatorColor="primary">
+            <Tab label="Expense List" value="/" to="/" component={NavLink} />
+            <Tab label="Add Expense" value="/add" to="/add" component={NavLink} />
+          </Tabs>
           <Routes>
             <Route path="/" element={<ExpenseList />} />
             <Route path="/add" element={<AddExpense />} />

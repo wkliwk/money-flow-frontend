@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import axios from 'axios';
+import axiosInstance from './axiosInstance'; // Import the Axios instance
 import Button from '@mui/material/Button';
 import TextField from '@mui/material/TextField';
 
@@ -9,7 +9,7 @@ const AddExpense: React.FC = () => {
 
   const addExpense = async () => {
     try {
-      const response = await axios.post('http://localhost:3000/expenses', {
+      const response = await axiosInstance.post('/api/expenses', {
         description,
         amount,
       });
