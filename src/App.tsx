@@ -1,8 +1,8 @@
 import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Link as NavLink } from 'react-router-dom';
-import AddExpense from './AddExpense';
-import ExpenseList from './ExpenseList';
-import EditExpense from './EditExpense';
+import AddExpense from './components/AddExpense';
+import ExpenseList from './components/ExpenseList';
+import EditExpense from './components/EditExpense';
 import AppBar from '@mui/material/AppBar';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';

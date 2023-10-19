@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axiosInstance from './axiosInstance'; // Import the Axios instance
-import Button from '@mui/material/Button';
-import TextField from '@mui/material/TextField';
+import ButtonWrapper from './common/ButtonWrapper';
+import TextFieldWrapper from './common/TextFieldWrapper';
+import { createExpense } from '../services/api'; // Import the API service
 
 const AddExpense: React.FC = () => {
   const [description, setDescription] = useState<string>('');
@@ -9,39 +9,34 @@ const AddExpense: React.FC = () => {
 
   const addExpense = async () => {
     try {
-      const response = await axiosInstance.post('/api/expenses', {
+      const newExpense = await createExpense({
+        _id: '',
         description,
         amount,
       });
-      console.log('Expense added:', response.data);
+      console.log('Expense added:', newExpense);
       // You can update your UI or state after a successful request.
     } catch (error) {
       console.error('Error adding expense:', error);
       // Handle errors or show a message to the user.
     }
   }
-
   return (
     <div>
       <h2>Add Expense</h2>
-      <TextField
+      <TextFieldWrapper
         label="Description"
+        type="text"
         value={description}
         onChange={(e) => setDescription(e.target.value)}
       />
-      <TextField
+      <TextFieldWrapper
         label="Amount"
         type="number"
         value={amount}
         onChange={(e) => setAmount(Number(e.target.value))}
       />
-      <Button
-        variant="contained"
-        color="primary"
-        onClick={addExpense}
-      >
-        Add Expense
-      </Button>
+      <ButtonWrapper label="Add Expense" onClick={addExpense} />
     </div>
   );
 }
