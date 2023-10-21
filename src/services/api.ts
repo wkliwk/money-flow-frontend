@@ -1,10 +1,9 @@
 import axiosInstance from '../axiosInstance';
-import { Expense } from '../types'; // Import the API service
+import { ExpenseRequest } from '../types'; // Import the API service
 
-export const createExpense = async (data: Expense) => {
+export const createExpense = async (expenseData: ExpenseRequest) => {
     try {
         // Omit the _id field, and MongoDB will generate it
-        const { _id, ...expenseData } = data;
         const response = await axiosInstance.post('/api/expenses', expenseData);
         return response.data;
       } catch (error) {
@@ -21,7 +20,7 @@ export const createExpense = async (data: Expense) => {
     }
   };
   
-  export const updateExpense = async (id: string, data: Expense) => {
+  export const updateExpense = async (id: string, data: ExpenseRequest) => {
     try {
       const response = await axiosInstance.put(`/api/expenses/${id}`, data);
       return response.data;

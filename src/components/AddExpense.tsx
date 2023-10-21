@@ -4,14 +4,32 @@ import TextFieldWrapper from './common/TextFieldWrapper';
 import { createExpense } from '../services/api'; // Import the API service
 
 const AddExpense: React.FC = () => {
+  const [owner, setOwner] = useState<string>('');
   const [description, setDescription] = useState<string>('');
+  const [purpose, setPurpose] = useState<string>('');
+  const [currentLocation, setCurrentLocation] = useState<string>('');
+  const [type, setType] = useState<string>('');
+  const [parent, setParent] = useState<string>('');
+  const [status, setStatus] = useState<string>('');
+  const [profit, setProfit] = useState<number>(0);
+  const [startDate, setStartDate] = useState<Date | null>(null);
+  const [endDate, setEndDate] = useState<Date | null>(null);
   const [amount, setAmount] = useState<number>(0);
+
 
   const addExpense = async () => {
     try {
       const newExpense = await createExpense({
-        _id: '',
+        owner,
         description,
+        purpose,
+        currentLocation,
+        type,
+        parent,
+        status,
+        profit,
+        startDate: startDate || undefined, // Set to null if not provided
+        endDate: endDate || undefined,       // Set to null if not provided
         amount,
       });
       console.log('Expense added:', newExpense);
@@ -25,6 +43,12 @@ const AddExpense: React.FC = () => {
     <div>
       <h2>Add Expense</h2>
       <TextFieldWrapper
+        label="Owner"
+        type=''
+        value={owner}
+        onChange={(e) => setOwner(e.target.value)}
+      />
+      <TextFieldWrapper
         label="Description"
         type="text"
         value={description}
@@ -36,6 +60,8 @@ const AddExpense: React.FC = () => {
         value={amount}
         onChange={(e) => setAmount(Number(e.target.value))}
       />
+
+
       <ButtonWrapper label="Add Expense" onClick={addExpense} />
     </div>
   );

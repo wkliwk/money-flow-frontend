@@ -1,9 +1,28 @@
-export interface Expense {
-    _id: string;
-    description: string;
-    amount: number;
-    // Add other fields as needed
-  }
-  
-  // Define other types and interfaces as needed
-  
+export interface ExpenseRequest {
+  owner: string;
+  description: string;
+  purpose: string;
+  currentLocation: string;
+  type: string;
+  parent: string;
+  status: string;
+  profit: number;
+  startDate?: Date | null;
+  endDate?: Date | null;
+  amount: number;
+}
+
+export interface ExpenseResponse {
+  _id: string;
+  owner: string;
+  description?: string;
+  purpose?: string;
+  currentLocation?: string;
+  type?: string;
+  parent?: string;
+  status?: string;
+  profit?: number;
+  startDate?: Date;
+  endDate?: Date;
+  amount: number;
+}

@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { getExpenses } from '../services/api'; // Import the API service
-import { Expense } from '../types'; // Import the API service
+import { ExpenseResponse } from '../types'; // Import the API service
 import TableWrapper from './common/TableWrapper';
 
 const ExpenseList: React.FC = () => {
-  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [expenses, setExpenses] = useState<ExpenseResponse[]>([]);
 
   useEffect(() => {
     const fetchExpenses = async () => {

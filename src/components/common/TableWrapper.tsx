@@ -6,10 +6,10 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
-import { Expense } from '../../types'; // Import the API service
+import { ExpenseResponse } from '../../types'; // Import the API service
 
 interface TableWrapperProps {
-  data: Expense[];
+  data: ExpenseResponse[];
 }
 
 const TableWrapper: React.FC<TableWrapperProps> = ({ data }) => {
