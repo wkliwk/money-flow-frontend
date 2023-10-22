@@ -22,7 +22,7 @@ export interface ExpenseResponse {
   parent?: string;
   status?: string;
   profit?: number;
-  startDate?: Date;
-  endDate?: Date;
+  startDate?: Date | null; // Adjust the type here
+  endDate?: Date | null;
   amount: number;
 }
