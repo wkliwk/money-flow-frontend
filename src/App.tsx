@@ -1,5 +1,10 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Routes, Link as NavLink } from 'react-router-dom';
+import {
+  BrowserRouter as Router,
+  Route,
+  Routes,
+  Link as NavLink,
+} from 'react-router-dom';
 import AddExpense from './components/AddExpense';
 import ExpenseList from './components/ExpenseList';
 import EditExpense from './components/EditExpense';
@@ -22,7 +27,12 @@ function App() {
         <Router>
           <Tabs value={window.location.pathname} indicatorColor="primary">
             <Tab label="Expense List" value="/" to="/" component={NavLink} />
-            <Tab label="Add Expense" value="/add" to="/add" component={NavLink} />
+            <Tab
+              label="Add Expense"
+              value="/add"
+              to="/add"
+              component={NavLink}
+            />
           </Tabs>
           <Routes>
             <Route path="/" element={<ExpenseList />} />

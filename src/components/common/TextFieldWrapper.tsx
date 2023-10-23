@@ -8,8 +8,15 @@ interface TextFieldWrapperProps {
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
 }
 
-const TextFieldWrapper: React.FC<TextFieldWrapperProps> = ({ label, type, value, onChange }) => {
-  return <TextField label={label} type={type} value={value} onChange={onChange} />;
+const TextFieldWrapper: React.FC<TextFieldWrapperProps> = ({
+  label,
+  type,
+  value,
+  onChange,
+}) => {
+  return (
+    <TextField label={label} type={type} value={value} onChange={onChange} />
+  );
 };
 
 export default TextFieldWrapper;

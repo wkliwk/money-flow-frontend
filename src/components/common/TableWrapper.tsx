@@ -49,6 +49,4 @@ const TableWrapper: React.FC<TableWrapperProps> = ({ data }) => {
   );
 };
 
-
-
 export default TableWrapper;

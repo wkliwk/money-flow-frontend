@@ -16,7 +16,6 @@ const AddExpense: React.FC = () => {
   const [endDate, setEndDate] = useState<Date | null>(null);
   const [amount, setAmount] = useState<number>(0);
 
-
   const addExpense = async () => {
     try {
       const newExpense = await createExpense({
@@ -29,7 +28,7 @@ const AddExpense: React.FC = () => {
         status,
         profit,
         startDate: startDate || undefined, // Set to null if not provided
-        endDate: endDate || undefined,       // Set to null if not provided
+        endDate: endDate || undefined, // Set to null if not provided
         amount,
       });
       console.log('Expense added:', newExpense);
@@ -38,7 +37,7 @@ const AddExpense: React.FC = () => {
       console.error('Error adding expense:', error);
       // Handle errors or show a message to the user.
     }
-  }
+  };
   return (
     <div>
       <h2>Add Expense</h2>
@@ -116,6 +115,6 @@ const AddExpense: React.FC = () => {
       <ButtonWrapper label="Add Expense" onClick={addExpense} />
     </div>
   );
-}
+};
 
 export default AddExpense;

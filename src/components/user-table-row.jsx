@@ -59,7 +59,9 @@ export default function UserTableRow({
         <TableCell align="center">{isVerified ? 'Yes' : 'No'}</TableCell>
 
         <TableCell>
-          <Label color={(status === 'banned' && 'error') || 'success'}>{status}</Label>
+          <Label color={(status === 'banned' && 'error') || 'success'}>
+            {status}
+          </Label>
         </TableCell>
 
         <TableCell align="right">
