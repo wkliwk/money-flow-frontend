@@ -18,8 +18,36 @@ const columns: GridColDef[] = [
   { field: 'parent', headerName: 'Parent', flex: 1 },
   { field: 'status', headerName: 'Status', flex: 1 },
   { field: 'profit', headerName: 'Profit', type: 'number', flex: 1 },
-  { field: 'startDate', headerName: 'Start Date', type: 'date', flex: 1 },
-  { field: 'endDate', headerName: 'End Date', type: 'date', flex: 1 },
+  {
+    field: 'startDate',
+    headerName: 'Start Date',
+    type: 'date',
+    flex: 1,
+    valueGetter: (params) => {
+      const startDate = params.value;
+      if (startDate instanceof Date) {
+        return startDate; // Return the Date object as-is
+      } else {
+        // You can handle other data types here, e.g., parse a string into a Date
+        return new Date(startDate); // Transform to a Date object
+      }
+    },
+  },
+  {
+    field: 'endDate',
+    headerName: 'End Date',
+    type: 'date',
+    flex: 1,
+    valueGetter: (params) => {
+      const startDate = params.value;
+      if (startDate instanceof Date) {
+        return startDate; // Return the Date object as-is
+      } else {
+        // You can handle other data types here, e.g., parse a string into a Date
+        return new Date(startDate); // Transform to a Date object
+      }
+    },
+  },
 ];
 
 const TableWrapper: React.FC<TableWrapperProps> = ({ data }) => {

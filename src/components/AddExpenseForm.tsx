@@ -34,8 +34,8 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
     parent: '',
     status: '',
     profit: 0, // Initialize with an appropriate default value
-    startDate: null, // Initialize with null or an initial date value
-    endDate: null, // Initialize with null or an initial date value
+    startDate: null, // Initialize with null for Date objects
+    endDate: null, // Initialize with null for Date objects
     amount: 0, // Initialize with an appropriate default value
   });
 
@@ -138,50 +138,27 @@ const AddExpenseForm: React.FC<AddExpenseFormProps> = ({
             style={{ margin: '8px 0' }}
           />
 
-          {/* <DatePicker
-        name="startDate"
-        label="Start Date"
-        type="date"
-        value={formData.startDate}
-        onChange={handleChange}
-        fullWidth
-        style={{ margin: '8px 0' }}
-        />
- */}
-
-          {/* <DatePicker
-        name="endDate"
-        label="End Date"
-        type="date"
-        value={formData.endDate}
-        onChange={handleChange}
-        fullWidth
-        style={{ margin: '8px 0' }}
-        /> */}
           <div style={{ margin: '8px 0' }}>
             <DatePicker
               label="Start Date"
-              value={formData.startDate}
+              value={formData.startDate || null}
               onChange={(date) =>
                 setFormData({
                   ...formData,
-                  startDate: date !== '' ? new Date(date) : null,
+                  startDate: date,
                 })
               }
             />
             <DatePicker
               label="End Date"
-              value={formData.endDate ? new Date(formData.endDate) : null}
+              value={formData.endDate || null}
               onChange={(date) =>
                 setFormData({
                   ...formData,
-                  endDate: date ? date.toISOString() : null,
+                  endDate: date,
                 })
               }
             />
-            With this code, if formData.startDate and formData.endDate are
-            initially stored as ISO date strings, the DatePicker will work as
-            expected and keep the Date objects as expected by the MUI library.
           </div>
 
           <TextField
