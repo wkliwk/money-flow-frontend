@@ -19,6 +19,7 @@ import { getExpenses, createExpense, deleteExpense } from '../services/api';
 import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
+import CategoryChart from './dashboard/CategoryChart';
 import ExpenseList from './expenses/ExpenseList';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
@@ -131,6 +132,8 @@ const MainLayout: React.FC = () => {
         <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
 
         <SummaryCards transactions={filteredTransactions} />
+
+        <CategoryChart transactions={filteredTransactions} />
 
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, justifyContent: 'flex-end', mb: 2 }}>
           <Button variant="contained" onClick={() => setAddOpen(true)}>
