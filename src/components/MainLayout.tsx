@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -13,10 +13,12 @@ import {
   MenuItem,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest } from '../types';
 import { getExpenses, createExpense, deleteExpense } from '../services/api';
 import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
+import MonthPicker from './dashboard/MonthPicker';
 import ExpenseList from './expenses/ExpenseList';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
@@ -33,6 +35,7 @@ function getOwnerFromToken(): string {
 
 const MainLayout: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [addOpen, setAddOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -81,6 +84,14 @@ const MainLayout: React.FC = () => {
     showSnackbar('Transaction updated');
   };
 
+  const filteredTransactions = useMemo(() => {
+    if (!selectedMonth) return transactions;
+    return transactions.filter((t) => {
+      const d = dayjs(t.date || t.createdAt);
+      return d.isValid() && d.isSame(selectedMonth, 'month');
+    });
+  }, [transactions, selectedMonth]);
+
   const handleLogout = () => {
     clearToken();
     window.location.href = '/login';
@@ -117,7 +128,9 @@ const MainLayout: React.FC = () => {
       </AppBar>
 
       <Container maxWidth="lg" sx={{ py: 4 }}>
-        <SummaryCards transactions={transactions} />
+        <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+
+        <SummaryCards transactions={filteredTransactions} />
 
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, justifyContent: 'flex-end', mb: 2 }}>
           <Button variant="contained" onClick={() => setAddOpen(true)}>
@@ -132,7 +145,7 @@ const MainLayout: React.FC = () => {
         </Box>
 
         <ExpenseList
-          transactions={transactions}
+          transactions={filteredTransactions}
           onEdit={(t) => setEditTransaction(t)}
           onDelete={handleDelete}
           onAdd={() => setAddOpen(true)}
