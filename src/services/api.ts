@@ -1,39 +1,39 @@
 import axiosInstance from '../axiosInstance';
-import { ExpenseRequest } from '../types'; // Import the API service
+import { TransactionRequest } from '../types';
+import { setToken } from './auth';
 
-export const createExpense = async (expenseData: ExpenseRequest) => {
-  try {
-    // Omit the _id field, and MongoDB will generate it
-    const response = await axiosInstance.post('/api/expenses', expenseData);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+// Auth
+export const register = async (email: string, password: string): Promise<void> => {
+  const res = await axiosInstance.post('/auth/register', { email, password });
+  setToken(res.data.token);
 };
 
+export const login = async (email: string, password: string): Promise<void> => {
+  const res = await axiosInstance.post('/auth/login', { email, password });
+  setToken(res.data.token);
+};
+
+// Expenses
 export const getExpenses = async () => {
-  try {
-    const response = await axiosInstance.get('/api/expenses');
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+  const res = await axiosInstance.get('/api/expenses');
+  return res.data;
 };
 
-export const updateExpense = async (id: string, data: ExpenseRequest) => {
-  try {
-    const response = await axiosInstance.put(`/api/expenses/${id}`, data);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export const getExpense = async (id: string) => {
+  const res = await axiosInstance.get(`/api/expenses/${id}`);
+  return res.data;
 };
 
-export const deleteExpense = async (id: string) => {
-  try {
-    const response = await axiosInstance.delete(`/api/expenses/${id}`);
-    return response.data;
-  } catch (error) {
-    throw error;
-  }
+export const createExpense = async (data: TransactionRequest) => {
+  const res = await axiosInstance.post('/api/expenses', data);
+  return res.data;
+};
+
+export const updateExpense = async (id: string, data: TransactionRequest) => {
+  const res = await axiosInstance.put(`/api/expenses/${id}`, data);
+  return res.data;
+};
+
+export const deleteExpense = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/expenses/${id}`);
 };
