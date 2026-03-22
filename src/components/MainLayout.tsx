@@ -13,13 +13,23 @@ import {
   MenuItem,
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
-import { Transaction } from '../types';
+import { Transaction, TransactionRequest } from '../types';
 import { getExpenses, createExpense, deleteExpense } from '../services/api';
 import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
 import ExpenseList from './expenses/ExpenseList';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
+
+function getOwnerFromToken(): string {
+  try {
+    const token = localStorage.getItem('mf_token');
+    if (!token) return '';
+    return JSON.parse(atob(token.split('.')[1])).userId || '';
+  } catch {
+    return '';
+  }
+}
 
 const MainLayout: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
@@ -49,9 +59,8 @@ const MainLayout: React.FC = () => {
     setSnackbar({ open: true, message, severity });
   };
 
-  const handleAdd = async (data: Parameters<typeof createExpense>[0]) => {
-    const token = localStorage.getItem('mf_token');
-    const owner = token ? JSON.parse(atob(token.split('.')[1])).userId : '';
+  const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
+    const owner = getOwnerFromToken();
     await createExpense({ ...data, owner });
     await fetchTransactions();
     showSnackbar('Transaction added');
@@ -90,17 +99,10 @@ const MainLayout: React.FC = () => {
             </Button>
           </Box>
           <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-            <IconButton
-              color="inherit"
-              onClick={(e) => setAnchorEl(e.currentTarget)}
-            >
+            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
               <AccountCircleIcon />
             </IconButton>
-            <Menu
-              anchorEl={anchorEl}
-              open={!!anchorEl}
-              onClose={() => setAnchorEl(null)}
-            >
+            <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
               <MenuItem
                 onClick={() => {
                   setAnchorEl(null);
@@ -117,13 +119,8 @@ const MainLayout: React.FC = () => {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <SummaryCards transactions={transactions} />
 
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-          <Button
-            variant="contained"
-            onClick={() => setAddOpen(true)}
-            fullWidth={false}
-            sx={{ display: { xs: 'none', sm: 'inline-flex' } }}
-          >
+        <Box sx={{ display: { xs: 'none', sm: 'flex' }, justifyContent: 'flex-end', mb: 2 }}>
+          <Button variant="contained" onClick={() => setAddOpen(true)}>
             + Add Transaction
           </Button>
         </Box>
