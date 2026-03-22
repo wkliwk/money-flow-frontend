@@ -193,6 +193,7 @@ const theme = createTheme({
           textTransform: 'none',
           fontWeight: 500,
           fontSize: '0.8rem',
+          padding: '5px 14px',
           color: '#94a3b8',
           '&.Mui-selected': {
             color: '#818cf8',
