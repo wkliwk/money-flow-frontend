@@ -14,13 +14,14 @@ import {
 } from '@mui/material';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import dayjs, { Dayjs } from 'dayjs';
-import { Transaction, TransactionRequest } from '../types';
+import { Transaction, TransactionRequest, TransactionType } from '../types';
 import { getExpenses, createExpense, deleteExpense } from '../services/api';
 import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import CategoryChart from './dashboard/CategoryChart';
 import ExpenseList from './expenses/ExpenseList';
+import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
 
@@ -37,6 +38,8 @@ function getOwnerFromToken(): string {
 const MainLayout: React.FC = () => {
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
+  const [search, setSearch] = useState('');
+  const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [addOpen, setAddOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -85,13 +88,21 @@ const MainLayout: React.FC = () => {
     showSnackbar('Transaction updated');
   };
 
-  const filteredTransactions = useMemo(() => {
+  const monthFiltered = useMemo(() => {
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
       const d = dayjs(t.date || t.createdAt);
       return d.isValid() && d.isSame(selectedMonth, 'month');
     });
   }, [transactions, selectedMonth]);
+
+  const filteredTransactions = useMemo(() => {
+    return monthFiltered.filter((t) => {
+      const matchesSearch = search === '' || t.description.toLowerCase().includes(search.toLowerCase());
+      const matchesType = typeFilter === 'all' || t.type === typeFilter;
+      return matchesSearch && matchesType;
+    });
+  }, [monthFiltered, search, typeFilter]);
 
   const handleLogout = () => {
     clearToken();
@@ -131,9 +142,9 @@ const MainLayout: React.FC = () => {
       <Container maxWidth="lg" sx={{ py: 4 }}>
         <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
 
-        <SummaryCards transactions={filteredTransactions} />
+        <SummaryCards transactions={monthFiltered} />
 
-        <CategoryChart transactions={filteredTransactions} />
+        <CategoryChart transactions={monthFiltered} />
 
         <Box sx={{ display: { xs: 'none', sm: 'flex' }, justifyContent: 'flex-end', mb: 2 }}>
           <Button variant="contained" onClick={() => setAddOpen(true)}>
@@ -146,6 +157,15 @@ const MainLayout: React.FC = () => {
             + Add Transaction
           </Button>
         </Box>
+
+        <FilterBar
+          search={search}
+          typeFilter={typeFilter}
+          total={monthFiltered.length}
+          filtered={filteredTransactions.length}
+          onSearchChange={setSearch}
+          onTypeFilterChange={setTypeFilter}
+        />
 
         <ExpenseList
           transactions={filteredTransactions}
