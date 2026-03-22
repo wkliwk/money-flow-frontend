@@ -1,7 +1,8 @@
 import React from 'react';
-import { Box, IconButton, Typography, Button } from '@mui/material';
+import { Box, IconButton, Typography, Chip } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
+import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
 import dayjs, { Dayjs } from 'dayjs';
 
 interface Props {
@@ -20,39 +21,69 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
     onChange(base.add(1, 'month'));
   };
 
-  const handleAllTime = () => {
-    onChange(null);
-  };
-
-  const handleCurrentMonth = () => {
-    onChange(dayjs());
-  };
-
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 3 }}>
+      <CalendarTodayOutlinedIcon sx={{ fontSize: 16, color: 'text.secondary' }} />
+
       {selectedMonth ? (
         <>
-          <IconButton size="small" onClick={handlePrev}>
-            <ChevronLeftIcon />
+          <IconButton
+            size="small"
+            onClick={handlePrev}
+            sx={{ color: 'text.secondary', p: 0.5 }}
+          >
+            <ChevronLeftIcon sx={{ fontSize: 20 }} />
           </IconButton>
-          <Typography variant="h6" fontWeight={600} sx={{ minWidth: 160, textAlign: 'center' }}>
+          <Typography
+            variant="h6"
+            fontWeight={700}
+            sx={{ minWidth: 148, textAlign: 'center', letterSpacing: '-0.01em' }}
+          >
             {selectedMonth.format('MMMM YYYY')}
           </Typography>
-          <IconButton size="small" onClick={handleNext}>
-            <ChevronRightIcon />
+          <IconButton
+            size="small"
+            onClick={handleNext}
+            sx={{ color: 'text.secondary', p: 0.5 }}
+          >
+            <ChevronRightIcon sx={{ fontSize: 20 }} />
           </IconButton>
-          <Button size="small" variant="outlined" onClick={handleAllTime} sx={{ ml: 1 }}>
-            All Time
-          </Button>
+          <Chip
+            label="All Time"
+            size="small"
+            onClick={() => onChange(null)}
+            sx={{
+              ml: 1,
+              height: 26,
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: 'text.secondary',
+              bgcolor: 'transparent',
+              border: '1px solid rgba(148,163,184,0.15)',
+              '&:hover': { bgcolor: 'rgba(148,163,184,0.08)' },
+            }}
+          />
         </>
       ) : (
         <>
-          <Typography variant="h6" fontWeight={600} color="text.secondary">
+          <Typography variant="h6" fontWeight={700} color="text.secondary" sx={{ letterSpacing: '-0.01em' }}>
             All Time
           </Typography>
-          <Button size="small" variant="outlined" onClick={handleCurrentMonth} sx={{ ml: 1 }}>
-            This Month
-          </Button>
+          <Chip
+            label="This Month"
+            size="small"
+            onClick={() => onChange(dayjs())}
+            sx={{
+              ml: 1,
+              height: 26,
+              fontSize: '0.75rem',
+              fontWeight: 500,
+              color: 'primary.main',
+              bgcolor: 'rgba(129,140,248,0.1)',
+              border: '1px solid rgba(129,140,248,0.2)',
+              '&:hover': { bgcolor: 'rgba(129,140,248,0.16)' },
+            }}
+          />
         </>
       )}
     </Box>

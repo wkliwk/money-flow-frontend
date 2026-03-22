@@ -111,18 +111,32 @@ const MainLayout: React.FC = () => {
 
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="static" elevation={1}>
-        <Toolbar>
-          <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-            💰 Money Flow
+      <AppBar position="sticky" elevation={0}>
+        <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
+          <Typography
+            variant="h6"
+            sx={{
+              flexGrow: 1,
+              fontWeight: 700,
+              letterSpacing: '-0.01em',
+              background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            Money Flow
           </Typography>
           <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-            <Button color="inherit" onClick={handleLogout}>
-              Logout
+            <Button
+              color="inherit"
+              onClick={handleLogout}
+              sx={{ color: 'text.secondary', fontWeight: 500, '&:hover': { color: 'text.primary' } }}
+            >
+              Sign out
             </Button>
           </Box>
           <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)}>
+            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: 'text.secondary' }}>
               <AccountCircleIcon />
             </IconButton>
             <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
@@ -132,7 +146,7 @@ const MainLayout: React.FC = () => {
                   handleLogout();
                 }}
               >
-                Logout
+                Sign out
               </MenuItem>
             </Menu>
           </Box>

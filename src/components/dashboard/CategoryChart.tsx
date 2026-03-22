@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, Card, CardContent } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../../types';
 
@@ -7,7 +7,7 @@ interface Props {
   transactions: Transaction[];
 }
 
-const COLORS = ['#2196f3', '#f44336', '#4caf50', '#ff9800', '#9c27b0', '#00bcd4', '#795548'];
+const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa', '#f472b6'];
 
 const CategoryChart: React.FC<Props> = ({ transactions }) => {
   const data = useMemo(() => {
@@ -34,29 +34,59 @@ const CategoryChart: React.FC<Props> = ({ transactions }) => {
   if (data.length === 0) return null;
 
   return (
-    <Box sx={{ mb: 3 }}>
-      <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-        Spending by Category
-      </Typography>
-      <ResponsiveContainer width="100%" height={240}>
-        <PieChart>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            cx="50%"
-            cy="50%"
-            outerRadius={80}
-          >
-            {data.map((_, index) => (
-              <Cell key={index} fill={COLORS[index % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip formatter={(value) => `HK$${Number(value).toLocaleString()}`} />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
-    </Box>
+    <Card sx={{ mb: 3, p: 0 }}>
+      <CardContent sx={{ p: 3 }}>
+        <Typography
+          variant="caption"
+          sx={{
+            color: 'text.secondary',
+            fontWeight: 600,
+            fontSize: '0.7rem',
+            letterSpacing: '0.08em',
+            textTransform: 'uppercase',
+            display: 'block',
+            mb: 2,
+          }}
+        >
+          Spending by Category
+        </Typography>
+        <ResponsiveContainer width="100%" height={220}>
+          <PieChart>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              cx="50%"
+              cy="50%"
+              innerRadius={50}
+              outerRadius={80}
+              paddingAngle={3}
+            >
+              {data.map((_, index) => (
+                <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={0.9} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => [`HK$${Number(value).toLocaleString()}`, '']}
+              contentStyle={{
+                background: '#1e293b',
+                border: '1px solid rgba(148,163,184,0.1)',
+                borderRadius: 8,
+                color: '#f1f5f9',
+                fontSize: 13,
+              }}
+            />
+            <Legend
+              iconType="circle"
+              iconSize={8}
+              formatter={(value) => (
+                <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{value}</span>
+              )}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </CardContent>
+    </Card>
   );
 };
 

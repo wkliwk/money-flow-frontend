@@ -1,5 +1,8 @@
 import React from 'react';
-import { Grid, Card, CardContent, Typography } from '@mui/material';
+import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import { Transaction } from '../../types';
 
 interface Props {
@@ -21,12 +24,34 @@ const SummaryCards: React.FC<Props> = ({ transactions }) => {
   const net = income - expenses;
 
   const cards = [
-    { label: 'Total Income', value: `+HK$${fmt(income)}`, color: 'success.main' },
-    { label: 'Total Expenses', value: `-HK$${fmt(expenses)}`, color: 'error.main' },
+    {
+      label: 'Income',
+      value: `+HK$${fmt(income)}`,
+      color: '#34d399',
+      gradient: 'linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%)',
+      border: 'rgba(52, 211, 153, 0.2)',
+      glow: 'rgba(52, 211, 153, 0.08)',
+      icon: <TrendingUpIcon sx={{ fontSize: 20 }} />,
+    },
+    {
+      label: 'Expenses',
+      value: `-HK$${fmt(expenses)}`,
+      color: '#fb7185',
+      gradient: 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)',
+      border: 'rgba(251, 113, 133, 0.2)',
+      glow: 'rgba(251, 113, 133, 0.08)',
+      icon: <TrendingDownIcon sx={{ fontSize: 20 }} />,
+    },
     {
       label: 'Net Balance',
       value: `${net >= 0 ? '+' : '-'}HK$${fmt(Math.abs(net))}`,
-      color: net >= 0 ? 'success.main' : 'error.main',
+      color: net >= 0 ? '#818cf8' : '#fb7185',
+      gradient: net >= 0
+        ? 'linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(99, 102, 241, 0.04) 100%)'
+        : 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)',
+      border: net >= 0 ? 'rgba(129, 140, 248, 0.2)' : 'rgba(251, 113, 133, 0.2)',
+      glow: net >= 0 ? 'rgba(129, 140, 248, 0.08)' : 'rgba(251, 113, 133, 0.08)',
+      icon: <AccountBalanceIcon sx={{ fontSize: 20 }} />,
     },
   ];
 
@@ -34,12 +59,37 @@ const SummaryCards: React.FC<Props> = ({ transactions }) => {
     <Grid container spacing={2} sx={{ mb: 3 }}>
       {cards.map((card) => (
         <Grid item xs={12} sm={4} key={card.label}>
-          <Card variant="outlined">
-            <CardContent>
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                {card.label}
-              </Typography>
-              <Typography variant="h5" fontWeight={600} color={card.color}>
+          <Card
+            sx={{
+              background: card.gradient,
+              border: `1px solid ${card.border}`,
+              boxShadow: `0 4px 24px ${card.glow}, 0 1px 4px rgba(0,0,0,0.3)`,
+              transition: 'transform 0.2s ease, box-shadow 0.2s ease',
+              '&:hover': {
+                transform: 'translateY(-2px)',
+                boxShadow: `0 8px 32px ${card.glow}, 0 2px 8px rgba(0,0,0,0.3)`,
+              },
+            }}
+          >
+            <CardContent sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    fontWeight: 600,
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.08em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {card.label}
+                </Typography>
+                <Box sx={{ color: card.color, opacity: 0.8, display: 'flex' }}>
+                  {card.icon}
+                </Box>
+              </Box>
+              <Typography variant="h5" fontWeight={700} sx={{ color: card.color, letterSpacing: '-0.02em' }}>
                 {card.value}
               </Typography>
             </CardContent>
