@@ -31,12 +31,22 @@ Before starting any task, read the last 10 lines of /Users/ricky/Dev/decisions.j
 After completing any task, append one line to /Users/ricky/Dev/decisions.jsonl:
 `{"date":"YYYY-MM-DD","project":"money-flow-frontend","prompt":"...","summary":"..."}`
 
+## Session start workflow
+When told to "start working" or similar:
+1. `gh project item-list 1 --owner wkliwk --format json` → find status:"Todo" items
+2. `gh project item-list 2 --owner wkliwk --format json` → same
+3. Read last 10 lines of /Users/ricky/Dev/decisions.jsonl
+4. Pick highest priority Todo and start immediately
+5. If no Todo items → act as PM+CEO: review product, create new issues, add to board, start top one
+Never ask "what should I work on?"
+
 ## Autonomous operation rules
 - You are running in a fully automated context with no human in the loop.
 - Do not ask for approval. Make decisions and proceed.
-- After completing a task: run `yarn lint` to check for errors, then commit and push.
+- After completing a task: run `CI=false REACT_APP_API_URL=https://money-flow-backend-production.up.railway.app yarn build` to verify, then commit and push.
 - Commit format: `type: short description` (feat, fix, refactor, chore)
 - If a build or lint fails, fix it before committing. Do not use `--no-verify`.
 - Do not add unnecessary comments, docstrings, or TODO markers.
 - Prefer editing existing files over creating new ones.
 - Keep changes minimal and focused on the task.
+- After completing a task, immediately pick the next Todo item and continue without stopping.
