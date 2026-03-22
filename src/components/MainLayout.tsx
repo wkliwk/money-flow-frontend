@@ -23,6 +23,7 @@ import { getExpenses, createExpense, deleteExpense } from '../services/api';
 import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
+import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
@@ -159,12 +160,22 @@ const MainLayout: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 2.5, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: 14 }}>
-        <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: 14 }}>
+        {/* Mobile: hero card with month picker + big balance */}
+        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+          <MobileHero
+            transactions={monthFiltered}
+            selectedMonth={selectedMonth}
+            onChange={setSelectedMonth}
+          />
+        </Box>
 
-        <SummaryCards transactions={monthFiltered} />
-
-        <CategoryChart transactions={monthFiltered} />
+        {/* Desktop: separate month picker + summary cards + chart */}
+        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+          <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+          <SummaryCards transactions={monthFiltered} />
+          <CategoryChart transactions={monthFiltered} />
+        </Box>
 
         <FilterBar
           search={search}
