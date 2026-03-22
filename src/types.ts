@@ -1,28 +1,22 @@
-export interface ExpenseRequest {
-  owner: string;
-  description: string;
-  purpose: string;
-  currentLocation: string;
-  type: string;
-  parent: string;
-  status: string;
-  profit: number;
-  startDate?: Date | null;
-  endDate?: Date | null;
-  amount: number;
-}
+export type TransactionType = 'income' | 'expense';
 
-export interface ExpenseResponse {
+export interface Transaction {
   _id: string;
   owner: string;
-  description?: string;
-  purpose?: string;
-  currentLocation?: string;
-  type?: string;
-  parent?: string;
-  status?: string;
-  profit?: number;
-  startDate?: Date | null; // Adjust the type here
-  endDate?: Date | null;
+  description: string;
   amount: number;
+  type: TransactionType;
+  category?: string;
+  date: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface TransactionRequest {
+  owner: string;
+  description: string;
+  amount: number;
+  type: TransactionType;
+  category?: string;
+  date?: string;
 }
