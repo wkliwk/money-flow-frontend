@@ -25,6 +25,7 @@ import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
+import TrendsChart from './dashboard/TrendsChart';
 import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
@@ -195,6 +196,7 @@ const MainLayout: React.FC = () => {
         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
           <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
           <SummaryCards transactions={monthFiltered} />
+          <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
           <CategoryChart transactions={monthFiltered} />
         </Box>
 
