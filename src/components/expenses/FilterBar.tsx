@@ -33,13 +33,13 @@ const FilterBar: React.FC<Props> = ({
 
   return (
     <Box sx={{ mb: 2 }}>
-      <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', flexWrap: 'wrap' }}>
+      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
           size="small"
           placeholder="Search transactions…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
-          sx={{ flexGrow: 1, minWidth: 180 }}
+          sx={{ flexGrow: 1, minWidth: { xs: '100%', sm: 180 } }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">

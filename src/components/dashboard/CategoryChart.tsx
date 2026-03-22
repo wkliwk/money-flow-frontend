@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Box, Typography, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../../types';
 
@@ -10,6 +10,8 @@ interface Props {
 const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa', '#f472b6'];
 
 const CategoryChart: React.FC<Props> = ({ transactions }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const data = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense');
     if (expenses.length === 0) return [];
@@ -50,7 +52,7 @@ const CategoryChart: React.FC<Props> = ({ transactions }) => {
         >
           Spending by Category
         </Typography>
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={isMobile ? 160 : 220}>
           <PieChart>
             <Pie
               data={data}

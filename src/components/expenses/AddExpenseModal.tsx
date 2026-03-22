@@ -13,7 +13,13 @@ import {
   Radio,
   Alert,
   CircularProgress,
+  useMediaQuery,
+  useTheme,
+  IconButton,
+  Typography,
+  Box,
 } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 import { TransactionRequest, TransactionType } from '../../types';
 
 interface Props {
@@ -23,6 +29,8 @@ interface Props {
 }
 
 const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
@@ -71,9 +79,16 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
-      <DialogTitle>Add Transaction</DialogTitle>
-      <DialogContent>
+    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
+      <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
+        <Box>
+          <Typography variant="h6" fontWeight={700}>Record Transaction</Typography>
+        </Box>
+        <IconButton size="small" onClick={handleClose} sx={{ color: 'text.secondary' }}>
+          <CloseIcon />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent sx={{ pt: 1 }}>
         {error && (
           <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
             {error}
@@ -126,12 +141,12 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
           InputLabelProps={{ shrink: true }}
         />
       </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} disabled={loading}>
+      <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
+        <Button onClick={handleClose} disabled={loading} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
           Cancel
         </Button>
-        <Button variant="contained" onClick={handleSubmit} disabled={loading}>
-          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Adding...</> : 'Add Transaction'}
+        <Button variant="contained" fullWidth={isMobile} onClick={handleSubmit} disabled={loading} size="large">
+          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save Transaction'}
         </Button>
       </DialogActions>
     </Dialog>

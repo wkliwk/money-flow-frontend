@@ -159,7 +159,7 @@ const MainLayout: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 4, pb: 12 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2.5, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: 14 }}>
         <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
 
         <SummaryCards transactions={monthFiltered} />
@@ -190,8 +190,8 @@ const MainLayout: React.FC = () => {
         variant={isDesktop ? 'extended' : 'circular'}
         sx={{
           position: 'fixed',
-          bottom: { xs: 24, sm: 32 },
-          right: { xs: 24, sm: 40 },
+          bottom: { xs: 'calc(20px + env(safe-area-inset-bottom))', sm: 32 },
+          right: { xs: 20, sm: 40 },
           zIndex: 1200,
           px: isDesktop ? 3 : undefined,
           gap: isDesktop ? 1 : undefined,

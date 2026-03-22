@@ -15,6 +15,11 @@ import {
   DialogContentText,
   DialogActions,
   Button,
+  Card,
+  CardActionArea,
+  CardContent,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -37,11 +42,9 @@ function formatDate(dateStr: string | undefined, fallback?: string): string {
 }
 
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd }) => {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [confirmId, setConfirmId] = useState<string | null>(null);
-
-  const handleDeleteClick = (id: string) => {
-    setConfirmId(id);
-  };
 
   const handleConfirm = () => {
     if (confirmId) {
@@ -50,24 +53,17 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
     }
   };
 
-  const handleCancel = () => {
-    setConfirmId(null);
-  };
-
   if (transactions.length === 0) {
     return (
       <>
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <AccountBalanceWalletIcon sx={{ fontSize: 64, color: 'text.disabled' }} />
-          <Typography variant="h6" color="text.secondary" mt={2}>
+        <Box sx={{ textAlign: 'center', py: 10 }}>
+          <AccountBalanceWalletIcon sx={{ fontSize: 56, color: 'text.disabled', opacity: 0.4 }} />
+          <Typography variant="h6" color="text.secondary" mt={2} fontWeight={600}>
             No transactions yet
           </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Add your first transaction to get started
+          <Typography variant="body2" color="text.secondary" mt={0.5}>
+            Tap the button below to record your first one
           </Typography>
-          <Button variant="contained" sx={{ mt: 3 }} onClick={onAdd}>
-            + Add Transaction
-          </Button>
         </Box>
       </>
     );
@@ -75,65 +71,147 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
 
   return (
     <>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Description</TableCell>
-            <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>Type</TableCell>
-            <TableCell align="right">Amount</TableCell>
-            <TableCell align="right">Actions</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
+      {isMobile ? (
+        /* ── Mobile: card list ── */
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           {transactions.map((t) => (
-            <TableRow key={t._id} hover>
-              <TableCell>{formatDate(t.date, t.createdAt)}</TableCell>
-              <TableCell
-                sx={{
-                  maxWidth: 200,
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {t.description}
-              </TableCell>
-              <TableCell sx={{ display: { xs: 'none', sm: 'table-cell' } }}>
-                <Chip
-                  label={t.type === 'income' ? 'Income' : 'Expense'}
-                  color={t.type === 'income' ? 'success' : 'error'}
-                  size="small"
-                />
-              </TableCell>
-              <TableCell align="right">
-                <Typography
-                  color={t.type === 'income' ? 'success.main' : 'error.main'}
-                  fontWeight={500}
-                >
-                  {t.type === 'income' ? '+' : '-'}HK${t.amount.toLocaleString()}
-                </Typography>
-              </TableCell>
-              <TableCell align="right">
-                <IconButton size="small" onClick={() => onEdit(t)}>
-                  <EditIcon fontSize="small" />
-                </IconButton>
-                <IconButton size="small" onClick={() => handleDeleteClick(t._id)}>
-                  <DeleteIcon fontSize="small" />
-                </IconButton>
-              </TableCell>
-            </TableRow>
+            <Card
+              key={t._id}
+              sx={{
+                border: '1px solid rgba(148,163,184,0.08)',
+                background: 'rgba(30,41,59,0.6)',
+              }}
+            >
+              <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
+                <CardContent sx={{ p: 2, '&:last-child': { pb: 2 } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      <Typography
+                        fontWeight={600}
+                        sx={{
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          fontSize: '0.95rem',
+                        }}
+                      >
+                        {t.description}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.75 }}>
+                        <Typography variant="caption" color="text.secondary">
+                          {formatDate(t.date, t.createdAt)}
+                        </Typography>
+                        {t.category && (
+                          <Chip
+                            label={t.category}
+                            size="small"
+                            sx={{
+                              height: 18,
+                              fontSize: '0.65rem',
+                              bgcolor: 'rgba(148,163,184,0.1)',
+                              color: 'text.secondary',
+                            }}
+                          />
+                        )}
+                      </Box>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                      <Typography
+                        fontWeight={700}
+                        sx={{
+                          color: t.type === 'income' ? '#34d399' : '#fb7185',
+                          fontSize: '1rem',
+                          letterSpacing: '-0.01em',
+                        }}
+                      >
+                        {t.type === 'income' ? '+' : '-'}HK${t.amount.toLocaleString()}
+                      </Typography>
+                      <Box sx={{ display: 'flex', gap: 0.25 }}>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); onEdit(t); }}
+                          sx={{ p: 0.5, color: 'text.secondary' }}
+                        >
+                          <EditIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                        <IconButton
+                          size="small"
+                          onClick={(e) => { e.stopPropagation(); setConfirmId(t._id); }}
+                          sx={{ p: 0.5, color: 'text.secondary' }}
+                        >
+                          <DeleteIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </Box>
+                    </Box>
+                  </Box>
+                </CardContent>
+              </CardActionArea>
+            </Card>
           ))}
-        </TableBody>
-      </Table>
+        </Box>
+      ) : (
+        /* ── Desktop: table ── */
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Date</TableCell>
+              <TableCell>Description</TableCell>
+              <TableCell>Type</TableCell>
+              <TableCell align="right">Amount</TableCell>
+              <TableCell align="right">Actions</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {transactions.map((t) => (
+              <TableRow key={t._id} hover>
+                <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
+                <TableCell
+                  sx={{
+                    maxWidth: 240,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                  }}
+                >
+                  {t.description}
+                </TableCell>
+                <TableCell>
+                  <Chip
+                    label={t.type === 'income' ? 'Income' : 'Expense'}
+                    color={t.type === 'income' ? 'success' : 'error'}
+                    size="small"
+                  />
+                </TableCell>
+                <TableCell align="right">
+                  <Typography
+                    color={t.type === 'income' ? 'success.main' : 'error.main'}
+                    fontWeight={600}
+                    sx={{ letterSpacing: '-0.01em' }}
+                  >
+                    {t.type === 'income' ? '+' : '-'}HK${t.amount.toLocaleString()}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <IconButton size="small" onClick={() => onEdit(t)}>
+                    <EditIcon fontSize="small" />
+                  </IconButton>
+                  <IconButton size="small" onClick={() => setConfirmId(t._id)}>
+                    <DeleteIcon fontSize="small" />
+                  </IconButton>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
-      <Dialog open={!!confirmId} onClose={handleCancel}>
+      <Dialog open={!!confirmId} onClose={() => setConfirmId(null)}>
         <DialogTitle>Delete transaction?</DialogTitle>
         <DialogContent>
           <DialogContentText>This cannot be undone.</DialogContentText>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCancel}>Cancel</Button>
+          <Button onClick={() => setConfirmId(null)}>Cancel</Button>
           <Button color="error" variant="contained" onClick={handleConfirm}>
             Delete
           </Button>
