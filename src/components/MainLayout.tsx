@@ -116,6 +116,27 @@ const MainLayout: React.FC = () => {
     window.location.href = '/login';
   };
 
+  const handleExport = () => {
+    const header = ['Date', 'Description', 'Type', 'Category', 'Amount'];
+    const rows = filteredTransactions.map((t) => [
+      new Date(t.date || t.createdAt).toISOString().split('T')[0],
+      `"${t.description.replace(/"/g, '""')}"`,
+      t.type,
+      t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
+      t.amount,
+    ]);
+    const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = selectedMonth
+      ? `money-flow-${selectedMonth.format('YYYY-MM')}.csv`
+      : 'money-flow-all.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
       <AppBar position="sticky" elevation={0}>
@@ -184,6 +205,7 @@ const MainLayout: React.FC = () => {
           filtered={filteredTransactions.length}
           onSearchChange={setSearch}
           onTypeFilterChange={setTypeFilter}
+          onExport={handleExport}
         />
 
         <ExpenseList
