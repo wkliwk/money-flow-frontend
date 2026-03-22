@@ -185,6 +185,24 @@ const theme = createTheme({
         },
       },
     },
+    MuiToggleButtonGroup: {
+      styleOverrides: {
+        root: {
+          gap: 6,
+        },
+        grouped: {
+          margin: 0,
+          '&:not(:first-of-type)': {
+            borderRadius: '8px !important',
+            marginLeft: 0,
+            borderLeft: '1px solid rgba(148, 163, 184, 0.15) !important',
+          },
+          '&:first-of-type': {
+            borderRadius: '8px !important',
+          },
+        },
+      },
+    },
     MuiToggleButton: {
       styleOverrides: {
         root: {
@@ -198,7 +216,7 @@ const theme = createTheme({
           '&.Mui-selected': {
             color: '#818cf8',
             backgroundColor: 'rgba(129, 140, 248, 0.12)',
-            borderColor: 'rgba(129, 140, 248, 0.3)',
+            borderColor: 'rgba(129, 140, 248, 0.3) !important',
             '&:hover': {
               backgroundColor: 'rgba(129, 140, 248, 0.18)',
             },
