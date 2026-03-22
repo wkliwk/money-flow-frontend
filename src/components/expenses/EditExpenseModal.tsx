@@ -69,9 +69,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       });
       onSaved(updated);
       onClose();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(msg || 'Failed to update transaction');
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to update transaction');
     } finally {
       setLoading(false);
     }

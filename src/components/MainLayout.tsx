@@ -42,10 +42,6 @@ const MainLayout: React.FC = () => {
   });
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
-
   const fetchTransactions = async () => {
     try {
       const data = await getExpenses();
@@ -58,6 +54,10 @@ const MainLayout: React.FC = () => {
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();

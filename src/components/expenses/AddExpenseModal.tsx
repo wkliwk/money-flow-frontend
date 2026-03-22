@@ -63,9 +63,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
         date,
       });
       handleClose();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { error?: string } } })?.response?.data?.error;
-      setError(msg || 'Failed to add transaction');
+    } catch (err: any) {
+      setError(err?.response?.data?.error || 'Failed to add transaction');
     } finally {
       setLoading(false);
     }
