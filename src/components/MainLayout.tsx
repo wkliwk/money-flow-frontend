@@ -11,7 +11,11 @@ import {
   IconButton,
   Menu,
   MenuItem,
+  Fab,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
+import AddIcon from '@mui/icons-material/Add';
 import AccountCircleIcon from '@mui/icons-material/AccountCircle';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
@@ -36,6 +40,8 @@ function getOwnerFromToken(): string {
 }
 
 const MainLayout: React.FC = () => {
+  const theme = useTheme();
+  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [search, setSearch] = useState('');
@@ -153,24 +159,12 @@ const MainLayout: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: 4 }}>
+      <Container maxWidth="lg" sx={{ py: 4, pb: 12 }}>
         <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
 
         <SummaryCards transactions={monthFiltered} />
 
         <CategoryChart transactions={monthFiltered} />
-
-        <Box sx={{ display: { xs: 'none', sm: 'flex' }, justifyContent: 'flex-end', mb: 2 }}>
-          <Button variant="contained" onClick={() => setAddOpen(true)}>
-            + Add Transaction
-          </Button>
-        </Box>
-
-        <Box sx={{ display: { xs: 'block', sm: 'none' }, mb: 2 }}>
-          <Button variant="contained" fullWidth onClick={() => setAddOpen(true)}>
-            + Add Transaction
-          </Button>
-        </Box>
 
         <FilterBar
           search={search}
@@ -189,6 +183,35 @@ const MainLayout: React.FC = () => {
         />
       </Container>
 
+      {/* Fixed FAB — primary action */}
+      <Fab
+        color="primary"
+        onClick={() => setAddOpen(true)}
+        variant={isDesktop ? 'extended' : 'circular'}
+        sx={{
+          position: 'fixed',
+          bottom: { xs: 24, sm: 32 },
+          right: { xs: 24, sm: 40 },
+          zIndex: 1200,
+          px: isDesktop ? 3 : undefined,
+          gap: isDesktop ? 1 : undefined,
+          boxShadow: '0 0 0 0 rgba(129,140,248,0.4)',
+          animation: 'fab-pulse 2.5s ease-in-out infinite',
+          '@keyframes fab-pulse': {
+            '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
+            '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
+            '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
+          },
+          '&:hover': {
+            animation: 'none',
+            boxShadow: '0 0 28px rgba(129,140,248,0.5)',
+          },
+        }}
+      >
+        <AddIcon sx={{ fontSize: isDesktop ? 20 : 24 }} />
+        {isDesktop && <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Record</span>}
+      </Fab>
+
       <AddExpenseModal
         open={addOpen}
         onClose={() => setAddOpen(false)}
@@ -206,7 +229,7 @@ const MainLayout: React.FC = () => {
         open={snackbar.open}
         autoHideDuration={3000}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
         <Alert
           severity={snackbar.severity}
