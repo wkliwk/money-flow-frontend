@@ -28,10 +28,11 @@ interface Props {
   onAdd: () => void;
 }
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—';
-  const d = new Date(dateStr);
-  if (Number.isNaN(d.getTime())) return dateStr;
+function formatDate(dateStr: string | undefined, fallback?: string): string {
+  const raw = dateStr || fallback;
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '—';
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
@@ -87,7 +88,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
         <TableBody>
           {transactions.map((t) => (
             <TableRow key={t._id} hover>
-              <TableCell>{formatDate(t.date)}</TableCell>
+              <TableCell>{formatDate(t.date, t.createdAt)}</TableCell>
               <TableCell
                 sx={{
                   maxWidth: 200,
