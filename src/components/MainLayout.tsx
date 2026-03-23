@@ -422,7 +422,7 @@ const MainLayout: React.FC = () => {
                                   <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
                                     {t.item || t.description}
                                   </Typography>
-                                  {t.item && t.description && (
+                                  {t.item && t.description && t.description !== t.item && (
                                     <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
                                   )}
                                   {t.participants && t.participants.length > 0 && (
@@ -469,7 +469,7 @@ const MainLayout: React.FC = () => {
                                   <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
                                     {t.item || t.description}
                                   </Typography>
-                                  {t.item && t.description && (
+                                  {t.item && t.description && t.description !== t.item && (
                                     <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
                                   )}
                                   {t.participants && t.participants.length > 0 && (

@@ -150,7 +150,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                             >
                               {t.item || t.description}
                             </Typography>
-                            {t.item && t.description && (
+                            {t.item && t.description && t.description !== t.item && (
                               <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', lineHeight: 1.2 }}>
                                 {t.description}
                               </Typography>
@@ -202,7 +202,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
                 <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {t.item ? `${t.item}${t.description ? ` · ${t.description}` : ''}` : t.description}
+                  {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
                   {t.participants && t.participants.length > 0 ? t.participants.join(', ') : '—'}
