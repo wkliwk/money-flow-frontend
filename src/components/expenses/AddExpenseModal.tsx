@@ -39,6 +39,7 @@ interface Props {
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
+  recentItems?: string[];
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -50,7 +51,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [] }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -205,7 +206,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         {/* Item picker — sets item + category, filtered by type */}
-        <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
+        <ItemPicker value={item} type={type} onSelect={handleItemSelect} recentItems={recentItems} />
 
         {/* Description — tag picker */}
         {(() => {

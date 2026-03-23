@@ -42,6 +42,7 @@ interface Props {
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
+  recentItems?: string[];
 }
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
@@ -60,7 +61,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [] }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -225,7 +226,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         </Box>
 
         {/* Item picker — filtered by current type */}
-        <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
+        <ItemPicker value={item} type={type} onSelect={handleItemSelect} recentItems={recentItems} />
 
         {/* Description — tag picker */}
         {(() => {

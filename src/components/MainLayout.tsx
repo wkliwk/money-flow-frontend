@@ -126,6 +126,13 @@ const MainLayout: React.FC = () => {
     [transactions]
   );
 
+  const recentItems = useMemo(() => {
+    const seen: string[] = [];
+    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
+      .forEach((t) => { if (t.item && !seen.includes(t.item)) seen.push(t.item); });
+    return seen.slice(0, 5);
+  }, [transactions]);
+
   const knownParticipants = useMemo(() => {
     const seen = new Set<string>();
     transactions.forEach((t) => (t.participants ?? []).forEach((p) => seen.add(p)));
@@ -490,6 +497,7 @@ const MainLayout: React.FC = () => {
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
+        recentItems={recentItems}
       />
 
       <EditExpenseModal
@@ -510,6 +518,7 @@ const MainLayout: React.FC = () => {
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
+        recentItems={recentItems}
       />
 
       <Snackbar

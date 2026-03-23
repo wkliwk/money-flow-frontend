@@ -65,10 +65,17 @@ interface Props {
   value: string;
   type: TransactionType;
   onSelect: (item: ItemPreset) => void;
+  recentItems?: string[]; // ordered by most recently used
 }
 
-const ItemPicker: React.FC<Props> = ({ value, type, onSelect }) => {
-  const presets = ITEM_PRESETS.filter((p) => p.type === type);
+const ItemPicker: React.FC<Props> = ({ value, type, onSelect, recentItems }) => {
+  const filtered = ITEM_PRESETS.filter((p) => p.type === type);
+  const presets = recentItems && recentItems.length
+    ? [
+        ...filtered.filter((p) => recentItems.includes(p.label)).sort((a, b) => recentItems.indexOf(a.label) - recentItems.indexOf(b.label)),
+        ...filtered.filter((p) => !recentItems.includes(p.label)),
+      ]
+    : filtered;
 
   return (
     <Box sx={{ mb: 1.5 }}>
