@@ -21,7 +21,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
-import ItemPicker, { ItemPreset } from './ItemPicker';
+import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
@@ -47,7 +47,9 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
-  const { symbol, convert, currency } = useFxRates();
+  const { symbol, rates, currency } = useFxRates();
+  // fxRate = how many HKD per 1 foreign unit (e.g. CA$1 = HK$5.5 → rate = 5.5)
+  const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
   const [manageOpen, setManageOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -58,7 +60,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const convertedAmount = amount ? String(convert(parseFloat(amount)).toLocaleString('en-HK', { maximumFractionDigits: 2 })) : '';
+  // Detect if a preset item is selected (to auto-hide manual category picker)
+  const itemSelected = ITEM_PRESETS.find((i) => i.label === description);
 
   const handleItemSelect = (item: ItemPreset) => {
     setDescription(item.label);
@@ -201,16 +204,27 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
           placeholder="或自行輸入..."
         />
 
-        {/* Category with emoji chips */}
-        <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
+        {/* Category — auto from item, or manual picker */}
+        {itemSelected ? (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, mb: 0.5 }}>
+            <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</Typography>
+            <Box sx={{ px: 1.25, py: 0.4, borderRadius: 10, bgcolor: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.25)' }}>
+              <Typography sx={{ fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>{category}</Typography>
+            </Box>
+            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', cursor: 'pointer', '&:hover': { color: 'text.secondary' } }} onClick={() => setDescription('')}>
+              change
+            </Typography>
+          </Box>
+        ) : (
+          <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
+        )}
 
-        {/* Amount — calculator keypad with fx conversion */}
+        {/* Amount — calculator keypad with FX support */}
         <NumPad
           value={amount}
           onChange={setAmount}
-          symbol="HK$"
-          convertedSymbol={currency !== 'HKD' ? symbol : undefined}
-          convertedValue={currency !== 'HKD' ? convertedAmount : undefined}
+          fxSymbol={currency !== 'HKD' ? symbol : undefined}
+          fxRate={fxRate}
         />
 
         {/* Date — quick chips */}
