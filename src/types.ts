@@ -7,6 +7,7 @@ export interface Transaction {
   amount: number;
   type: TransactionType;
   category?: string;
+  item?: string;
   participants?: string[];
   date: string;
   createdAt: string;
@@ -19,6 +20,7 @@ export interface TransactionRequest {
   amount: number;
   type: TransactionType;
   category?: string;
+  item?: string;
   participants?: string[];
   date?: string;
 }

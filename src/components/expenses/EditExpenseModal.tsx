@@ -20,9 +20,10 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
-import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
+import ItemPicker, { ItemPreset } from './ItemPicker';
 import ParticipantPicker from './ParticipantPicker';
+import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 
 interface Props {
   open: boolean;
@@ -48,13 +49,16 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, existingCategories }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { symbol, rates, currency, setCurrency } = useFxRates();
+  const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
+  const [item, setItem] = useState('');
+  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
-  const [category, setCategory] = useState('');
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
@@ -63,10 +67,11 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
 
   useEffect(() => {
     if (transaction) {
+      setItem(transaction.item || '');
+      setCategory(transaction.category || '');
       setDescription(transaction.description);
       setAmount(String(transaction.amount));
       setType(transaction.type);
-      setCategory(transaction.category || '');
       setParticipants(transaction.participants ?? []);
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
@@ -78,8 +83,13 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const resolvedDate =
     quickDate === 'today' ? todayStr() : quickDate === 'yesterday' ? yesterdayStr() : customDate;
 
+  const handleItemSelect = (preset: ItemPreset) => {
+    setItem(preset.label);
+    setCategory(preset.category);
+  };
+
   const handleSubmit = async () => {
-    if (!description.trim()) { setError('Description is required'); return; }
+    if (!item && !description.trim()) { setError('Please select an item or enter a description'); return; }
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
     if (!transaction) return;
@@ -88,10 +98,11 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     setError('');
     try {
       const updated = await updateExpense(transaction._id, {
-        description: description.trim(),
+        description: description.trim() || item,
         amount: parsedAmount,
         type,
-        category: category.trim() || undefined,
+        item: item || undefined,
+        category: category || undefined,
         participants: participants.length ? participants : undefined,
         date: resolvedDate,
         owner: transaction.owner,
@@ -177,21 +188,54 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           })}
         </Box>
 
-        {/* Amount — calculator keypad */}
-        <NumPad value={amount} onChange={setAmount} />
+        {/* Item picker */}
+        <ItemPicker value={item} onSelect={handleItemSelect} />
 
-        {/* Description */}
+        {/* Description — optional free-text note */}
         <TextField
           label="Description"
           fullWidth
-          margin="normal"
-          required
+          margin="dense"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          placeholder="Note (optional)"
+          size="small"
         />
 
-        {/* Category with emoji chips */}
-        <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
+        {/* Currency selector */}
+        <Box sx={{ mt: 1.5, mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Currency
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.75 }}>
+            {CURRENCIES.map((c) => (
+              <Chip
+                key={c}
+                label={`${CURRENCY_SYMBOLS[c]} ${c}`}
+                size="small"
+                clickable
+                onClick={() => setCurrency(c as Currency)}
+                sx={{
+                  fontSize: '0.72rem',
+                  height: 28,
+                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                  color: currency === c ? '#818cf8' : 'text.secondary',
+                  border: '1px solid',
+                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  fontWeight: currency === c ? 700 : 400,
+                }}
+              />
+            ))}
+          </Box>
+        </Box>
+
+        {/* Amount — calculator keypad with FX support */}
+        <NumPad
+          value={amount}
+          onChange={setAmount}
+          fxSymbol={currency !== 'HKD' ? symbol : undefined}
+          fxRate={fxRate}
+        />
 
         {/* Date — quick chips */}
         <Box sx={{ mt: 1.5 }}>

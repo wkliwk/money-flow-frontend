@@ -19,14 +19,13 @@ import CloseIcon from '@mui/icons-material/Close';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
-import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
-import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
+import ItemPicker, { ItemPreset } from './ItemPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
-import { useFxRates } from '../../hooks/useFxRates';
+import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 
 interface Props {
   open: boolean;
@@ -44,30 +43,27 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCategories }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
-  const { symbol, rates, currency } = useFxRates();
-  // fxRate = how many HKD per 1 foreign unit (e.g. CA$1 = HK$5.5 → rate = 5.5)
+  const { symbol, rates, currency, setCurrency } = useFxRates();
   const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
   const [manageOpen, setManageOpen] = useState(false);
+  const [item, setItem] = useState('');
+  const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
-  const [category, setCategory] = useState('');
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // Detect if a preset item is selected (to auto-hide manual category picker)
-  const itemSelected = ITEM_PRESETS.find((i) => i.label === description);
-
-  const handleItemSelect = (item: ItemPreset) => {
-    setDescription(item.label);
-    setCategory(item.category);
+  const handleItemSelect = (preset: ItemPreset) => {
+    setItem(preset.label);
+    setCategory(preset.category);
   };
 
   const handleTemplateSelect = (t: TransactionTemplate) => {
@@ -80,10 +76,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const resolvedDate = quickDate === 'today' ? today() : quickDate === 'yesterday' ? yesterday() : customDate;
 
   const handleClose = () => {
+    setItem('');
+    setCategory('');
     setDescription('');
     setAmount('');
     setType('expense');
-    setCategory('');
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
@@ -92,7 +89,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   };
 
   const handleSubmit = async () => {
-    if (!description.trim()) { setError('Description is required'); return; }
+    if (!item && !description.trim()) { setError('Please select an item or enter a description'); return; }
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
 
@@ -100,10 +97,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
     setError('');
     try {
       await onSubmit({
-        description: description.trim(),
+        description: description.trim() || item,
         amount: parsedAmount,
         type,
-        category: category.trim() || undefined,
+        item: item || undefined,
+        category: category || undefined,
         participants: participants.length ? participants : undefined,
         date: resolvedDate,
       });
@@ -195,34 +193,46 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
           })}
         </Box>
 
-        {/* Item picker — sets description + category */}
-        <ItemPicker value={description} onSelect={handleItemSelect} />
+        {/* Item picker — sets item + category */}
+        <ItemPicker value={item} onSelect={handleItemSelect} />
 
-        {/* Description — editable text, pre-filled by item */}
+        {/* Description — optional free-text note */}
         <TextField
           label="Description"
           fullWidth
           margin="dense"
-          required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="或自行輸入..."
+          placeholder="Note (optional)"
+          size="small"
         />
 
-        {/* Category — auto from item, or manual picker */}
-        {itemSelected ? (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1, mb: 0.5 }}>
-            <Typography variant="caption" color="text.disabled" sx={{ fontSize: '0.7rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</Typography>
-            <Box sx={{ px: 1.25, py: 0.4, borderRadius: 10, bgcolor: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.25)' }}>
-              <Typography sx={{ fontSize: '0.72rem', color: '#818cf8', fontWeight: 600 }}>{category}</Typography>
-            </Box>
-            <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', cursor: 'pointer', '&:hover': { color: 'text.secondary' } }} onClick={() => setDescription('')}>
-              change
-            </Typography>
+        {/* Currency selector */}
+        <Box sx={{ mt: 1.5, mb: 0.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Currency
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.75 }}>
+            {CURRENCIES.map((c) => (
+              <Chip
+                key={c}
+                label={`${CURRENCY_SYMBOLS[c]} ${c}`}
+                size="small"
+                clickable
+                onClick={() => setCurrency(c as Currency)}
+                sx={{
+                  fontSize: '0.72rem',
+                  height: 28,
+                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                  color: currency === c ? '#818cf8' : 'text.secondary',
+                  border: '1px solid',
+                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  fontWeight: currency === c ? 700 : 400,
+                }}
+              />
+            ))}
           </Box>
-        ) : (
-          <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
-        )}
+        </Box>
 
         {/* Amount — calculator keypad with FX support */}
         <NumPad
