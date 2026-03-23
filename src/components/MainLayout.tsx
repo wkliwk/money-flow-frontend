@@ -456,6 +456,12 @@ const MainLayout: React.FC = () => {
           handleDelete(id);
           setEditTransaction(null);
         }}
+        onDuplicate={async (data) => {
+          const owner = getOwnerFromToken();
+          await createExpense({ ...data, owner });
+          await fetchTransactions();
+          showSnackbar('Transaction logged again');
+        }}
         existingCategories={existingCategories}
       />
 

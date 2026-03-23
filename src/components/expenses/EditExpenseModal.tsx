@@ -17,12 +17,13 @@ import {
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import ContentCopyIcon from '@mui/icons-material/ContentCopy';
 import TodayIcon from '@mui/icons-material/Today';
 import HistoryIcon from '@mui/icons-material/History';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { Transaction, TransactionType } from '../../types';
+import { Transaction, TransactionRequest, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
@@ -36,6 +37,7 @@ interface Props {
   onClose: () => void;
   onSaved: (updated: Transaction) => void;
   onDelete: (id: string) => void;
+  onDuplicate: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
   existingCategories: string[];
 }
 
@@ -55,7 +57,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { symbol, rates, currency, setCurrency } = useFxRates();
@@ -71,6 +73,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [duplicating, setDuplicating] = useState(false);
 
   useEffect(() => {
     if (transaction) {
@@ -123,6 +126,25 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setError(err?.response?.data?.error || 'Failed to update transaction');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDuplicate = async () => {
+    if (!transaction) return;
+    setDuplicating(true);
+    try {
+      await onDuplicate({
+        description: description.trim() || item,
+        amount: parseFloat(amount) || transaction.amount,
+        type,
+        item: item || undefined,
+        category: category || undefined,
+        participants: participants.length ? participants : undefined,
+        date: todayStr(),
+      });
+      onClose();
+    } finally {
+      setDuplicating(false);
     }
   };
 
@@ -299,11 +321,14 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           </>
         ) : (
           <>
-            <IconButton size="small" onClick={() => setDeleteConfirm(true)} disabled={loading} sx={{ color: 'rgba(251,113,133,0.5)', '&:hover': { color: '#fb7185' }, mr: 'auto' }}>
+            <IconButton size="small" onClick={() => setDeleteConfirm(true)} disabled={loading || duplicating} sx={{ color: 'rgba(251,113,133,0.5)', '&:hover': { color: '#fb7185' } }}>
               <DeleteIcon sx={{ fontSize: 20 }} />
             </IconButton>
-            <Button onClick={onClose} disabled={loading}>Cancel</Button>
-            <Button variant="contained" onClick={handleSubmit} disabled={loading} size="large">
+            <IconButton size="small" onClick={handleDuplicate} disabled={loading || duplicating} title="Log again today" sx={{ color: 'rgba(129,140,248,0.5)', '&:hover': { color: '#818cf8' }, mr: 'auto' }}>
+              {duplicating ? <CircularProgress size={16} /> : <ContentCopyIcon sx={{ fontSize: 18 }} />}
+            </IconButton>
+            <Button onClick={onClose} disabled={loading || duplicating}>Cancel</Button>
+            <Button variant="contained" onClick={handleSubmit} disabled={loading || duplicating} size="large">
               {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save'}
             </Button>
           </>
