@@ -115,7 +115,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         type,
         item: item || undefined,
         category: category || undefined,
-        participants: participants.length ? participants : undefined,
+        participants: participants,
         date: resolvedDate,
       });
       if (addAnother) {

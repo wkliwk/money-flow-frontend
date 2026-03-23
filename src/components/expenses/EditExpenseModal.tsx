@@ -122,7 +122,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         type,
         item: item || undefined,
         category: category || undefined,
-        participants: participants.length ? participants : undefined,
+        participants: participants,
         date: resolvedDate,
         owner: transaction.owner,
       });
@@ -145,7 +145,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         type,
         item: item || undefined,
         category: category || undefined,
-        participants: participants.length ? participants : undefined,
+        participants: participants,
         date: todayStr(),
       });
       onClose();
