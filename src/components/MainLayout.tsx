@@ -449,6 +449,32 @@ const MainLayout: React.FC = () => {
                   <CurrencyPicker currency={currency} onChange={setCurrency} />
                 </Box>
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
+                {(() => {
+                  const weekStart = dayjs().startOf('week');
+                  const lastWeekStart = weekStart.subtract(1, 'week');
+                  const thisWeek = transactions.filter((t) => {
+                    const d = dayjs(t.date || t.createdAt);
+                    return d.isValid() && !d.isBefore(weekStart);
+                  });
+                  const lastWeek = transactions.filter((t) => {
+                    const d = dayjs(t.date || t.createdAt);
+                    return d.isValid() && !d.isBefore(lastWeekStart) && d.isBefore(weekStart);
+                  });
+                  const weekExp = thisWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                  const lastWeekExp = lastWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                  const weekInc = thisWeek.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                  if (weekExp === 0 && weekInc === 0) return null;
+                  const delta = lastWeekExp > 0 ? weekExp - lastWeekExp : null;
+                  return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, px: 0.5, py: 1, borderRadius: 1.5, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                      <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>This week</Typography>
+                      {weekExp > 0 && <Typography sx={{ fontSize: '0.78rem', color: '#fb7185', fontWeight: 600 }}>-{symbol}{convert(weekExp).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                      {weekInc > 0 && <Typography sx={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 600 }}>+{symbol}{convert(weekInc).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                      <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{thisWeek.length} txn{thisWeek.length !== 1 ? 's' : ''}</Typography>
+                      {delta !== null && <Typography sx={{ fontSize: '0.72rem', color: delta > 0 ? '#fb7185' : '#34d399', fontWeight: 600, ml: 'auto' }}>{delta > 0 ? '↑' : '↓'} {symbol}{convert(Math.abs(delta)).toLocaleString(undefined, { maximumFractionDigits: 0 })} vs last week</Typography>}
+                    </Box>
+                  );
+                })()}
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
                 <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
