@@ -350,9 +350,7 @@ const MainLayout: React.FC = () => {
 
           {activeTab === 1 && (
             <>
-              <Box sx={{ mb: 1.5 }}>
-                <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-              </Box>
+              <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
