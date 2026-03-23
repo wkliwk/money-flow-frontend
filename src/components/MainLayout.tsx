@@ -30,7 +30,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
-import { getExpenses, createExpense, deleteExpense } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
@@ -157,9 +157,15 @@ const MainLayout: React.FC = () => {
     setUndoSnackbar(false);
   }, []);
 
-  const handleSaved = (updated: Transaction) => {
+  const handleSaved = async (updated: Transaction) => {
+    // Optimistic update for immediate UI feedback
     setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
     showSnackbar('Transaction updated');
+    // Re-fetch from server to guarantee all fields (e.g. participants) are in sync
+    try {
+      const fresh = await getExpense(updated._id);
+      setTransactions((prev) => prev.map((t) => (t._id === fresh._id ? fresh : t)));
+    } catch {}
   };
 
   const existingCategories = useMemo(
