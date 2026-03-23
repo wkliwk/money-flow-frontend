@@ -22,15 +22,17 @@ import {
 import CloseIcon from '@mui/icons-material/Close';
 import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
+import CategorySelect from './CategorySelect';
 
 interface Props {
   open: boolean;
   transaction: Transaction | null;
   onClose: () => void;
   onSaved: (updated: Transaction) => void;
+  existingCategories: string[];
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, existingCategories }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [description, setDescription] = useState('');
@@ -129,12 +131,10 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
             <FormControlLabel value="expense" control={<Radio />} label="Expense" />
           </RadioGroup>
         </FormControl>
-        <TextField
-          label="Category (optional)"
-          fullWidth
-          margin="normal"
+        <CategorySelect
           value={category}
-          onChange={(e) => setCategory(e.target.value)}
+          onChange={setCategory}
+          existingCategories={existingCategories}
         />
         <TextField
           label="Date"

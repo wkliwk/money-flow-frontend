@@ -96,6 +96,11 @@ const MainLayout: React.FC = () => {
     showSnackbar('Transaction updated');
   };
 
+  const existingCategories = useMemo(() =>
+    Array.from(new Set(transactions.map((t) => t.category).filter(Boolean) as string[])),
+    [transactions]
+  );
+
   const monthFiltered = useMemo(() => {
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
@@ -251,6 +256,7 @@ const MainLayout: React.FC = () => {
         open={addOpen}
         onClose={() => setAddOpen(false)}
         onSubmit={handleAdd}
+        existingCategories={existingCategories}
       />
 
       <EditExpenseModal
@@ -258,6 +264,7 @@ const MainLayout: React.FC = () => {
         transaction={editTransaction}
         onClose={() => setEditTransaction(null)}
         onSaved={handleSaved}
+        existingCategories={existingCategories}
       />
 
       <Snackbar
