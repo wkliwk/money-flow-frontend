@@ -48,6 +48,7 @@ import { useRecurring } from '../hooks/useRecurring';
 import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
+import { useBudgets } from '../hooks/useBudgets';
 
 function getOwnerFromToken(): string {
   try {
@@ -64,6 +65,7 @@ const MainLayout: React.FC = () => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
+  const { budgets } = useBudgets();
   const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -397,6 +399,20 @@ const MainLayout: React.FC = () => {
                   </Button>
                 </Box>
               )}
+
+              {/* Over-budget alert */}
+              {(() => {
+                const overBudget = Object.entries(budgets).filter(([cat, limit]) => limit > 0 && (categorySpend[cat] || 0) > limit);
+                if (overBudget.length === 0) return null;
+                return (
+                  <Box sx={{ mb: 2, py: 1.25, px: 2, borderRadius: 2, bgcolor: 'rgba(251,113,133,0.07)', border: '1px solid rgba(251,113,133,0.2)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography sx={{ fontSize: '0.82rem', color: '#fb7185', fontWeight: 600 }}>⚠</Typography>
+                    <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+                      Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert(categorySpend[cat] - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
+                    </Typography>
+                  </Box>
+                );
+              })()}
 
               {/* Mobile: hero card with month picker + big balance + breakdown */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
