@@ -177,7 +177,14 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   return (
     <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-        <Typography variant="h6" fontWeight={700}>Edit Transaction</Typography>
+        <Box>
+          <Typography variant="h6" fontWeight={700}>Edit Transaction</Typography>
+          {transaction?.createdAt && (
+            <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', mt: 0.125 }}>
+              {new Date(transaction.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' })}
+            </Typography>
+          )}
+        </Box>
         <IconButton size="small" onClick={onClose} sx={{ color: 'text.secondary' }}>
           <CloseIcon />
         </IconButton>
