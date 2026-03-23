@@ -35,6 +35,7 @@ interface Props {
   onClose: () => void;
   onSubmit: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
   existingCategories: string[];
+  descriptionsByItem?: Record<string, string[]>;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -46,7 +47,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -209,6 +210,29 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
           placeholder="e.g. McDonald's, MTR…"
           size="small"
         />
+
+        {/* Description history chips — quick-tap past entries for this item */}
+        {item && descriptionsByItem[item] && descriptionsByItem[item].length > 0 && (
+          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5, mb: 0.5 }}>
+            {descriptionsByItem[item].slice(0, 6).map((d) => (
+              <Chip
+                key={d}
+                label={d}
+                size="small"
+                clickable
+                onClick={() => setDescription(d)}
+                sx={{
+                  height: 22,
+                  fontSize: '0.7rem',
+                  bgcolor: description === d ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
+                  color: description === d ? '#818cf8' : 'text.secondary',
+                  border: '1px solid',
+                  borderColor: description === d ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)',
+                }}
+              />
+            ))}
+          </Box>
+        )}
 
         {/* Currency selector */}
         <Box sx={{ mt: 1.5, mb: 0.5 }}>

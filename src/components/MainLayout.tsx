@@ -106,6 +106,18 @@ const MainLayout: React.FC = () => {
     [transactions]
   );
 
+  // descriptionsByItem: for each item label, unique descriptions entered historically
+  const descriptionsByItem = useMemo(() => {
+    const map: Record<string, string[]> = {};
+    transactions.forEach((t) => {
+      const key = t.item || '';
+      if (!key || !t.description?.trim()) return;
+      if (!map[key]) map[key] = [];
+      if (!map[key].includes(t.description.trim())) map[key].push(t.description.trim());
+    });
+    return map;
+  }, [transactions]);
+
   const monthFiltered = useMemo(() => {
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
@@ -278,6 +290,7 @@ const MainLayout: React.FC = () => {
         onClose={() => setAddOpen(false)}
         onSubmit={handleAdd}
         existingCategories={existingCategories}
+        descriptionsByItem={descriptionsByItem}
       />
 
       <EditExpenseModal
