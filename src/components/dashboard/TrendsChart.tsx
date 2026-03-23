@@ -1,13 +1,15 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, Card, CardContent } from '@mui/material';
 import {
-  BarChart,
+  ComposedChart,
   Bar,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
   ResponsiveContainer,
   Cell,
+  ReferenceLine,
 } from 'recharts';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction } from '../../types';
@@ -30,7 +32,8 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
       });
       const income = inMonth.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
       const expense = inMonth.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-      return { label: m.format('MMM'), month: m, income, expense };
+      const net = income - expense;
+      return { label: m.format('MMM'), month: m, income, expense, net };
     });
   }, [transactions]);
 
@@ -75,10 +78,14 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
             <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#fb7185' }} />
             <Typography variant="caption" color="text.secondary">Expense</Typography>
           </Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Box sx={{ width: 16, height: 2, bgcolor: '#818cf8', borderRadius: 1 }} />
+            <Typography variant="caption" color="text.secondary">Net</Typography>
+          </Box>
         </Box>
 
         <ResponsiveContainer width="100%" height={180}>
-          <BarChart
+          <ComposedChart
             data={data}
             barCategoryGap="30%"
             barGap={3}
@@ -99,7 +106,14 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
               width={48}
             />
             <Tooltip
-              formatter={(value) => [`HK$${Number(value).toLocaleString()}`, '']}
+              formatter={(value, name) => {
+                const n = Number(value);
+                if (name === 'Net') {
+                  const sign = n >= 0 ? '+' : '';
+                  return [`${sign}HK$${n.toLocaleString()}`, 'Net'];
+                }
+                return [`HK$${n.toLocaleString()}`, name as string];
+              }}
               contentStyle={{
                 background: '#1e293b',
                 border: '1px solid rgba(148,163,184,0.1)',
@@ -109,6 +123,7 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
               }}
               cursor={{ fill: 'rgba(148,163,184,0.05)' }}
             />
+            <ReferenceLine y={0} stroke="rgba(148,163,184,0.15)" strokeDasharray="3 3" />
             <Bar dataKey="income" name="Income" radius={[4, 4, 0, 0]}>
               {data.map((_, i) => (
                 <Cell key={i} fill="#34d399" fillOpacity={0.85} />
@@ -119,7 +134,29 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
                 <Cell key={i} fill="#fb7185" fillOpacity={0.85} />
               ))}
             </Bar>
-          </BarChart>
+            <Line
+              type="monotone"
+              dataKey="net"
+              name="Net"
+              stroke="#818cf8"
+              strokeWidth={2}
+              dot={(props: any) => {
+                const { cx, cy, payload } = props;
+                return (
+                  <circle
+                    key={payload.label}
+                    cx={cx}
+                    cy={cy}
+                    r={4}
+                    fill={payload.net >= 0 ? '#34d399' : '#fb7185'}
+                    stroke="#1e293b"
+                    strokeWidth={1.5}
+                  />
+                );
+              }}
+              activeDot={{ r: 5, strokeWidth: 1.5, stroke: '#1e293b' }}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
         <Typography variant="caption" color="text.disabled" sx={{ display: 'block', textAlign: 'center', mt: 0.5, fontSize: '0.65rem' }}>
           Tap a month to filter
