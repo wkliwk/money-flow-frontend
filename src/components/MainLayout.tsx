@@ -433,6 +433,7 @@ const MainLayout: React.FC = () => {
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
                 <CategoryChart transactions={monthFiltered} />
+                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 3 }}>
