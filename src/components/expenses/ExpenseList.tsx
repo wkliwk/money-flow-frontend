@@ -113,21 +113,28 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, c
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {grouped.map((group) => (
             <Box key={group.key} sx={{ mb: 2 }}>
-              <Typography
-                variant="caption"
-                sx={{
-                  color: 'text.secondary',
-                  fontWeight: 700,
-                  fontSize: '0.7rem',
-                  letterSpacing: '0.06em',
-                  textTransform: 'uppercase',
-                  display: 'block',
-                  mb: 1,
-                  px: 0.5,
-                }}
-              >
-                {group.label}
-              </Typography>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 0.5 }}>
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: 'text.secondary',
+                    fontWeight: 700,
+                    fontSize: '0.7rem',
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                  }}
+                >
+                  {group.label}
+                </Typography>
+                <Typography variant="caption" sx={{ fontSize: '0.7rem', color: 'text.disabled', fontWeight: 600 }}>
+                  {(() => {
+                    const dayExpenses = group.items.filter((t) => t.type === 'expense');
+                    if (!dayExpenses.length) return null;
+                    const total = dayExpenses.reduce((s, t) => s + t.amount, 0);
+                    return `-${fmtAmt(total, convert, symbol)}`;
+                  })()}
+                </Typography>
+              </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {group.items.map((t) => (
