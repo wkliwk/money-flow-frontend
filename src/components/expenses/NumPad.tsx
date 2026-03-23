@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, ButtonBase } from '@mui/material';
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
+import SwapVertIcon from '@mui/icons-material/SwapVert';
 
 interface Props {
   value: string;           // Always HKD — parent stores HKD
   onChange: (hkdValue: string) => void;
-  fxSymbol?: string;       // e.g. 'CA$' — if set, user enters in foreign currency
-  fxRate?: number;         // HKD per 1 foreign unit (e.g. CA$1 = HK$5.5 → rate=5.5)
+  fxSymbol?: string;       // e.g. 'CA$' — if set, FX swap available
+  fxRate?: number;         // HKD per 1 foreign unit
 }
 
 function compute(a: number, b: number, op: string): number {
@@ -24,49 +25,61 @@ function fmt(n: number): string {
 }
 
 const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
-  const isFx = !!fxSymbol && !!fxRate;
-
-  // When in FX mode, fxInput is what the user typed (foreign currency).
-  // parent's `value` is always HKD.
+  const isFxAvailable = !!fxSymbol && !!fxRate;
+  const [inputInFx, setInputInFx] = useState(false);
   const [fxInput, setFxInput] = useState('');
   const [storedValue, setStoredValue] = useState<number | null>(null);
   const [pendingOp, setPendingOp] = useState<string | null>(null);
   const [waitForNext, setWaitForNext] = useState(false);
 
-  // When switching currency (fxRate changes), initialize fxInput from existing HKD value
+  // On currency switch, reset to HKD mode and re-init fxInput
   useEffect(() => {
-    if (isFx && value) {
-      const fxVal = parseFloat(value) / fxRate!;
-      setFxInput(fxVal > 0 ? fmt(fxVal) : '');
+    setInputInFx(false);
+    if (isFxAvailable && value) {
+      setFxInput(fmt(parseFloat(value) / fxRate!));
     } else {
       setFxInput('');
     }
     setStoredValue(null);
     setPendingOp(null);
     setWaitForNext(false);
-  }, [isFx, fxRate]); // intentionally omitting `value` — only re-init on currency change
+  }, [isFxAvailable, fxRate]); // intentionally omits value
 
-  // The string shown in the big display
-  const displayStr = isFx ? fxInput : value;
+  const displayStr = inputInFx ? fxInput : value;
   const displayNum = displayStr === '' ? '0' : displayStr;
-  const displaySymbol = isFx ? fxSymbol! : 'HK$';
-
-  // Conversion hint below display
-  const hintLabel = isFx && fxInput !== ''
-    ? `≈ HK$${fmt(parseFloat(fxInput || '0') * fxRate!)}`
-    : !isFx && fxSymbol && fxRate && value !== ''
-    ? `≈ ${fxSymbol}${fmt(parseFloat(value || '0') / fxRate)}`
-    : '';
+  const displaySymbol = inputInFx ? fxSymbol! : 'HK$';
+  const hintSymbol = inputInFx ? 'HK$' : fxSymbol;
+  const hintVal = isFxAvailable
+    ? inputInFx
+      ? fmt(parseFloat(fxInput || '0') * fxRate!)
+      : fmt(parseFloat(value || '0') / fxRate!)
+    : null;
 
   const emitHkd = (fxStr: string) => {
-    const fxNum = parseFloat(fxStr) || 0;
-    onChange(fxNum > 0 ? fmt(fxNum * fxRate!) : '');
+    const n = parseFloat(fxStr) || 0;
+    onChange(n > 0 ? fmt(n * fxRate!) : '');
+  };
+
+  const handleSwap = () => {
+    if (!isFxAvailable) return;
+    if (inputInFx) {
+      // fxInput → convert to HKD, now entering HKD
+      const hkd = parseFloat(fxInput || '0') * fxRate!;
+      onChange(hkd > 0 ? fmt(hkd) : '');
+    } else {
+      // value is HKD → convert to FX, now entering FX
+      const fx = parseFloat(value || '0') / fxRate!;
+      setFxInput(fx > 0 ? fmt(fx) : '');
+    }
+    setInputInFx((v) => !v);
+    setStoredValue(null);
+    setPendingOp(null);
+    setWaitForNext(false);
   };
 
   const handleDigit = (key: string) => {
-    // Use fxInput when in FX mode, otherwise value directly
-    const cur = isFx ? fxInput : value;
-    const setCur = isFx
+    const cur = inputInFx ? fxInput : value;
+    const setCur = inputInFx
       ? (v: string) => { setFxInput(v); emitHkd(v); }
       : (v: string) => onChange(v);
 
@@ -87,7 +100,6 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
       setCur((cur || '0') + '.');
       return;
     }
-    // digit
     if (waitForNext) {
       setCur(key);
       setWaitForNext(false);
@@ -101,12 +113,11 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   };
 
   const handleOp = (op: string) => {
-    const cur = parseFloat((isFx ? fxInput : value) || '0');
+    const cur = parseFloat((inputInFx ? fxInput : value) || '0');
     if (storedValue !== null && pendingOp && !waitForNext) {
       const result = compute(storedValue, cur, pendingOp);
-      const resultStr = fmt(result);
-      if (isFx) { setFxInput(resultStr); emitHkd(resultStr); }
-      else onChange(resultStr);
+      const r = fmt(result);
+      if (inputInFx) { setFxInput(r); emitHkd(r); } else onChange(r);
       setStoredValue(result);
     } else {
       setStoredValue(cur);
@@ -117,11 +128,10 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
 
   const handleEquals = () => {
     if (storedValue === null || !pendingOp) return;
-    const cur = parseFloat((isFx ? fxInput : value) || '0');
+    const cur = parseFloat((inputInFx ? fxInput : value) || '0');
     const result = compute(storedValue, cur, pendingOp);
-    const resultStr = fmt(result);
-    if (isFx) { setFxInput(resultStr); emitHkd(resultStr); }
-    else onChange(resultStr);
+    const r = fmt(result);
+    if (inputInFx) { setFxInput(r); emitHkd(r); } else onChange(r);
     setStoredValue(null);
     setPendingOp(null);
     setWaitForNext(false);
@@ -138,25 +148,52 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   return (
     <Box>
       {/* Display */}
-      <Box sx={{ textAlign: 'center', py: 1.5, mb: 1, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)' }}>
+      <Box sx={{ mb: 1, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden' }}>
         {pendingOp && (
-          <Typography sx={{ fontSize: '0.65rem', color: '#818cf8', mb: 0.25, letterSpacing: '0.04em' }}>
+          <Typography sx={{ fontSize: '0.65rem', color: '#818cf8', px: 2, pt: 1, letterSpacing: '0.04em', textAlign: 'center' }}>
             {storedValue} {pendingOp}
           </Typography>
         )}
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
-          Amount
-        </Typography>
-        <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: '-0.03em', lineHeight: 1.1, color: displayStr ? 'text.primary' : 'text.disabled', mt: 0.25 }}>
-          <span style={{ fontSize: '1rem', fontWeight: 500, opacity: 0.6 }}>{displaySymbol}</span>
-          {displayNum}
-        </Typography>
-        {hintLabel && (
-          <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', mt: 0.25 }}>{hintLabel}</Typography>
+
+        {/* Primary — what user is entering */}
+        <Box sx={{ px: 2, pt: pendingOp ? 0.5 : 1.5, pb: isFxAvailable ? 0.5 : 1.5, textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}>
+            Amount
+          </Typography>
+          <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: '-0.03em', lineHeight: 1.1, color: displayStr ? 'text.primary' : 'text.disabled' }}>
+            <span style={{ fontSize: '1rem', fontWeight: 500, opacity: 0.6 }}>{displaySymbol}</span>
+            {displayNum}
+          </Typography>
+        </Box>
+
+        {/* Swap row — only when FX available */}
+        {isFxAvailable && (
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              py: 0.75,
+              borderTop: '1px solid rgba(148,163,184,0.08)',
+              cursor: 'pointer',
+              bgcolor: 'rgba(148,163,184,0.03)',
+              '&:active': { bgcolor: 'rgba(129,140,248,0.08)' },
+            }}
+            onClick={handleSwap}
+          >
+            <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>
+              {hintSymbol}{hintVal ?? '0'}
+            </Typography>
+            <SwapVertIcon sx={{ fontSize: 16, color: inputInFx ? '#818cf8' : 'text.disabled' }} />
+            <Typography sx={{ fontSize: '0.65rem', color: inputInFx ? '#818cf8' : 'text.disabled', fontWeight: 600 }}>
+              {inputInFx ? `Enter in ${fxSymbol}` : 'Enter in HK$'}
+            </Typography>
+          </Box>
         )}
       </Box>
 
-      {/* Grid: 3 digit cols + 1 op col */}
+      {/* Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0.75 }}>
         {['7','8','9'].map(k => (
           <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
