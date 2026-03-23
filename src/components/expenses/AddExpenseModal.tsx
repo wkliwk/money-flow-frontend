@@ -21,6 +21,9 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
+import TemplateChips from './TemplateChips';
+import ManageTemplatesDrawer from './ManageTemplatesDrawer';
+import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 
 interface Props {
   open: boolean;
@@ -41,6 +44,8 @@ type QuickDate = 'today' | 'yesterday' | 'custom';
 const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCategories }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const { templates, addTemplate, deleteTemplate } = useTemplates();
+  const [manageOpen, setManageOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
@@ -49,6 +54,13 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const [customDate, setCustomDate] = useState(today());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const handleTemplateSelect = (t: TransactionTemplate) => {
+    setDescription(t.description);
+    setType(t.type);
+    setCategory(t.category);
+    if (t.defaultAmount) setAmount(String(t.defaultAmount));
+  };
 
   const resolvedDate = quickDate === 'today' ? today() : quickDate === 'yesterday' ? yesterday() : customDate;
 
@@ -108,6 +120,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   ];
 
   return (
+    <>
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
         <Typography variant="h6" fontWeight={700}>Record Transaction</Typography>
@@ -118,6 +131,13 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
 
       <DialogContent sx={{ pt: 1 }}>
         {error && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{error}</Alert>}
+
+        {/* Template quick-tap row */}
+        <TemplateChips
+          templates={templates}
+          onSelect={handleTemplateSelect}
+          onManage={() => setManageOpen(true)}
+        />
 
         {/* Type selector — icon cards */}
         <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 1 }}>
@@ -220,6 +240,15 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
         </Button>
       </DialogActions>
     </Dialog>
+
+    <ManageTemplatesDrawer
+      open={manageOpen}
+      onClose={() => setManageOpen(false)}
+      templates={templates}
+      onAdd={addTemplate}
+      onDelete={deleteTemplate}
+    />
+    </>
   );
 };
 
