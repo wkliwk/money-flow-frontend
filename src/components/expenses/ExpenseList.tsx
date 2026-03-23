@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Table,
   TableHead,
@@ -9,12 +9,6 @@ import {
   Chip,
   Typography,
   Box,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogContentText,
-  DialogActions,
-  Button,
   Card,
   CardActionArea,
   CardContent,
@@ -72,14 +66,6 @@ function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) 
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, convert, symbol }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const [confirmId, setConfirmId] = useState<string | null>(null);
-
-  const handleConfirm = () => {
-    if (confirmId) {
-      onDelete(confirmId);
-      setConfirmId(null);
-    }
-  };
 
   if (transactions.length === 0) {
     return (
@@ -232,24 +218,13 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, c
                 </TableCell>
                 <TableCell align="right">
                   <IconButton size="small" onClick={() => onEdit(t)}><EditIcon fontSize="small" /></IconButton>
-                  <IconButton size="small" onClick={() => setConfirmId(t._id)}><DeleteIcon fontSize="small" /></IconButton>
+                  <IconButton size="small" onClick={() => onDelete(t._id)}><DeleteIcon fontSize="small" /></IconButton>
                 </TableCell>
               </TableRow>
             ))}
           </TableBody>
         </Table>
       )}
-
-      <Dialog open={!!confirmId} onClose={() => setConfirmId(null)}>
-        <DialogTitle>Delete transaction?</DialogTitle>
-        <DialogContent>
-          <DialogContentText>This cannot be undone.</DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setConfirmId(null)}>Cancel</Button>
-          <Button color="error" variant="contained" onClick={handleConfirm}>Delete</Button>
-        </DialogActions>
-      </Dialog>
     </>
   );
 };
