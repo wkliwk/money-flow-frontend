@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Box, Typography, IconButton, Divider } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
+import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../../types';
 import { Currency } from '../../hooks/useFxRates';
 import CurrencyPicker from './CurrencyPicker';
@@ -48,6 +49,22 @@ const MobileHero: React.FC<Props> = ({
   })();
   const net = income - expenses;
   const isPositive = net >= 0;
+
+  const dailySpend = useMemo(() => {
+    if (!selectedMonth || expenses === 0) return [];
+    const now = dayjs();
+    const isCurrentMonth = selectedMonth.isSame(now, 'month');
+    const days = isCurrentMonth ? now.date() : selectedMonth.daysInMonth();
+    const byDay: number[] = Array(days).fill(0);
+    transactions.filter((t) => t.type === 'expense').forEach((t) => {
+      const d = dayjs(t.date || t.createdAt);
+      if (d.isValid() && d.isSame(selectedMonth, 'month')) {
+        const idx = d.date() - 1;
+        if (idx >= 0 && idx < days) byDay[idx] += t.amount;
+      }
+    });
+    return byDay.map((amount, i) => ({ day: i + 1, amount }));
+  }, [transactions, selectedMonth, expenses]);
 
   const handlePrev = () => onChange((selectedMonth ?? dayjs()).subtract(1, 'month'));
   const handleNext = () => onChange((selectedMonth ?? dayjs()).add(1, 'month'));
@@ -169,6 +186,31 @@ const MobileHero: React.FC<Props> = ({
           )}
         </Box>
       </Box>
+
+      {/* Daily spend sparkline */}
+      {dailySpend.length > 1 && (
+        <Box sx={{ mt: 2, mx: -1 }}>
+          <ResponsiveContainer width="100%" height={36}>
+            <AreaChart data={dailySpend} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="#fb7185" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <Area
+                type="monotone"
+                dataKey="amount"
+                stroke="#fb7185"
+                strokeWidth={1.5}
+                fill="url(#sparkGrad)"
+                dot={false}
+                isAnimationActive={false}
+              />
+            </AreaChart>
+          </ResponsiveContainer>
+        </Box>
+      )}
     </Box>
   );
 };
