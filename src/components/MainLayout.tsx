@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -6,7 +6,9 @@ import {
   Box,
   Container,
   Snackbar,
+  SnackbarContent,
   Alert,
+  Button,
   Fab,
   useMediaQuery,
   useTheme,
@@ -81,6 +83,8 @@ const MainLayout: React.FC = () => {
     message: '',
     severity: 'success',
   });
+  const [undoSnackbar, setUndoSnackbar] = useState(false);
+  const pendingDelete = useRef<Transaction | null>(null);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -106,15 +110,33 @@ const MainLayout: React.FC = () => {
     showSnackbar('Transaction added');
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = useCallback((id: string) => {
+    const t = transactions.find((tx) => tx._id === id);
+    if (!t) return;
+    pendingDelete.current = t;
+    setTransactions((prev) => prev.filter((tx) => tx._id !== id));
+    setUndoSnackbar(true);
+  }, [transactions]);
+
+  const commitDelete = useCallback(async () => {
+    const t = pendingDelete.current;
+    if (!t) return;
+    pendingDelete.current = null;
     try {
-      await deleteExpense(id);
-      setTransactions((prev) => prev.filter((t) => t._id !== id));
-      showSnackbar('Transaction deleted');
+      await deleteExpense(t._id);
     } catch {
+      setTransactions((prev) => [t, ...prev]);
       showSnackbar('Failed to delete transaction', 'error');
     }
-  };
+  }, []);
+
+  const handleUndo = useCallback(() => {
+    const t = pendingDelete.current;
+    if (!t) return;
+    pendingDelete.current = null;
+    setTransactions((prev) => [t, ...prev].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()));
+    setUndoSnackbar(false);
+  }, []);
 
   const handleSaved = (updated: Transaction) => {
     setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
@@ -531,6 +553,29 @@ const MainLayout: React.FC = () => {
         <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
           {snackbar.message}
         </Alert>
+      </Snackbar>
+
+      <Snackbar
+        open={undoSnackbar}
+        autoHideDuration={5000}
+        onClose={(_, reason) => {
+          if (reason !== 'escapeKeyDown') {
+            setUndoSnackbar(false);
+            commitDelete();
+          }
+        }}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
+      >
+        <SnackbarContent
+          sx={{ bgcolor: 'rgba(30,41,59,0.95)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+          message={<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>Transaction deleted</Typography>}
+          action={
+            <Button size="small" onClick={handleUndo} sx={{ color: '#818cf8', fontWeight: 700, fontSize: '0.8rem' }}>
+              Undo
+            </Button>
+          }
+        />
       </Snackbar>
     </Box>
   );
