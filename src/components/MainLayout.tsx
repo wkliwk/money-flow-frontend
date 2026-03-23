@@ -17,6 +17,9 @@ import {
   ListItemButton,
   ListItemIcon,
   ListItemText,
+  Card,
+  CardActionArea,
+  CardContent,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -264,6 +267,40 @@ const MainLayout: React.FC = () => {
                 />
                 <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                {monthFiltered.length > 0 && (
+                  <Box sx={{ mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent</Typography>
+                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: '#818cf8', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {monthFiltered.slice(0, 5).map((t) => (
+                        <Card key={t._id} sx={{ border: '1px solid rgba(148,163,184,0.08)', background: 'rgba(30,41,59,0.5)' }}>
+                          <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
+                            <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
+                                  <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
+                                    {t.item || t.description}
+                                  </Typography>
+                                  {t.item && t.description && (
+                                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
+                                  )}
+                                  {t.participants && t.participants.length > 0 && (
+                                    <Typography sx={{ fontSize: '0.63rem', color: 'text.disabled', mt: 0.25 }}>with {t.participants.join(', ')}</Typography>
+                                  )}
+                                </Box>
+                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? '#34d399' : '#fb7185', fontSize: '0.9rem', flexShrink: 0 }}>
+                                  {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </Typography>
+                              </Box>
+                            </CardContent>
+                          </CardActionArea>
+                        </Card>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
 
               {/* Desktop: separate month picker + summary cards + chart */}
@@ -276,6 +313,37 @@ const MainLayout: React.FC = () => {
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
                 <CategoryChart transactions={monthFiltered} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                {monthFiltered.length > 0 && (
+                  <Box sx={{ mt: 3 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent Transactions</Typography>
+                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: '#818cf8', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                      {monthFiltered.slice(0, 5).map((t) => (
+                        <Card key={t._id} sx={{ border: '1px solid rgba(148,163,184,0.08)', background: 'rgba(30,41,59,0.5)' }}>
+                          <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
+                            <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                <Box sx={{ minWidth: 0, flex: 1 }}>
+                                  <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
+                                    {t.item || t.description}
+                                  </Typography>
+                                  {t.item && t.description && (
+                                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
+                                  )}
+                                </Box>
+                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? '#34d399' : '#fb7185', fontSize: '0.9rem', flexShrink: 0 }}>
+                                  {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                </Typography>
+                              </Box>
+                            </CardContent>
+                          </CardActionArea>
+                        </Card>
+                      ))}
+                    </Box>
+                  </Box>
+                )}
               </Box>
             </>
           )}
