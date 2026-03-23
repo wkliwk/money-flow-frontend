@@ -346,7 +346,7 @@ const MainLayout: React.FC = () => {
                   <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
                   <CurrencyPicker currency={currency} onChange={setCurrency} />
                 </Box>
-                <SummaryCards transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
                 <CategoryChart transactions={monthFiltered} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />

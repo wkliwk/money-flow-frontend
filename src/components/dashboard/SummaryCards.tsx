@@ -7,6 +7,7 @@ import { Transaction } from '../../types';
 
 interface Props {
   transactions: Transaction[];
+  prevMonthTransactions?: Transaction[];
   convert: (amount: number) => number;
   symbol: string;
 }
@@ -14,7 +15,7 @@ interface Props {
 const fmt = (n: number) =>
   n.toLocaleString('en-HK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const SummaryCards: React.FC<Props> = ({ transactions, convert, symbol }) => {
+const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, convert, symbol }) => {
   const income = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -24,6 +25,12 @@ const SummaryCards: React.FC<Props> = ({ transactions, convert, symbol }) => {
     .reduce((sum, t) => sum + t.amount, 0);
 
   const net = income - expenses;
+
+  const prevExpenses = (prevMonthTransactions ?? [])
+    .filter((t) => t.type === 'expense')
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const expenseDelta = prevMonthTransactions && prevMonthTransactions.length > 0 ? expenses - prevExpenses : null;
 
   const cards = [
     {
@@ -94,6 +101,11 @@ const SummaryCards: React.FC<Props> = ({ transactions, convert, symbol }) => {
               <Typography variant="h5" fontWeight={700} sx={{ color: card.color, letterSpacing: '-0.02em' }}>
                 {card.value}
               </Typography>
+              {card.label === 'Expenses' && expenseDelta !== null && (
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: expenseDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+                  {expenseDelta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(expenseDelta)))} vs last month
+                </Typography>
+              )}
             </CardContent>
           </Card>
         </Grid>
