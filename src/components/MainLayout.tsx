@@ -105,6 +105,17 @@ const MainLayout: React.FC = () => {
     fetchTransactions();
   }, []);
 
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
+      const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
+      if (tag === 'input' || tag === 'textarea') return;
+      setAddOpen(true);
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, []);
+
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
     await createExpense({ ...data, owner });
