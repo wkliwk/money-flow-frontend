@@ -1,5 +1,5 @@
-import React from 'react';
-import { Box, IconButton, Typography, Chip } from '@mui/material';
+import React, { useState } from 'react';
+import { Box, IconButton, Typography, Chip, Popover } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
@@ -10,7 +10,12 @@ interface Props {
   onChange: (month: Dayjs | null) => void;
 }
 
+const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+
 const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
+  const [pickerYear, setPickerYear] = useState(() => (selectedMonth ?? dayjs()).year());
+
   const handlePrev = () => {
     const base = selectedMonth ?? dayjs();
     onChange(base.subtract(1, 'month'));
@@ -19,6 +24,18 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
   const handleNext = () => {
     const base = selectedMonth ?? dayjs();
     onChange(base.add(1, 'month'));
+  };
+
+  const openPicker = (e: React.MouseEvent<HTMLElement>) => {
+    setPickerYear((selectedMonth ?? dayjs()).year());
+    setAnchorEl(e.currentTarget);
+  };
+
+  const closePicker = () => setAnchorEl(null);
+
+  const handleMonthSelect = (monthIndex: number) => {
+    onChange(dayjs().year(pickerYear).month(monthIndex).startOf('month'));
+    closePicker();
   };
 
   return (
@@ -37,7 +54,8 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
           <Typography
             variant="h6"
             fontWeight={700}
-            sx={{ minWidth: 148, textAlign: 'center', letterSpacing: '-0.01em' }}
+            onClick={openPicker}
+            sx={{ minWidth: 148, textAlign: 'center', letterSpacing: '-0.01em', cursor: 'pointer', '&:hover': { color: 'primary.main' } }}
           >
             {selectedMonth.format('MMMM YYYY')}
           </Typography>
@@ -86,6 +104,69 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
           />
         </>
       )}
+
+      {/* Month/year picker popover */}
+      <Popover
+        open={Boolean(anchorEl)}
+        anchorEl={anchorEl}
+        onClose={closePicker}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+        transformOrigin={{ vertical: 'top', horizontal: 'center' }}
+        PaperProps={{
+          sx: {
+            mt: 0.5,
+            p: 2,
+            bgcolor: '#1e293b',
+            border: '1px solid rgba(148,163,184,0.12)',
+            borderRadius: 2,
+            minWidth: 240,
+          },
+        }}
+      >
+        {/* Year row */}
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+          <IconButton size="small" onClick={() => setPickerYear((y) => y - 1)} sx={{ color: 'text.secondary', p: 0.5 }}>
+            <ChevronLeftIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography fontWeight={700} sx={{ fontSize: '0.95rem' }}>{pickerYear}</Typography>
+          <IconButton size="small" onClick={() => setPickerYear((y) => y + 1)} sx={{ color: 'text.secondary', p: 0.5 }}>
+            <ChevronRightIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        {/* Month grid */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 0.75 }}>
+          {MONTHS.map((label, i) => {
+            const isSelected = selectedMonth?.year() === pickerYear && selectedMonth?.month() === i;
+            return (
+              <Box
+                key={label}
+                onClick={() => handleMonthSelect(i)}
+                sx={{
+                  textAlign: 'center',
+                  py: 0.75,
+                  borderRadius: 1.5,
+                  cursor: 'pointer',
+                  bgcolor: isSelected ? 'rgba(129,140,248,0.2)' : 'transparent',
+                  border: '1px solid',
+                  borderColor: isSelected ? 'rgba(129,140,248,0.5)' : 'transparent',
+                  '&:hover': { bgcolor: 'rgba(129,140,248,0.1)' },
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '0.82rem',
+                    fontWeight: isSelected ? 700 : 400,
+                    color: isSelected ? '#818cf8' : 'text.secondary',
+                  }}
+                >
+                  {label}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+      </Popover>
     </Box>
   );
 };

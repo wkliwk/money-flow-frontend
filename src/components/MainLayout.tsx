@@ -493,7 +493,12 @@ const MainLayout: React.FC = () => {
 
           {activeTab === 1 && (
             <>
-              {search === '' && <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />}
+              {search === '' && (
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 }}>
+                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+                  <CurrencyPicker currency={currency} onChange={setCurrency} />
+                </Box>
+              )}
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}

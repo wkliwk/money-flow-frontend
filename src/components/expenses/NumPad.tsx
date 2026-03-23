@@ -33,9 +33,9 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   const [pendingOp, setPendingOp] = useState<string | null>(null);
   const [waitForNext, setWaitForNext] = useState(false);
 
-  // On currency switch, reset to HKD mode and re-init fxInput
+  // On currency switch, default to FX mode when FX available, re-init fxInput
   useEffect(() => {
-    setInputInFx(false);
+    setInputInFx(isFxAvailable);
     if (isFxAvailable && value) {
       setFxInput(fmt(parseFloat(value) / rate));
     } else {
