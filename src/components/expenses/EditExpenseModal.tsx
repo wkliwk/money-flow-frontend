@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useLayoutEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -80,7 +80,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (transaction) {
       // Backward compat: old records stored item label in description field
       const resolvedItem = transaction.item || (ITEM_PRESETS.find((p) => p.label === transaction.description)?.label ?? '');

@@ -22,15 +22,38 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions }) =>
     onChange(value === tag ? '' : tag);
   };
 
+  // Custom value chip shown in row when set and not in suggestions list
+  const customChip = value && !suggestions.includes(value) ? value : null;
+  const hasChips = suggestions.length > 0 || customChip;
+
   return (
     <Box sx={{ mt: 0.5, mb: 0.5 }}>
       <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', display: 'block', mb: 0.75 }}>
         Note (optional)
       </Typography>
 
-      {/* Tag chips */}
-      {suggestions.length > 0 && (
+      {/* Chips row — always above input when chips exist */}
+      {hasChips && (
         <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 0.75 }}>
+          {/* Custom value chip first if set */}
+          {customChip && (
+            <Chip
+              key="__custom__"
+              label={customChip}
+              size="small"
+              onDelete={() => onChange('')}
+              sx={{
+                height: 26,
+                fontSize: '0.78rem',
+                fontWeight: 700,
+                bgcolor: 'rgba(129,140,248,0.18)',
+                color: '#818cf8',
+                border: '1px solid rgba(129,140,248,0.4)',
+                '& .MuiChip-deleteIcon': { color: 'rgba(129,140,248,0.5)', fontSize: 14 },
+              }}
+            />
+          )}
+          {/* Suggestion chips */}
           {suggestions.map((tag) => {
             const selected = value === tag;
             return (
@@ -57,7 +80,7 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions }) =>
         </Box>
       )}
 
-      {/* Custom input */}
+      {/* Custom input — always below chips */}
       <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center' }}>
         <TextField
           size="small"
@@ -73,18 +96,6 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions }) =>
           </IconButton>
         )}
       </Box>
-
-      {/* Show current custom value as chip if set and not in suggestions */}
-      {value && !suggestions.includes(value) && (
-        <Box sx={{ mt: 0.5 }}>
-          <Chip
-            label={value}
-            size="small"
-            onDelete={() => onChange('')}
-            sx={{ height: 26, fontSize: '0.78rem', fontWeight: 700, bgcolor: 'rgba(129,140,248,0.18)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.4)', '& .MuiChip-deleteIcon': { color: 'rgba(129,140,248,0.5)', fontSize: 14 } }}
-          />
-        </Box>
-      )}
     </Box>
   );
 };
