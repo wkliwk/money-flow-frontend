@@ -3,24 +3,29 @@ import {
   AppBar,
   Toolbar,
   Typography,
-  Button,
   Box,
   Container,
   Snackbar,
   Alert,
-  IconButton,
-  Menu,
-  MenuItem,
   Fab,
   useMediaQuery,
   useTheme,
+  BottomNavigation,
+  BottomNavigationAction,
+  Drawer,
+  List,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
-import AccountCircleIcon from '@mui/icons-material/AccountCircle';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import CategoryIcon from '@mui/icons-material/Category';
+import SettingsIcon from '@mui/icons-material/Settings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
 import { getExpenses, createExpense, deleteExpense } from '../services/api';
-import { clearToken } from '../services/auth';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
@@ -33,7 +38,10 @@ import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import { useFxRates } from '../hooks/useFxRates';
+import { Currency } from '../hooks/useFxRates';
 import CurrencyPicker from './dashboard/CurrencyPicker';
+import ManageItemsPage from './items/ManageItemsPage';
+import SettingsPage from './settings/SettingsPage';
 
 function getOwnerFromToken(): string {
   try {
@@ -49,6 +57,7 @@ const MainLayout: React.FC = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [search, setSearch] = useState('');
@@ -60,7 +69,6 @@ const MainLayout: React.FC = () => {
     message: '',
     severity: 'success',
   });
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -101,12 +109,11 @@ const MainLayout: React.FC = () => {
     showSnackbar('Transaction updated');
   };
 
-  const existingCategories = useMemo(() =>
-    Array.from(new Set(transactions.map((t) => t.category).filter(Boolean) as string[])),
+  const existingCategories = useMemo(
+    () => Array.from(new Set(transactions.map((t) => t.category).filter(Boolean) as string[])),
     [transactions]
   );
 
-  // descriptionsByItem: for each item label, unique descriptions entered historically
   const descriptionsByItem = useMemo(() => {
     const map: Record<string, string[]> = {};
     transactions.forEach((t) => {
@@ -129,16 +136,14 @@ const MainLayout: React.FC = () => {
   const filteredTransactions = useMemo(() => {
     return monthFiltered.filter((t) => {
       const searchLow = search.toLowerCase();
-      const matchesSearch = search === '' || t.description.toLowerCase().includes(searchLow) || (t.item || '').toLowerCase().includes(searchLow);
+      const matchesSearch =
+        search === '' ||
+        t.description.toLowerCase().includes(searchLow) ||
+        (t.item || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
   }, [monthFiltered, search, typeFilter]);
-
-  const handleLogout = () => {
-    clearToken();
-    window.location.href = '/login';
-  };
 
   const handleExport = () => {
     const header = ['Date', 'Description', 'Type', 'Category', 'Amount'];
@@ -161,9 +166,20 @@ const MainLayout: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const navItems = [
+    { label: 'Home', icon: <DashboardIcon /> },
+    { label: 'Transactions', icon: <ReceiptLongIcon /> },
+    { label: 'Items', icon: <CategoryIcon /> },
+    { label: 'Settings', icon: <SettingsIcon /> },
+  ];
+
   return (
     <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar position="sticky" elevation={0}>
+      <AppBar
+        position="sticky"
+        elevation={0}
+        sx={{ ml: { sm: '220px' }, width: { sm: 'calc(100% - 220px)' } }}
+      >
         <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Typography
             variant="h6"
@@ -179,80 +195,147 @@ const MainLayout: React.FC = () => {
           >
             Money Flow
           </Typography>
-          <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-            <Button
-              color="inherit"
-              onClick={handleLogout}
-              sx={{ color: 'text.secondary', fontWeight: 500, '&:hover': { color: 'text.primary' } }}
-            >
-              Sign out
-            </Button>
-          </Box>
-          <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-            <IconButton color="inherit" onClick={(e) => setAnchorEl(e.currentTarget)} sx={{ color: 'text.secondary' }}>
-              <AccountCircleIcon />
-            </IconButton>
-            <Menu anchorEl={anchorEl} open={!!anchorEl} onClose={() => setAnchorEl(null)}>
-              <MenuItem
-                onClick={() => {
-                  setAnchorEl(null);
-                  handleLogout();
-                }}
-              >
-                Sign out
-              </MenuItem>
-            </Menu>
-          </Box>
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', sm: 10 } }}>
-        {/* Mobile: hero card with month picker + big balance + breakdown */}
-        <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-          <MobileHero
-            transactions={monthFiltered}
-            selectedMonth={selectedMonth}
-            onChange={setSelectedMonth}
-            currency={currency}
-            onCurrencyChange={setCurrency}
-            convert={convert}
-            symbol={symbol}
-          />
-          <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
-          <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
-        </Box>
+      {/* Desktop permanent drawer */}
+      <Drawer
+        variant="permanent"
+        sx={{
+          display: { xs: 'none', sm: 'block' },
+          width: 220,
+          flexShrink: 0,
+          '& .MuiDrawer-paper': {
+            width: 220,
+            boxSizing: 'border-box',
+            top: '64px',
+            height: 'calc(100% - 64px)',
+            bgcolor: 'background.paper',
+            borderRight: '1px solid rgba(148,163,184,0.1)',
+          },
+        }}
+      >
+        <List>
+          {navItems.map((item, index) => (
+            <ListItemButton
+              key={item.label}
+              selected={activeTab === index}
+              onClick={() => setActiveTab(index as 0 | 1 | 2 | 3)}
+              sx={{
+                '&.Mui-selected': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
+                '&.Mui-selected .MuiListItemIcon-root': { color: '#818cf8' },
+              }}
+            >
+              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+              <ListItemText
+                primary={item.label}
+                primaryTypographyProps={{
+                  fontSize: '0.9rem',
+                  fontWeight: activeTab === index ? 700 : 400,
+                }}
+              />
+            </ListItemButton>
+          ))}
+        </List>
+      </Drawer>
 
-        {/* Desktop: separate month picker + summary cards + chart */}
-        <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-            <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-            <CurrencyPicker currency={currency} onChange={setCurrency} />
-          </Box>
-          <SummaryCards transactions={monthFiltered} convert={convert} symbol={symbol} />
-          <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
-          <CategoryChart transactions={monthFiltered} />
-          <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
-        </Box>
+      {/* Main content offset by drawer on desktop */}
+      <Box sx={{ ml: { sm: '220px' } }}>
+        <Container
+          maxWidth="lg"
+          sx={{
+            py: { xs: 2, sm: 4 },
+            px: { xs: 1.5, sm: 3 },
+            pb: { xs: 'calc(56px + 20px + env(safe-area-inset-bottom))', sm: 4 },
+          }}
+        >
+          {activeTab === 0 && (
+            <>
+              {/* Mobile: hero card with month picker + big balance + breakdown */}
+              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                <MobileHero
+                  transactions={monthFiltered}
+                  selectedMonth={selectedMonth}
+                  onChange={setSelectedMonth}
+                  currency={currency}
+                  onCurrencyChange={setCurrency}
+                  convert={convert}
+                  symbol={symbol}
+                />
+                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+              </Box>
 
-        <FilterBar
-          search={search}
-          typeFilter={typeFilter}
-          total={monthFiltered.length}
-          filtered={filteredTransactions.length}
-          onSearchChange={setSearch}
-          onTypeFilterChange={setTypeFilter}
-          onExport={handleExport}
-        />
+              {/* Desktop: separate month picker + summary cards + chart */}
+              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+                  <CurrencyPicker currency={currency} onChange={setCurrency} />
+                </Box>
+                <SummaryCards transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
+                <CategoryChart transactions={monthFiltered} />
+                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+              </Box>
+            </>
+          )}
 
-        <ExpenseList
-          transactions={filteredTransactions}
-          onEdit={(t) => setEditTransaction(t)}
-          onDelete={handleDelete}
-          onAdd={() => setAddOpen(true)}
-          convert={convert}
-          symbol={symbol}
-        />
-      </Container>
+          {activeTab === 1 && (
+            <>
+              <FilterBar
+                search={search}
+                typeFilter={typeFilter}
+                total={monthFiltered.length}
+                filtered={filteredTransactions.length}
+                onSearchChange={setSearch}
+                onTypeFilterChange={setTypeFilter}
+                onExport={handleExport}
+              />
+              <ExpenseList
+                transactions={filteredTransactions}
+                onEdit={(t) => setEditTransaction(t)}
+                onDelete={handleDelete}
+                onAdd={() => setAddOpen(true)}
+                convert={convert}
+                symbol={symbol}
+              />
+            </>
+          )}
+
+          {activeTab === 2 && <ManageItemsPage />}
+
+          {activeTab === 3 && (
+            <SettingsPage
+              currency={currency}
+              onCurrencyChange={(c: Currency) => setCurrency(c)}
+            />
+          )}
+        </Container>
+      </Box>
+
+      {/* Mobile bottom navigation */}
+      <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+        <BottomNavigation
+          value={activeTab}
+          onChange={(_, v) => setActiveTab(v)}
+          sx={{
+            position: 'fixed',
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1100,
+            pb: 'env(safe-area-inset-bottom)',
+            height: 'calc(56px + env(safe-area-inset-bottom))',
+            bgcolor: 'background.paper',
+            borderTop: '1px solid rgba(148,163,184,0.1)',
+          }}
+        >
+          <BottomNavigationAction label="Home" icon={<DashboardIcon />} />
+          <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
+          <BottomNavigationAction label="Items" icon={<CategoryIcon />} />
+          <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
+        </BottomNavigation>
+      </Box>
 
       {/* Fixed FAB — primary action */}
       <Fab
@@ -261,7 +344,7 @@ const MainLayout: React.FC = () => {
         variant={isDesktop ? 'extended' : 'circular'}
         sx={{
           position: 'fixed',
-          bottom: { xs: 'calc(20px + env(safe-area-inset-bottom))', sm: 32 },
+          bottom: { xs: 'calc(56px + 20px + env(safe-area-inset-bottom))', sm: 32 },
           right: { xs: 20, sm: 40 },
           zIndex: 1200,
           px: isDesktop ? 3 : undefined,
@@ -298,7 +381,10 @@ const MainLayout: React.FC = () => {
         transaction={editTransaction}
         onClose={() => setEditTransaction(null)}
         onSaved={handleSaved}
-        onDelete={(id) => { handleDelete(id); setEditTransaction(null); }}
+        onDelete={(id) => {
+          handleDelete(id);
+          setEditTransaction(null);
+        }}
         existingCategories={existingCategories}
       />
 
@@ -308,10 +394,7 @@ const MainLayout: React.FC = () => {
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
       >
-        <Alert
-          severity={snackbar.severity}
-          onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        >
+        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
           {snackbar.message}
         </Alert>
       </Snackbar>

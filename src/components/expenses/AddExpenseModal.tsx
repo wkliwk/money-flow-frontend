@@ -29,6 +29,7 @@ import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
+import { useItemPresets } from '../../hooks/useItemPresets';
 
 interface Props {
   open: boolean;
@@ -52,6 +53,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
   const { symbol, rates, currency, setCurrency } = useFxRates();
+  const { presets: itemPresets } = useItemPresets();
   const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
   const [manageOpen, setManageOpen] = useState(false);
   const [item, setItem] = useState('');
@@ -68,6 +70,9 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const handleItemSelect = (preset: ItemPreset) => {
     setItem(preset.label);
     setCategory(preset.category);
+    if (!description && itemPresets[preset.label]) {
+      setDescription(itemPresets[preset.label]);
+    }
   };
 
   const handleTemplateSelect = (t: TransactionTemplate) => {
