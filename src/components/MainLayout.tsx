@@ -251,9 +251,10 @@ const MainLayout: React.FC = () => {
   }, [transactions, monthFiltered, search, typeFilter]);
 
   const handleExport = () => {
-    const header = ['Date', 'Description', 'Type', 'Category', 'Amount'];
+    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount'];
     const rows = filteredTransactions.map((t) => [
       new Date(t.date || t.createdAt).toISOString().split('T')[0],
+      t.item ? `"${t.item.replace(/"/g, '""')}"` : '',
       `"${t.description.replace(/"/g, '""')}"`,
       t.type,
       t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
