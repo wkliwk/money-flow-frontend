@@ -461,6 +461,7 @@ const MainLayout: React.FC = () => {
           showSnackbar('Transaction logged again');
         }}
         existingCategories={existingCategories}
+        descriptionsByItem={descriptionsByItem}
       />
 
       <Snackbar

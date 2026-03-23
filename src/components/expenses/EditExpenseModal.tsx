@@ -27,9 +27,10 @@ import { Transaction, TransactionRequest, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
-
+import DescriptionPicker from './DescriptionPicker';
 import ParticipantPicker from './ParticipantPicker';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
+import { useItemPresets } from '../../hooks/useItemPresets';
 
 interface Props {
   open: boolean;
@@ -39,6 +40,7 @@ interface Props {
   onDelete: (id: string) => void;
   onDuplicate: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
   existingCategories: string[];
+  descriptionsByItem?: Record<string, string[]>;
 }
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
@@ -57,7 +59,8 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {} }) => {
+  const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { symbol, rates, currency, setCurrency } = useFxRates();
@@ -223,16 +226,13 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         {/* Item picker — filtered by current type */}
         <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
 
-        {/* Description — optional free-text note */}
-        <TextField
-          label="Description"
-          fullWidth
-          margin="dense"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="Note (optional)"
-          size="small"
-        />
+        {/* Description — tag picker */}
+        {(() => {
+          const preset = item ? itemPresets[item] : '';
+          const history = item ? (descriptionsByItem[item] || []) : [];
+          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history])).slice(0, 8);
+          return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
+        })()}
 
         {/* Currency selector */}
         <Box sx={{ mt: 1.5, mb: 0.5 }}>

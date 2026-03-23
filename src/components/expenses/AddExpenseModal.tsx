@@ -24,6 +24,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset } from './ItemPicker';
+import DescriptionPicker from './DescriptionPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
@@ -205,39 +206,13 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         {/* Item picker — sets item + category, filtered by type */}
         <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
 
-        {/* Description — optional free-text note */}
-        <TextField
-          label="Description"
-          fullWidth
-          margin="dense"
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="e.g. McDonald's, MTR…"
-          size="small"
-        />
-
-        {/* Description history chips — quick-tap past entries for this item */}
-        {item && descriptionsByItem[item] && descriptionsByItem[item].length > 0 && (
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 0.5, mb: 0.5 }}>
-            {descriptionsByItem[item].slice(0, 6).map((d) => (
-              <Chip
-                key={d}
-                label={d}
-                size="small"
-                clickable
-                onClick={() => setDescription(d)}
-                sx={{
-                  height: 22,
-                  fontSize: '0.7rem',
-                  bgcolor: description === d ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
-                  color: description === d ? '#818cf8' : 'text.secondary',
-                  border: '1px solid',
-                  borderColor: description === d ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)',
-                }}
-              />
-            ))}
-          </Box>
-        )}
+        {/* Description — tag picker */}
+        {(() => {
+          const preset = item ? itemPresets[item] : '';
+          const history = item ? (descriptionsByItem[item] || []) : [];
+          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history])).slice(0, 8);
+          return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
+        })()}
 
         {/* Currency selector */}
         <Box sx={{ mt: 1.5, mb: 0.5 }}>
