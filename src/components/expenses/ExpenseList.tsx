@@ -25,6 +25,10 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import { Transaction } from '../../types';
+import { ITEM_PRESETS } from './ItemPicker';
+
+const ITEM_COLOR: Record<string, string> = {};
+ITEM_PRESETS.forEach((p) => { ITEM_COLOR[p.label] = p.color; });
 
 interface Props {
   transactions: Transaction[];
@@ -137,13 +141,17 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, c
               </Box>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {group.items.map((t) => (
+                {group.items.map((t) => {
+                  const itemColor = t.item ? ITEM_COLOR[t.item] : undefined;
+                  const accentColor = itemColor || (t.type === 'income' ? '#34d399' : '#fb7185');
+                  return (
                   <Card
                     key={t._id}
                     sx={{
                       border: '1px solid rgba(148,163,184,0.08)',
                       background: 'rgba(30,41,59,0.5)',
                       backdropFilter: 'blur(8px)',
+                      borderLeft: `3px solid ${accentColor}44`,
                     }}
                   >
                     <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
@@ -185,7 +193,8 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, c
                       </CardContent>
                     </CardActionArea>
                   </Card>
-                ))}
+                  );
+                })}
               </Box>
             </Box>
           ))}
