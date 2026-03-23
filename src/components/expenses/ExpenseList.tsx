@@ -165,6 +165,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
                                 }}
                               />
                             )}
+                            {t.participants && t.participants.length > 0 && (
+                              <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', mt: 0.4, display: 'block' }}>
+                                with {t.participants.join(', ')}
+                              </Typography>
+                            )}
                           </Box>
 
                           {/* Right: amount + actions */}
@@ -203,6 +208,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
             <TableRow>
               <TableCell>Date</TableCell>
               <TableCell>Description</TableCell>
+              <TableCell>With</TableCell>
               <TableCell>Type</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell align="right">Actions</TableCell>
@@ -212,8 +218,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
             {transactions.map((t) => (
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
-                <TableCell sx={{ maxWidth: 240, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                   {t.description}
+                </TableCell>
+                <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
+                  {t.participants && t.participants.length > 0 ? t.participants.join(', ') : '—'}
                 </TableCell>
                 <TableCell>
                   <Chip label={t.type === 'income' ? 'Income' : 'Expense'} color={t.type === 'income' ? 'success' : 'error'} size="small" />

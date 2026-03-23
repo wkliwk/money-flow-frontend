@@ -24,6 +24,7 @@ import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
+import ParticipantPicker from './ParticipantPicker';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates } from '../../hooks/useFxRates';
 
@@ -57,6 +58,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const [category, setCategory] = useState('');
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
+  const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -84,6 +86,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
     setCategory('');
     setQuickDate('today');
     setCustomDate(today());
+    setParticipants([]);
     setError('');
     onClose();
   };
@@ -101,6 +104,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
         amount: parsedAmount,
         type,
         category: category.trim() || undefined,
+        participants: participants.length ? participants : undefined,
         date: resolvedDate,
       });
       handleClose();
@@ -264,6 +268,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
             />
           )}
         </Box>
+
+        <ParticipantPicker value={participants} onChange={setParticipants} />
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>

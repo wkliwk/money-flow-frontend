@@ -22,6 +22,7 @@ import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
+import ParticipantPicker from './ParticipantPicker';
 
 interface Props {
   open: boolean;
@@ -56,6 +57,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [category, setCategory] = useState('');
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
+  const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -65,6 +67,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setCategory(transaction.category || '');
+      setParticipants(transaction.participants ?? []);
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -89,6 +92,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         amount: parsedAmount,
         type,
         category: category.trim() || undefined,
+        participants: participants.length ? participants : undefined,
         date: resolvedDate,
         owner: transaction.owner,
       });
@@ -225,6 +229,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
             />
           )}
         </Box>
+
+        <ParticipantPicker value={participants} onChange={setParticipants} />
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
