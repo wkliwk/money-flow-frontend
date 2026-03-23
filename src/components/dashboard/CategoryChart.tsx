@@ -5,11 +5,12 @@ import { Transaction } from '../../types';
 
 interface Props {
   transactions: Transaction[];
+  onCategoryClick?: (category: string) => void;
 }
 
 const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa', '#f472b6'];
 
-const CategoryChart: React.FC<Props> = ({ transactions }) => {
+const CategoryChart: React.FC<Props> = ({ transactions, onCategoryClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const data = useMemo(() => {
@@ -63,6 +64,8 @@ const CategoryChart: React.FC<Props> = ({ transactions }) => {
               innerRadius={50}
               outerRadius={80}
               paddingAngle={3}
+              onClick={(entry: unknown) => onCategoryClick?.((entry as { name: string }).name)}
+              style={{ cursor: onCategoryClick ? 'pointer' : 'default' }}
             >
               {data.map((_, index) => (
                 <Cell key={index} fill={COLORS[index % COLORS.length]} opacity={0.9} />

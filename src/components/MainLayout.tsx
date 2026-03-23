@@ -255,7 +255,8 @@ const MainLayout: React.FC = () => {
       const matchesSearch =
         search === '' ||
         (t.description || '').toLowerCase().includes(searchLow) ||
-        (t.item || '').toLowerCase().includes(searchLow);
+        (t.item || '').toLowerCase().includes(searchLow) ||
+        (t.category || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
@@ -444,7 +445,7 @@ const MainLayout: React.FC = () => {
                 </Box>
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
-                <CategoryChart transactions={monthFiltered} />
+                <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
