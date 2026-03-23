@@ -38,6 +38,14 @@ const MobileHero: React.FC<Props> = ({
   const prevExpenses = (prevMonthTransactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const showDelta = selectedMonth && prevMonthTransactions && prevMonthTransactions.length > 0;
   const delta = expenses - prevExpenses;
+
+  const avgPerDay = (() => {
+    if (!selectedMonth || expenses === 0) return null;
+    const now = dayjs();
+    const isCurrentMonth = selectedMonth.isSame(now, 'month');
+    const daysElapsed = isCurrentMonth ? now.date() : selectedMonth.daysInMonth();
+    return expenses / daysElapsed;
+  })();
   const net = income - expenses;
   const isPositive = net >= 0;
 
@@ -154,6 +162,11 @@ const MobileHero: React.FC<Props> = ({
           <Typography fontWeight={700} sx={{ color: '#fb7185', fontSize: '1rem', letterSpacing: '-0.01em' }}>
             -{symbol}{fmt(convert(expenses))}
           </Typography>
+          {avgPerDay !== null && (
+            <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled', mt: 0.25 }}>
+              {symbol}{fmt(convert(avgPerDay))}/day
+            </Typography>
+          )}
         </Box>
       </Box>
     </Box>
