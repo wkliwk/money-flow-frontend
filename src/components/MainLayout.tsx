@@ -201,6 +201,15 @@ const MainLayout: React.FC = () => {
     return count;
   }, [transactions]);
 
+  const categorySpend = useMemo(() => {
+    const map: Record<string, number> = {};
+    monthFiltered.filter((t) => t.type === 'expense').forEach((t) => {
+      const cat = t.category || 'Other';
+      map[cat] = (map[cat] || 0) + t.amount;
+    });
+    return map;
+  }, [monthFiltered]);
+
   const filteredTransactions = useMemo(() => {
     return monthFiltered.filter((t) => {
       const searchLow = search.toLowerCase();
@@ -452,6 +461,7 @@ const MainLayout: React.FC = () => {
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
+              categorySpend={categorySpend}
             />
           )}
         </Container>

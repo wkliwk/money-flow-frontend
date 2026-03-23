@@ -16,6 +16,7 @@ import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 interface Props {
   currency: string;
   onCurrencyChange: (c: Currency) => void;
+  categorySpend?: Record<string, number>;
 }
 
 function getUserId(): string {
@@ -26,7 +27,7 @@ function getUserId(): string {
   } catch { return ''; }
 }
 
-const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange }) => {
+const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
   const userId = getUserId();
   const { budgets, setBudget } = useBudgets();
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -92,9 +93,20 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange }) => {
             Set limits per category — progress bars appear on the Home breakdown.
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-            {BUDGET_CATEGORIES.map((cat) => (
+            {BUDGET_CATEGORIES.map((cat) => {
+              const spent = categorySpend[cat] || 0;
+              const budget = budgets[cat];
+              const over = budget && spent > budget;
+              return (
               <Box key={cat} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Typography sx={{ fontSize: '0.82rem', flex: 1, color: 'text.secondary' }}>{cat}</Typography>
+                <Box sx={{ flex: 1 }}>
+                  <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{cat}</Typography>
+                  {spent > 0 && (
+                    <Typography sx={{ fontSize: '0.65rem', color: over ? '#fb7185' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
+                      HK${Math.round(spent).toLocaleString()} this month{over ? ' — over!' : ''}
+                    </Typography>
+                  )}
+                </Box>
                 <TextField
                   size="small"
                   type="number"
@@ -107,7 +119,8 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange }) => {
                   inputProps={{ min: 0 }}
                 />
               </Box>
-            ))}
+              );
+            })}
           </Box>
         </Box>
       </Box>
