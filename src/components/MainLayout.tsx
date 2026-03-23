@@ -279,9 +279,11 @@ const MainLayout: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = selectedMonth
-      ? `money-flow-${selectedMonth.format('YYYY-MM')}.csv`
-      : 'money-flow-all.csv';
+    a.download = search
+      ? `money-flow-search.csv`
+      : selectedMonth
+        ? `money-flow-${selectedMonth.format('YYYY-MM')}.csv`
+        : 'money-flow-all.csv';
     a.click();
     URL.revokeObjectURL(url);
   };
