@@ -101,7 +101,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     onClose();
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (addAnother = false) => {
     if (!item && !description.trim()) { setError('Please select an item or enter a description'); return; }
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
@@ -118,7 +118,14 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         participants: participants.length ? participants : undefined,
         date: resolvedDate,
       });
-      handleClose();
+      if (addAnother) {
+        // Reset amount and description, keep item/type/date/participants
+        setAmount('');
+        setDescription('');
+        setError('');
+      } else {
+        handleClose();
+      }
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Failed to add transaction');
     } finally {
@@ -294,10 +301,13 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
+      <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
         <Button onClick={handleClose} disabled={loading}>Cancel</Button>
-        <Button variant="contained" fullWidth={isMobile} onClick={handleSubmit} disabled={loading} size="large">
-          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save Transaction'}
+        <Button variant="outlined" onClick={() => handleSubmit(true)} disabled={loading} sx={{ fontSize: '0.78rem', px: 1.5 }}>
+          + Add
+        </Button>
+        <Button variant="contained" onClick={() => handleSubmit(false)} disabled={loading} size="large">
+          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save'}
         </Button>
       </DialogActions>
     </Dialog>
