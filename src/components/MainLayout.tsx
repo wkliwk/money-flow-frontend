@@ -114,7 +114,8 @@ const MainLayout: React.FC = () => {
 
   const filteredTransactions = useMemo(() => {
     return monthFiltered.filter((t) => {
-      const matchesSearch = search === '' || t.description.toLowerCase().includes(search.toLowerCase());
+      const searchLow = search.toLowerCase();
+      const matchesSearch = search === '' || t.description.toLowerCase().includes(searchLow) || (t.item || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
