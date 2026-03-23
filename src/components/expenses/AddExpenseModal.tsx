@@ -6,11 +6,6 @@ import {
   DialogActions,
   Button,
   TextField,
-  FormControl,
-  FormLabel,
-  RadioGroup,
-  FormControlLabel,
-  Radio,
   Alert,
   CircularProgress,
   useMediaQuery,
@@ -18,8 +13,11 @@ import {
   IconButton,
   Typography,
   Box,
+  Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import TrendingDownIcon from '@mui/icons-material/TrendingDown';
+import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import CategorySelect from './CategorySelect';
 
@@ -30,6 +28,15 @@ interface Props {
   existingCategories: string[];
 }
 
+const today = () => new Date().toISOString().split('T')[0];
+const yesterday = () => {
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  return d.toISOString().split('T')[0];
+};
+
+type QuickDate = 'today' | 'yesterday' | 'custom';
+
 const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCategories }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -37,30 +44,28 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const [amount, setAmount] = useState('');
   const [type, setType] = useState<TransactionType>('expense');
   const [category, setCategory] = useState('');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+  const [quickDate, setQuickDate] = useState<QuickDate>('today');
+  const [customDate, setCustomDate] = useState(today());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const resolvedDate = quickDate === 'today' ? today() : quickDate === 'yesterday' ? yesterday() : customDate;
 
   const handleClose = () => {
     setDescription('');
     setAmount('');
     setType('expense');
     setCategory('');
-    setDate(new Date().toISOString().split('T')[0]);
+    setQuickDate('today');
+    setCustomDate(today());
     setError('');
     onClose();
   };
 
   const handleSubmit = async () => {
-    if (!description.trim()) {
-      setError('Description is required');
-      return;
-    }
+    if (!description.trim()) { setError('Description is required'); return; }
     const parsedAmount = parseFloat(amount);
-    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) {
-      setError('Please enter a valid amount');
-      return;
-    }
+    if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
 
     setLoading(true);
     setError('');
@@ -70,7 +75,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
         amount: parsedAmount,
         type,
         category: category.trim() || undefined,
-        date,
+        date: resolvedDate,
       });
       handleClose();
     } catch (err: any) {
@@ -80,22 +85,98 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
     }
   };
 
+  const typeCards = [
+    {
+      value: 'expense' as TransactionType,
+      label: 'Expense',
+      icon: <TrendingDownIcon sx={{ fontSize: 28 }} />,
+      color: '#fb7185',
+      bg: 'rgba(251,113,133,0.1)',
+      border: 'rgba(251,113,133,0.35)',
+      activeBg: 'rgba(251,113,133,0.18)',
+    },
+    {
+      value: 'income' as TransactionType,
+      label: 'Income',
+      icon: <TrendingUpIcon sx={{ fontSize: 28 }} />,
+      color: '#34d399',
+      bg: 'rgba(52,211,153,0.07)',
+      border: 'rgba(52,211,153,0.35)',
+      activeBg: 'rgba(52,211,153,0.18)',
+    },
+  ];
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm" fullScreen={isMobile}>
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pb: 1 }}>
-        <Box>
-          <Typography variant="h6" fontWeight={700}>Record Transaction</Typography>
-        </Box>
+        <Typography variant="h6" fontWeight={700}>Record Transaction</Typography>
         <IconButton size="small" onClick={handleClose} sx={{ color: 'text.secondary' }}>
           <CloseIcon />
         </IconButton>
       </DialogTitle>
+
       <DialogContent sx={{ pt: 1 }}>
-        {error && (
-          <Alert severity="error" sx={{ mb: 2, mt: 1 }}>
-            {error}
-          </Alert>
-        )}
+        {error && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{error}</Alert>}
+
+        {/* Type selector — icon cards */}
+        <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 1 }}>
+          {typeCards.map((card) => {
+            const selected = type === card.value;
+            return (
+              <Box
+                key={card.value}
+                onClick={() => setType(card.value)}
+                sx={{
+                  flex: 1,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  py: 2,
+                  borderRadius: 2.5,
+                  cursor: 'pointer',
+                  border: '2px solid',
+                  borderColor: selected ? card.border : 'rgba(148,163,184,0.1)',
+                  bgcolor: selected ? card.activeBg : card.bg,
+                  transition: 'all 0.15s ease',
+                  userSelect: 'none',
+                  '&:hover': { bgcolor: card.activeBg },
+                }}
+              >
+                <Box sx={{ color: card.color }}>{card.icon}</Box>
+                <Typography
+                  variant="caption"
+                  fontWeight={700}
+                  sx={{ color: selected ? card.color : 'text.secondary', fontSize: '0.78rem', letterSpacing: '0.02em' }}
+                >
+                  {card.label}
+                </Typography>
+              </Box>
+            );
+          })}
+        </Box>
+
+        {/* Amount — prominent */}
+        <TextField
+          label="Amount (HK$)"
+          type="number"
+          fullWidth
+          margin="normal"
+          required
+          autoFocus={!isMobile}
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          inputProps={{ min: 0, step: 0.01 }}
+          InputProps={{
+            sx: {
+              fontSize: '1.3rem',
+              fontWeight: 700,
+              '& input': { textAlign: 'center', letterSpacing: '-0.01em' },
+            },
+          }}
+        />
+
+        {/* Description */}
         <TextField
           label="Description"
           fullWidth
@@ -104,42 +185,48 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
           value={description}
           onChange={(e) => setDescription(e.target.value)}
         />
-        <TextField
-          label="Amount (HK$)"
-          type="number"
-          fullWidth
-          margin="normal"
-          required
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          inputProps={{ min: 0, step: 0.01 }}
-        />
-        <FormControl margin="normal">
-          <FormLabel>Type</FormLabel>
-          <RadioGroup
-            row
-            value={type}
-            onChange={(e) => setType(e.target.value as TransactionType)}
-          >
-            <FormControlLabel value="income" control={<Radio />} label="Income" />
-            <FormControlLabel value="expense" control={<Radio />} label="Expense" />
-          </RadioGroup>
-        </FormControl>
-        <CategorySelect
-          value={category}
-          onChange={setCategory}
-          existingCategories={existingCategories}
-        />
-        <TextField
-          label="Date"
-          type="date"
-          fullWidth
-          margin="normal"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          InputLabelProps={{ shrink: true }}
-        />
+
+        {/* Category with emoji chips */}
+        <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
+
+        {/* Date — quick chips */}
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Date
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            {(['today', 'yesterday', 'custom'] as QuickDate[]).map((d) => (
+              <Chip
+                key={d}
+                label={d === 'today' ? '📅 Today' : d === 'yesterday' ? '⏮ Yesterday' : '📆 Custom'}
+                size="small"
+                clickable
+                onClick={() => setQuickDate(d)}
+                sx={{
+                  fontSize: '0.75rem',
+                  height: 30,
+                  bgcolor: quickDate === d ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                  color: quickDate === d ? '#818cf8' : 'text.secondary',
+                  border: '1px solid',
+                  borderColor: quickDate === d ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  fontWeight: quickDate === d ? 600 : 400,
+                }}
+              />
+            ))}
+          </Box>
+          {quickDate === 'custom' && (
+            <TextField
+              type="date"
+              size="small"
+              value={customDate}
+              onChange={(e) => setCustomDate(e.target.value)}
+              InputLabelProps={{ shrink: true }}
+              sx={{ mt: 1.5, width: 180 }}
+            />
+          )}
+        </Box>
       </DialogContent>
+
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
         <Button onClick={handleClose} disabled={loading} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
           Cancel

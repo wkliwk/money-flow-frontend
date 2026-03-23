@@ -1,7 +1,7 @@
 import React from 'react';
 import { Autocomplete, TextField, Box, Chip } from '@mui/material';
 
-const PRESET_CATEGORIES = [
+export const PRESET_CATEGORIES = [
   'Food & Drink',
   'Transport',
   'Shopping',
@@ -14,6 +14,19 @@ const PRESET_CATEGORIES = [
   'Investment',
 ];
 
+const CATEGORY_EMOJI: Record<string, string> = {
+  'Food & Drink': '🍽️',
+  'Transport': '🚌',
+  'Shopping': '🛍️',
+  'Entertainment': '🎬',
+  'Health': '🏥',
+  'Utilities': '💡',
+  'Rent': '🏠',
+  'Salary': '💰',
+  'Freelance': '💼',
+  'Investment': '📈',
+};
+
 interface Props {
   value: string;
   onChange: (v: string) => void;
@@ -25,7 +38,6 @@ const CategorySelect: React.FC<Props> = ({ value, onChange, existingCategories }
     new Set([...PRESET_CATEGORIES, ...existingCategories.map((c) => c.trim()).filter(Boolean)])
   );
 
-  // Quick-pick chips: presets + any user categories not already in presets
   const chips = options.slice(0, 12);
 
   return (
@@ -58,27 +70,30 @@ const CategorySelect: React.FC<Props> = ({ value, onChange, existingCategories }
           scrollbarWidth: 'none',
         }}
       >
-        {chips.map((cat) => (
-          <Chip
-            key={cat}
-            label={cat}
-            size="small"
-            clickable
-            onClick={() => onChange(cat)}
-            sx={{
-              flexShrink: 0,
-              fontSize: '0.72rem',
-              height: 26,
-              bgcolor: value === cat ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-              color: value === cat ? '#818cf8' : 'text.secondary',
-              border: '1px solid',
-              borderColor: value === cat ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
-              '&:hover': {
-                bgcolor: 'rgba(129,140,248,0.12)',
-              },
-            }}
-          />
-        ))}
+        {chips.map((cat) => {
+          const emoji = CATEGORY_EMOJI[cat];
+          const selected = value === cat;
+          return (
+            <Chip
+              key={cat}
+              label={emoji ? `${emoji} ${cat}` : cat}
+              size="small"
+              clickable
+              onClick={() => onChange(cat)}
+              sx={{
+                flexShrink: 0,
+                fontSize: '0.72rem',
+                height: 28,
+                bgcolor: selected ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                color: selected ? '#818cf8' : 'text.secondary',
+                border: '1px solid',
+                borderColor: selected ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                '& .MuiChip-label': { px: 1.25 },
+                '&:hover': { bgcolor: 'rgba(129,140,248,0.12)' },
+              }}
+            />
+          );
+        })}
       </Box>
     </Box>
   );
