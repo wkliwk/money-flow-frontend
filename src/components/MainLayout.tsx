@@ -118,8 +118,10 @@ const MainLayout: React.FC = () => {
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
-    await createExpense({ ...data, owner });
-    await fetchTransactions();
+    const created = await createExpense({ ...data, owner });
+    setTransactions((prev) => [created, ...prev].sort((a, b) =>
+      new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
+    ));
     showSnackbar('Transaction added');
   };
 
@@ -621,8 +623,10 @@ const MainLayout: React.FC = () => {
         }}
         onDuplicate={async (data) => {
           const owner = getOwnerFromToken();
-          await createExpense({ ...data, owner });
-          await fetchTransactions();
+          const created = await createExpense({ ...data, owner });
+          setTransactions((prev) => [created, ...prev].sort((a, b) =>
+            new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
+          ));
           showSnackbar('Transaction logged again');
         }}
         existingCategories={existingCategories}
