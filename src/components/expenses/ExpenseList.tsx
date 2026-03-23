@@ -28,7 +28,6 @@ interface Props {
   transactions: Transaction[];
   onEdit: (t: Transaction) => void;
   onDelete: (id: string) => void;
-  onAdd: () => void;
   convert: (hkd: number) => number;
   symbol: string;
 }
@@ -63,7 +62,7 @@ function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) 
   return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, convert, symbol }) => {
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 

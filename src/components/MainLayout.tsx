@@ -526,7 +526,6 @@ const MainLayout: React.FC = () => {
                 transactions={filteredTransactions}
                 onEdit={(t) => setEditTransaction(t)}
                 onDelete={handleDelete}
-                onAdd={() => setAddOpen(true)}
                 convert={convert}
                 symbol={symbol}
               />

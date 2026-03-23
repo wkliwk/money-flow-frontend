@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Typography, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
+import { Typography, Card, CardContent, useTheme, useMediaQuery } from '@mui/material';
 import { PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../../types';
 

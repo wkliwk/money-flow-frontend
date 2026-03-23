@@ -17,7 +17,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { TransactionTemplate, useTemplates } from '../../hooks/useTemplates';
+import { TransactionTemplate } from '../../hooks/useTemplates';
 import { TransactionType } from '../../types';
 import { PRESET_CATEGORIES } from './CategorySelect';
 import { ITEM_PRESETS } from './ItemPicker';

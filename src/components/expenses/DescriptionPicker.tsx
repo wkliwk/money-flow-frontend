@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Box, Typography, Chip, TextField, InputAdornment, IconButton } from '@mui/material';
+import { Box, Typography, Chip, TextField, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 
 interface Props {

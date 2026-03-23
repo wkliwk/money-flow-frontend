@@ -26,6 +26,7 @@ function fmt(n: number): string {
 
 const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   const isFxAvailable = !!fxSymbol && !!fxRate;
+  const rate = fxRate ?? 1;
   const [inputInFx, setInputInFx] = useState(false);
   const [fxInput, setFxInput] = useState('');
   const [storedValue, setStoredValue] = useState<number | null>(null);
@@ -36,7 +37,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   useEffect(() => {
     setInputInFx(false);
     if (isFxAvailable && value) {
-      setFxInput(fmt(parseFloat(value) / fxRate!));
+      setFxInput(fmt(parseFloat(value) / rate));
     } else {
       setFxInput('');
     }
@@ -47,28 +48,28 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
 
   const displayStr = inputInFx ? fxInput : value;
   const displayNum = displayStr === '' ? '0' : displayStr;
-  const displaySymbol = inputInFx ? fxSymbol! : 'HK$';
+  const displaySymbol = inputInFx ? (fxSymbol ?? 'HK$') : 'HK$';
   const hintSymbol = inputInFx ? 'HK$' : fxSymbol;
   const hintVal = isFxAvailable
     ? inputInFx
-      ? fmt(parseFloat(fxInput || '0') * fxRate!)
-      : fmt(parseFloat(value || '0') / fxRate!)
+      ? fmt(parseFloat(fxInput || '0') * rate)
+      : fmt(parseFloat(value || '0') / rate)
     : null;
 
   const emitHkd = (fxStr: string) => {
     const n = parseFloat(fxStr) || 0;
-    onChange(n > 0 ? fmt(n * fxRate!) : '');
+    onChange(n > 0 ? fmt(n * rate) : '');
   };
 
   const handleSwap = () => {
     if (!isFxAvailable) return;
     if (inputInFx) {
       // fxInput → convert to HKD, now entering HKD
-      const hkd = parseFloat(fxInput || '0') * fxRate!;
+      const hkd = parseFloat(fxInput || '0') * rate;
       onChange(hkd > 0 ? fmt(hkd) : '');
     } else {
       // value is HKD → convert to FX, now entering FX
-      const fx = parseFloat(value || '0') / fxRate!;
+      const fx = parseFloat(value || '0') / rate;
       setFxInput(fx > 0 ? fmt(fx) : '');
     }
     setInputInFx((v) => !v);
@@ -203,7 +204,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
               setPendingOp(null);
               setWaitForNext(false);
               if (inputInFx && isFxAvailable) {
-                const fx = fmt(preset / fxRate!);
+                const fx = fmt(preset / rate);
                 setFxInput(fx);
                 onChange(fmt(preset));
               } else {
