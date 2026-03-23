@@ -21,9 +21,11 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import CategorySelect from './CategorySelect';
 import NumPad from './NumPad';
+import ItemPicker, { ItemPreset } from './ItemPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
+import { useFxRates } from '../../hooks/useFxRates';
 
 interface Props {
   open: boolean;
@@ -45,6 +47,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
+  const { symbol, convert, currency } = useFxRates();
   const [manageOpen, setManageOpen] = useState(false);
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -54,6 +57,13 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
   const [customDate, setCustomDate] = useState(today());
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+
+  const convertedAmount = amount ? String(convert(parseFloat(amount)).toLocaleString('en-HK', { maximumFractionDigits: 2 })) : '';
+
+  const handleItemSelect = (item: ItemPreset) => {
+    setDescription(item.label);
+    setCategory(item.category);
+  };
 
   const handleTemplateSelect = (t: TransactionTemplate) => {
     setDescription(t.description);
@@ -177,21 +187,31 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
           })}
         </Box>
 
-        {/* Amount — calculator keypad */}
-        <NumPad value={amount} onChange={setAmount} />
+        {/* Item picker — sets description + category */}
+        <ItemPicker value={description} onSelect={handleItemSelect} />
 
-        {/* Description */}
+        {/* Description — editable text, pre-filled by item */}
         <TextField
           label="Description"
           fullWidth
-          margin="normal"
+          margin="dense"
           required
           value={description}
           onChange={(e) => setDescription(e.target.value)}
+          placeholder="或自行輸入..."
         />
 
         {/* Category with emoji chips */}
         <CategorySelect value={category} onChange={setCategory} existingCategories={existingCategories} />
+
+        {/* Amount — calculator keypad with fx conversion */}
+        <NumPad
+          value={amount}
+          onChange={setAmount}
+          symbol="HK$"
+          convertedSymbol={currency !== 'HKD' ? symbol : undefined}
+          convertedValue={currency !== 'HKD' ? convertedAmount : undefined}
+        />
 
         {/* Date — quick chips */}
         <Box sx={{ mt: 1.5 }}>
