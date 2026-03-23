@@ -40,12 +40,25 @@ const MobileHero: React.FC<Props> = ({
   const showDelta = selectedMonth && prevMonthTransactions && prevMonthTransactions.length > 0;
   const delta = expenses - prevExpenses;
 
-  const avgPerDay = (() => {
-    if (!selectedMonth || expenses === 0) return null;
+  const { avgPerDay, projectedTotal, topExpense } = (() => {
+    if (!selectedMonth || expenses === 0) return { avgPerDay: null, projectedTotal: null, topExpense: null };
     const now = dayjs();
     const isCurrentMonth = selectedMonth.isSame(now, 'month');
     const daysElapsed = isCurrentMonth ? now.date() : selectedMonth.daysInMonth();
-    return expenses / daysElapsed;
+    const avg = expenses / daysElapsed;
+    const projected = isCurrentMonth && daysElapsed < selectedMonth.daysInMonth()
+      ? avg * selectedMonth.daysInMonth()
+      : null;
+
+    // Top expense item this month
+    const itemTotals: Record<string, number> = {};
+    transactions.filter((t) => t.type === 'expense').forEach((t) => {
+      const key = t.item || t.description || 'Other';
+      itemTotals[key] = (itemTotals[key] || 0) + t.amount;
+    });
+    const top = Object.entries(itemTotals).sort((a, b) => b[1] - a[1])[0] ?? null;
+
+    return { avgPerDay: avg, projectedTotal: projected, topExpense: top };
   })();
   const net = income - expenses;
   const isPositive = net >= 0;
@@ -182,6 +195,12 @@ const MobileHero: React.FC<Props> = ({
           {avgPerDay !== null && (
             <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled', mt: 0.25 }}>
               {symbol}{fmt(convert(avgPerDay))}/day
+              {projectedTotal !== null && ` · on pace for ${symbol}${fmt(convert(projectedTotal))}`}
+            </Typography>
+          )}
+          {topExpense && (
+            <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled', mt: 0.125 }}>
+              Top: {topExpense[0]} {symbol}{fmt(convert(topExpense[1]))}
             </Typography>
           )}
         </Box>

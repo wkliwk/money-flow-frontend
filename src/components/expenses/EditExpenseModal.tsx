@@ -84,7 +84,9 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     if (transaction) {
       // Backward compat: old records stored item label in description field
       const resolvedItem = transaction.item || (ITEM_PRESETS.find((p) => p.label === transaction.description)?.label ?? '');
-      const resolvedDesc = transaction.item ? transaction.description : (resolvedItem ? '' : transaction.description);
+      const resolvedDesc = transaction.item
+        ? (transaction.description === transaction.item ? '' : transaction.description)
+        : (resolvedItem ? '' : transaction.description);
       setItem(resolvedItem);
       setCategory(transaction.category || (ITEM_PRESETS.find((p) => p.label === resolvedItem)?.category ?? ''));
       setDescription(resolvedDesc);
