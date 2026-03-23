@@ -61,6 +61,15 @@ const MainLayout: React.FC = () => {
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
+
+  useEffect(() => {
+    const goOffline = () => setIsOffline(true);
+    const goOnline = () => setIsOffline(false);
+    window.addEventListener('offline', goOffline);
+    window.addEventListener('online', goOnline);
+    return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
+  }, []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [search, setSearch] = useState('');
@@ -198,6 +207,11 @@ const MainLayout: React.FC = () => {
           >
             Money Flow
           </Typography>
+          {isOffline && (
+            <Typography sx={{ fontSize: '0.68rem', color: '#fbbf24', fontWeight: 600, letterSpacing: '0.04em', px: 1, py: 0.25, borderRadius: 1, bgcolor: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
+              Offline
+            </Typography>
+          )}
         </Toolbar>
       </AppBar>
 
