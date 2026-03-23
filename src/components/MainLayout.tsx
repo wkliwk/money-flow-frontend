@@ -30,6 +30,8 @@ import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
+import { useFxRates } from '../hooks/useFxRates';
+import CurrencyPicker from './dashboard/CurrencyPicker';
 
 function getOwnerFromToken(): string {
   try {
@@ -44,6 +46,7 @@ function getOwnerFromToken(): string {
 const MainLayout: React.FC = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const { currency, setCurrency, convert, symbol } = useFxRates();
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [search, setSearch] = useState('');
@@ -194,13 +197,20 @@ const MainLayout: React.FC = () => {
             transactions={monthFiltered}
             selectedMonth={selectedMonth}
             onChange={setSelectedMonth}
+            currency={currency}
+            onCurrencyChange={setCurrency}
+            convert={convert}
+            symbol={symbol}
           />
         </Box>
 
         {/* Desktop: separate month picker + summary cards + chart */}
         <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-          <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-          <SummaryCards transactions={monthFiltered} />
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+            <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+            <CurrencyPicker currency={currency} onChange={setCurrency} />
+          </Box>
+          <SummaryCards transactions={monthFiltered} convert={convert} symbol={symbol} />
           <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
           <CategoryChart transactions={monthFiltered} />
         </Box>

@@ -7,12 +7,14 @@ import { Transaction } from '../../types';
 
 interface Props {
   transactions: Transaction[];
+  convert: (amount: number) => number;
+  symbol: string;
 }
 
 const fmt = (n: number) =>
   n.toLocaleString('en-HK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
-const SummaryCards: React.FC<Props> = ({ transactions }) => {
+const SummaryCards: React.FC<Props> = ({ transactions, convert, symbol }) => {
   const income = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -26,7 +28,7 @@ const SummaryCards: React.FC<Props> = ({ transactions }) => {
   const cards = [
     {
       label: 'Income',
-      value: `+HK$${fmt(income)}`,
+      value: `+${symbol}${fmt(convert(income))}`,
       color: '#34d399',
       gradient: 'linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%)',
       border: 'rgba(52, 211, 153, 0.2)',
@@ -35,7 +37,7 @@ const SummaryCards: React.FC<Props> = ({ transactions }) => {
     },
     {
       label: 'Expenses',
-      value: `-HK$${fmt(expenses)}`,
+      value: `-${symbol}${fmt(convert(expenses))}`,
       color: '#fb7185',
       gradient: 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)',
       border: 'rgba(251, 113, 133, 0.2)',
@@ -44,7 +46,7 @@ const SummaryCards: React.FC<Props> = ({ transactions }) => {
     },
     {
       label: 'Net Balance',
-      value: `${net >= 0 ? '+' : '-'}HK$${fmt(Math.abs(net))}`,
+      value: `${net >= 0 ? '+' : '-'}${symbol}${fmt(convert(Math.abs(net)))}`,
       color: net >= 0 ? '#818cf8' : '#fb7185',
       gradient: net >= 0
         ? 'linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(99, 102, 241, 0.04) 100%)'
