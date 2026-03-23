@@ -10,33 +10,40 @@ interface Props {
   symbol: string;
 }
 
-// Map item label → category for budget lookup
+// Map item label → category
 const ITEM_TO_CATEGORY: Record<string, string> = {};
 ITEM_PRESETS.forEach((p) => { ITEM_TO_CATEGORY[p.label] = p.category; });
+
+const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
 const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) => {
   const { budgets } = useBudgets();
 
-  const rows = useMemo(() => {
+  const { rows, categoryTotals } = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense');
-    if (expenses.length === 0) return [];
+    if (expenses.length === 0) return { rows: [], categoryTotals: {} };
 
-    const totals: Record<string, number> = {};
+    const itemTotals: Record<string, number> = {};
+    const catTotals: Record<string, number> = {};
+
     expenses.forEach((t) => {
       const key = t.item || t.category || 'Other';
-      totals[key] = (totals[key] || 0) + t.amount;
+      itemTotals[key] = (itemTotals[key] || 0) + t.amount;
+      const cat = ITEM_TO_CATEGORY[key] || t.category || key;
+      catTotals[cat] = (catTotals[cat] || 0) + t.amount;
     });
 
-    return Object.entries(totals)
+    const sorted = Object.entries(itemTotals)
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value)
       .slice(0, 6);
+
+    return { rows: sorted, categoryTotals: catTotals };
   }, [transactions]);
 
   if (rows.length === 0) return null;
 
   const max = rows[0].value;
-  const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
   return (
     <Box sx={{ mb: 2, px: 0.5 }}>
@@ -47,30 +54,36 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) =
         {rows.map(({ name, value }, i) => {
           const pct = (value / max) * 100;
           const color = COLORS[i % COLORS.length];
-          // Budget lookup: try item label → category mapping, then direct category, then item name
-          const category = ITEM_TO_CATEGORY[name] || name;
-          const budget = budgets[category] || budgets[name];
-          const budgetPct = budget ? Math.min((value / budget) * 100, 100) : null;
+
+          // Budget: look up category total vs category budget
+          const cat = ITEM_TO_CATEGORY[name] || name;
+          const budget = budgets[cat] || budgets[name];
+          const catTotal = budget ? (categoryTotals[cat] || value) : null;
+          const budgetPct = budget && catTotal ? Math.min((catTotal / budget) * 100, 100) : null;
           const budgetColor = budgetPct === null ? color : budgetPct >= 100 ? '#fb7185' : budgetPct >= 80 ? '#fbbf24' : '#34d399';
-          const over = budget && value > budget;
+          const over = budget && catTotal && catTotal > budget;
 
           return (
             <Box key={name}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: 'text.primary' }}>{name}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                  {budget && (
+                  {budget && catTotal != null && (
                     <Typography sx={{ fontSize: '0.68rem', color: over ? '#fb7185' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
-                      {over ? `+${symbol}${convert(value - budget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over` : `/ ${symbol}${convert(budget).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                      {over
+                        ? `+${symbol}${convert(catTotal - budget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over`
+                        : `${symbol}${convert(catTotal).toLocaleString(undefined, { maximumFractionDigits: 0 })} / ${symbol}${convert(budget).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
                     </Typography>
                   )}
-                  <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
-                    {symbol}{convert(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                  </Typography>
+                  {!budget && (
+                    <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+                      {symbol}{convert(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </Typography>
+                  )}
                 </Box>
               </Box>
               <Box sx={{ height: 4, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.08)', overflow: 'hidden' }}>
-                {budget ? (
+                {budgetPct !== null ? (
                   <Box sx={{ height: '100%', width: `${budgetPct}%`, borderRadius: 2, bgcolor: budgetColor, transition: 'width 0.4s ease' }} />
                 ) : (
                   <Box sx={{ height: '100%', width: `${pct}%`, borderRadius: 2, bgcolor: color, transition: 'width 0.4s ease' }} />
