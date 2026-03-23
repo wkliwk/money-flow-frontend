@@ -19,6 +19,7 @@ interface Props {
   typeFilter: TransactionType | 'all';
   total: number;
   filtered: number;
+  searchAllTime?: boolean;
   onSearchChange: (v: string) => void;
   onTypeFilterChange: (v: TransactionType | 'all') => void;
   onExport: () => void;
@@ -29,6 +30,7 @@ const FilterBar: React.FC<Props> = ({
   typeFilter,
   total,
   filtered,
+  searchAllTime,
   onSearchChange,
   onTypeFilterChange,
   onExport,
@@ -87,7 +89,7 @@ const FilterBar: React.FC<Props> = ({
       </Box>
       {isActive && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-          Showing {filtered} of {total} transactions
+          Showing {filtered} of {total} transactions{searchAllTime ? ' · all time' : ''}
         </Typography>
       )}
     </Box>

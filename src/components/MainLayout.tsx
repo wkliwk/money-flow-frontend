@@ -238,7 +238,8 @@ const MainLayout: React.FC = () => {
   }, [monthFiltered]);
 
   const filteredTransactions = useMemo(() => {
-    return monthFiltered.filter((t) => {
+    const pool = search !== '' ? transactions : monthFiltered;
+    return pool.filter((t) => {
       const searchLow = search.toLowerCase();
       const matchesSearch =
         search === '' ||
@@ -247,7 +248,7 @@ const MainLayout: React.FC = () => {
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
-  }, [monthFiltered, search, typeFilter]);
+  }, [transactions, monthFiltered, search, typeFilter]);
 
   const handleExport = () => {
     const header = ['Date', 'Description', 'Type', 'Category', 'Amount'];
@@ -473,12 +474,13 @@ const MainLayout: React.FC = () => {
 
           {activeTab === 1 && (
             <>
-              <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+              {search === '' && <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />}
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
-                total={monthFiltered.length}
+                total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
+                searchAllTime={search !== ''}
                 onSearchChange={setSearch}
                 onTypeFilterChange={setTypeFilter}
                 onExport={handleExport}
