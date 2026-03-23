@@ -21,6 +21,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import CategorySelect from './CategorySelect';
+import NumPad from './NumPad';
 
 interface Props {
   open: boolean;
@@ -171,24 +172,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           })}
         </Box>
 
-        {/* Amount — prominent */}
-        <TextField
-          label="Amount (HK$)"
-          type="number"
-          fullWidth
-          margin="normal"
-          required
-          value={amount}
-          onChange={(e) => setAmount(e.target.value)}
-          inputProps={{ min: 0, step: 0.01 }}
-          InputProps={{
-            sx: {
-              fontSize: '1.3rem',
-              fontWeight: 700,
-              '& input': { textAlign: 'center', letterSpacing: '-0.01em' },
-            },
-          }}
-        />
+        {/* Amount — calculator keypad */}
+        <NumPad value={amount} onChange={setAmount} />
 
         {/* Description */}
         <TextField
