@@ -282,6 +282,9 @@ const MainLayout: React.FC = () => {
 
           {activeTab === 1 && (
             <>
+              <Box sx={{ mb: 1.5 }}>
+                <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+              </Box>
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
@@ -393,6 +396,7 @@ const MainLayout: React.FC = () => {
         autoHideDuration={3000}
         onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
       >
         <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
           {snackbar.message}
