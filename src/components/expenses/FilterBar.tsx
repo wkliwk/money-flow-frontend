@@ -40,6 +40,7 @@ const FilterBar: React.FC<Props> = ({
       <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap' }}>
         <TextField
           size="small"
+          label="Search"
           placeholder="Search transactions…"
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}

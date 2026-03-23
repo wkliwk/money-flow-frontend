@@ -159,6 +159,7 @@ const MainLayout: React.FC = () => {
               flexGrow: 1,
               fontWeight: 700,
               letterSpacing: '-0.01em',
+              color: 'primary.main',
               background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
@@ -193,7 +194,7 @@ const MainLayout: React.FC = () => {
         </Toolbar>
       </AppBar>
 
-      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: 14 }}>
+      <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: { xs: 'calc(80px + env(safe-area-inset-bottom))', sm: 10 } }}>
         {/* Mobile: hero card with month picker + big balance + breakdown */}
         <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
           <MobileHero
@@ -236,6 +237,8 @@ const MainLayout: React.FC = () => {
           onEdit={(t) => setEditTransaction(t)}
           onDelete={handleDelete}
           onAdd={() => setAddOpen(true)}
+          convert={convert}
+          symbol={symbol}
         />
       </Container>
 
@@ -252,11 +255,13 @@ const MainLayout: React.FC = () => {
           px: isDesktop ? 3 : undefined,
           gap: isDesktop ? 1 : undefined,
           boxShadow: '0 0 0 0 rgba(129,140,248,0.4)',
-          animation: 'fab-pulse 2.5s ease-in-out infinite',
-          '@keyframes fab-pulse': {
-            '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
-            '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
-            '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
+          '@media (prefers-reduced-motion: no-preference)': {
+            animation: 'fab-pulse 2.5s ease-in-out 3',
+            '@keyframes fab-pulse': {
+              '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
+              '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
+              '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
+            },
           },
           '&:hover': {
             animation: 'none',
@@ -280,6 +285,7 @@ const MainLayout: React.FC = () => {
         transaction={editTransaction}
         onClose={() => setEditTransaction(null)}
         onSaved={handleSaved}
+        onDelete={(id) => { handleDelete(id); setEditTransaction(null); }}
         existingCategories={existingCategories}
       />
 

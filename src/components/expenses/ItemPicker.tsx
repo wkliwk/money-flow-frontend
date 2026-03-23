@@ -11,20 +11,21 @@ import CategoryIcon from '@mui/icons-material/Category';
 
 export interface ItemPreset {
   label: string;
+  en: string;
   icon: React.ReactElement;
   category: string;
   color: string;
 }
 
 export const ITEM_PRESETS: ItemPreset[] = [
-  { label: '早餐', icon: <WbSunnyIcon />,       category: 'Food & Drink', color: '#fbbf24' },
-  { label: '午餐', icon: <LunchDiningIcon />,    category: 'Food & Drink', color: '#34d399' },
-  { label: '晚餐', icon: <DinnerDiningIcon />,   category: 'Food & Drink', color: '#f472b6' },
-  { label: '車費', icon: <DirectionsBusIcon />,  category: 'Transport',    color: '#38bdf8' },
-  { label: '費用', icon: <PaymentsIcon />,       category: 'Utilities',    color: '#a78bfa' },
-  { label: '超市', icon: <ShoppingCartIcon />,   category: 'Shopping',     color: '#fb7185' },
-  { label: '學費', icon: <SchoolIcon />,         category: 'Education',    color: '#818cf8' },
-  { label: '其他', icon: <CategoryIcon />,       category: 'Other',        color: '#94a3b8' },
+  { label: '早餐', en: 'Breakfast', icon: <WbSunnyIcon />,       category: 'Food & Drink', color: '#fbbf24' },
+  { label: '午餐', en: 'Lunch',     icon: <LunchDiningIcon />,    category: 'Food & Drink', color: '#34d399' },
+  { label: '晚餐', en: 'Dinner',    icon: <DinnerDiningIcon />,   category: 'Food & Drink', color: '#f472b6' },
+  { label: '車費', en: 'Transport', icon: <DirectionsBusIcon />,  category: 'Transport',    color: '#38bdf8' },
+  { label: '費用', en: 'Bills',     icon: <PaymentsIcon />,       category: 'Utilities',    color: '#a78bfa' },
+  { label: '超市', en: 'Groceries', icon: <ShoppingCartIcon />,   category: 'Shopping',     color: '#fb7185' },
+  { label: '學費', en: 'Education', icon: <SchoolIcon />,         category: 'Education',    color: '#818cf8' },
+  { label: '其他', en: 'Other',     icon: <CategoryIcon />,       category: 'Other',        color: '#94a3b8' },
 ];
 
 interface Props {
@@ -40,7 +41,7 @@ const ItemPicker: React.FC<Props> = ({ value, onSelect }) => (
     >
       Item
     </Typography>
-    <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 1 }}>
+    <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.5, mx: -0.5, px: 0.5, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
       {ITEM_PRESETS.map((item) => {
         const selected = value === item.label;
         return (
@@ -48,11 +49,13 @@ const ItemPicker: React.FC<Props> = ({ value, onSelect }) => (
             key={item.label}
             onClick={() => onSelect(item)}
             sx={{
+              flexShrink: 0,
               flexDirection: 'column',
               borderRadius: 2.5,
-              py: 1.5,
-              px: 0.5,
-              gap: 0.75,
+              py: 1.25,
+              px: 1,
+              width: 64,
+              gap: 0.5,
               border: '1.5px solid',
               borderColor: selected ? `${item.color}66` : 'rgba(148,163,184,0.1)',
               bgcolor: selected ? `${item.color}1a` : 'rgba(148,163,184,0.04)',
@@ -71,9 +74,14 @@ const ItemPicker: React.FC<Props> = ({ value, onSelect }) => (
             <Typography
               variant="caption"
               fontWeight={selected ? 700 : 500}
-              sx={{ fontSize: '0.72rem', color: selected ? item.color : 'text.disabled', lineHeight: 1 }}
+              sx={{ fontSize: '0.7rem', color: selected ? item.color : 'text.secondary', lineHeight: 1, textAlign: 'center' }}
             >
               {item.label}
+            </Typography>
+            <Typography
+              sx={{ fontSize: '0.55rem', color: selected ? item.color : 'text.disabled', lineHeight: 1, opacity: 0.8 }}
+            >
+              {item.en}
             </Typography>
           </ButtonBase>
         );

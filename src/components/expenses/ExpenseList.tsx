@@ -31,6 +31,8 @@ interface Props {
   onEdit: (t: Transaction) => void;
   onDelete: (id: string) => void;
   onAdd: () => void;
+  convert: (hkd: number) => number;
+  symbol: string;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -38,7 +40,7 @@ function getDateKey(dateStr: string | undefined, fallback?: string): string {
   if (!raw) return 'Unknown';
   const d = new Date(raw);
   if (Number.isNaN(d.getTime())) return 'Unknown';
-  return d.toISOString().split('T')[0]; // YYYY-MM-DD
+  return d.toISOString().split('T')[0];
 }
 
 function formatGroupHeader(dateKey: string): string {
@@ -59,7 +61,11 @@ function formatDate(dateStr: string | undefined, fallback?: string): string {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd }) => {
+function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) {
+  return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd, convert, symbol }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [confirmId, setConfirmId] = useState<string | null>(null);
@@ -107,7 +113,6 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
           {grouped.map((group) => (
             <Box key={group.key} sx={{ mb: 2 }}>
-              {/* Date header */}
               <Typography
                 variant="caption"
                 sx={{
@@ -124,7 +129,6 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
                 {group.label}
               </Typography>
 
-              {/* Cards in group */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {group.items.map((t) => (
                   <Card
@@ -138,16 +142,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
                     <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
                       <CardContent sx={{ p: '14px 16px', '&:last-child': { pb: '14px' } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                          {/* Left: description + category */}
+                          {/* Left: title + participants */}
                           <Box sx={{ minWidth: 0, flex: 1 }}>
                             <Typography
                               fontWeight={600}
-                              sx={{
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap',
-                                fontSize: '0.9rem',
-                              }}
+                              sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.9rem' }}
                             >
                               {t.item || t.description}
                             </Typography>
@@ -156,47 +155,25 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
                                 {t.description}
                               </Typography>
                             )}
-                            {t.category && (
-                              <Chip
-                                label={t.category}
-                                size="small"
-                                sx={{
-                                  mt: 0.5,
-                                  height: 18,
-                                  fontSize: '0.65rem',
-                                  bgcolor: 'rgba(148,163,184,0.08)',
-                                  color: 'text.secondary',
-                                  border: '1px solid rgba(148,163,184,0.12)',
-                                }}
-                              />
-                            )}
                             {t.participants && t.participants.length > 0 && (
-                              <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', mt: 0.4, display: 'block' }}>
+                              <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', mt: 0.25, display: 'block' }}>
                                 with {t.participants.join(', ')}
                               </Typography>
                             )}
                           </Box>
 
-                          {/* Right: amount + actions */}
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-                            <Typography
-                              fontWeight={700}
-                              sx={{
-                                color: t.type === 'income' ? '#34d399' : '#fb7185',
-                                fontSize: '0.95rem',
-                                letterSpacing: '-0.01em',
-                              }}
-                            >
-                              {t.type === 'income' ? '+' : '-'}HK${t.amount.toLocaleString()}
-                            </Typography>
-                            <IconButton
-                              size="small"
-                              onClick={(e) => { e.stopPropagation(); setConfirmId(t._id); }}
-                              sx={{ p: 0.5, color: 'rgba(148,163,184,0.4)', ml: 0.5 }}
-                            >
-                              <DeleteIcon sx={{ fontSize: 16 }} />
-                            </IconButton>
-                          </Box>
+                          {/* Right: amount (tap card to edit/delete) */}
+                          <Typography
+                            fontWeight={700}
+                            sx={{
+                              color: t.type === 'income' ? '#34d399' : '#fb7185',
+                              fontSize: '0.95rem',
+                              letterSpacing: '-0.01em',
+                              flexShrink: 0,
+                            }}
+                          >
+                            {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
+                          </Typography>
                         </Box>
                       </CardContent>
                     </CardActionArea>
@@ -234,7 +211,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, onAdd })
                 </TableCell>
                 <TableCell align="right">
                   <Typography color={t.type === 'income' ? 'success.main' : 'error.main'} fontWeight={600} sx={{ letterSpacing: '-0.01em' }}>
-                    {t.type === 'income' ? '+' : '-'}HK${t.amount.toLocaleString()}
+                    {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
                   </Typography>
                 </TableCell>
                 <TableCell align="right">

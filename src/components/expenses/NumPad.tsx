@@ -120,7 +120,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
 
   const btnBase = {
     borderRadius: 2,
-    py: 1.6,
+    py: 1.2,
     display: 'flex', alignItems: 'center', justifyContent: 'center',
     transition: 'all 0.1s ease',
     '&:active': { transform: 'scale(0.95)' },
@@ -146,7 +146,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
             {storedValue} {pendingOp}
           </Typography>
         )}
-        <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
           Amount
         </Typography>
         <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: '-0.03em', lineHeight: 1.1, color: value ? 'text.primary' : 'text.disabled', mt: 0.25 }}>
@@ -208,8 +208,8 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
         <ButtonBase onClick={() => handleDigit('⌫')} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: 'rgba(251,113,133,0.06)', border: '1px solid rgba(251,113,133,0.12)', '&:active': { bgcolor: 'rgba(251,113,133,0.16)', transform: 'scale(0.97)' } }}>
           <BackspaceOutlinedIcon sx={{ fontSize: 20, color: '#fb7185' }} />
         </ButtonBase>
-        <ButtonBase onClick={handleEquals} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: 'rgba(129,140,248,0.15)', border: '1px solid rgba(129,140,248,0.3)', '&:active': { bgcolor: 'rgba(129,140,248,0.28)', transform: 'scale(0.97)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#818cf8' }}>=</Typography>
+        <ButtonBase onClick={handleEquals} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: '#818cf8', border: 'none', '&:active': { bgcolor: '#6366f1', transform: 'scale(0.97)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#fff' }}>=</Typography>
         </ButtonBase>
       </Box>
     </Box>

@@ -16,6 +16,9 @@ import {
   Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import TodayIcon from '@mui/icons-material/Today';
+import HistoryIcon from '@mui/icons-material/History';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
@@ -203,7 +206,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
           margin="dense"
           value={description}
           onChange={(e) => setDescription(e.target.value)}
-          placeholder="Note (optional)"
+          placeholder="e.g. McDonald's, MTR…"
           size="small"
         />
 
@@ -251,7 +254,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
             {(['today', 'yesterday', 'custom'] as QuickDate[]).map((d) => (
               <Chip
                 key={d}
-                label={d === 'today' ? '📅 Today' : d === 'yesterday' ? '⏮ Yesterday' : '📆 Custom'}
+                icon={d === 'today' ? <TodayIcon sx={{ fontSize: '14px !important' }} /> : d === 'yesterday' ? <HistoryIcon sx={{ fontSize: '14px !important' }} /> : <CalendarMonthIcon sx={{ fontSize: '14px !important' }} />}
+                label={d === 'today' ? 'Today' : d === 'yesterday' ? 'Yesterday' : 'Custom'}
                 size="small"
                 clickable
                 onClick={() => setQuickDate(d)}
@@ -283,9 +287,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit }) => {
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
-        <Button onClick={handleClose} disabled={loading} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-          Cancel
-        </Button>
+        <Button onClick={handleClose} disabled={loading}>Cancel</Button>
         <Button variant="contained" fullWidth={isMobile} onClick={handleSubmit} disabled={loading} size="large">
           {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save Transaction'}
         </Button>

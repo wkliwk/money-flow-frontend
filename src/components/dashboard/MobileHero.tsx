@@ -52,7 +52,7 @@ const MobileHero: React.FC<Props> = ({
     >
       {/* Month navigator */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-        <IconButton size="small" onClick={handlePrev} sx={{ p: 0.5, color: 'text.secondary' }}>
+        <IconButton size="small" onClick={handlePrev} sx={{ p: 1.5, color: 'text.secondary' }}>
           <ChevronLeftIcon sx={{ fontSize: 18 }} />
         </IconButton>
         <Typography
@@ -70,7 +70,7 @@ const MobileHero: React.FC<Props> = ({
         >
           {selectedMonth ? selectedMonth.format('MMMM YYYY') : 'All Time'}
         </Typography>
-        <IconButton size="small" onClick={handleNext} sx={{ p: 0.5, color: 'text.secondary' }}>
+        <IconButton size="small" onClick={handleNext} sx={{ p: 1.5, color: 'text.secondary' }}>
           <ChevronRightIcon sx={{ fontSize: 18 }} />
         </IconButton>
       </Box>
@@ -86,7 +86,7 @@ const MobileHero: React.FC<Props> = ({
           variant="caption"
           sx={{
             color: 'text.secondary',
-            fontSize: '0.65rem',
+            fontSize: '0.72rem',
             letterSpacing: '0.1em',
             textTransform: 'uppercase',
             display: 'block',
@@ -114,7 +114,7 @@ const MobileHero: React.FC<Props> = ({
         <Box sx={{ textAlign: 'center' }}>
           <Typography
             variant="caption"
-            sx={{ color: 'text.secondary', fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
+            sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
           >
             Income
           </Typography>
@@ -126,7 +126,7 @@ const MobileHero: React.FC<Props> = ({
         <Box sx={{ textAlign: 'center' }}>
           <Typography
             variant="caption"
-            sx={{ color: 'text.secondary', fontSize: '0.65rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
+            sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
           >
             Expenses
           </Typography>

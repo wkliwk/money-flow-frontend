@@ -16,12 +16,16 @@ import {
   Chip,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
+import DeleteIcon from '@mui/icons-material/Delete';
+import TodayIcon from '@mui/icons-material/Today';
+import HistoryIcon from '@mui/icons-material/History';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
-import ItemPicker, { ItemPreset } from './ItemPicker';
+import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
 import ParticipantPicker from './ParticipantPicker';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 
@@ -30,6 +34,7 @@ interface Props {
   transaction: Transaction | null;
   onClose: () => void;
   onSaved: (updated: Transaction) => void;
+  onDelete: (id: string) => void;
   existingCategories: string[];
 }
 
@@ -49,7 +54,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { symbol, rates, currency, setCurrency } = useFxRates();
@@ -64,12 +69,16 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [participants, setParticipants] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
 
   useEffect(() => {
     if (transaction) {
-      setItem(transaction.item || '');
-      setCategory(transaction.category || '');
-      setDescription(transaction.description);
+      // Backward compat: old records stored item label in description field
+      const resolvedItem = transaction.item || (ITEM_PRESETS.find((p) => p.label === transaction.description)?.label ?? '');
+      const resolvedDesc = transaction.item ? transaction.description : (resolvedItem ? '' : transaction.description);
+      setItem(resolvedItem);
+      setCategory(transaction.category || (ITEM_PRESETS.find((p) => p.label === resolvedItem)?.category ?? ''));
+      setDescription(resolvedDesc);
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
@@ -246,7 +255,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
             {(['today', 'yesterday', 'custom'] as QuickDate[]).map((d) => (
               <Chip
                 key={d}
-                label={d === 'today' ? '📅 Today' : d === 'yesterday' ? '⏮ Yesterday' : '📆 Custom'}
+                icon={d === 'today' ? <TodayIcon sx={{ fontSize: '14px !important' }} /> : d === 'yesterday' ? <HistoryIcon sx={{ fontSize: '14px !important' }} /> : <CalendarMonthIcon sx={{ fontSize: '14px !important' }} />}
+                label={d === 'today' ? 'Today' : d === 'yesterday' ? 'Yesterday' : 'Custom'}
                 size="small"
                 clickable
                 onClick={() => setQuickDate(d)}
@@ -277,13 +287,26 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         <ParticipantPicker value={participants} onChange={setParticipants} />
       </DialogContent>
 
-      <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>
-        <Button onClick={onClose} disabled={loading} sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-          Cancel
-        </Button>
-        <Button variant="contained" fullWidth={isMobile} onClick={handleSubmit} disabled={loading} size="large">
-          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save Changes'}
-        </Button>
+      <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
+        {deleteConfirm ? (
+          <>
+            <Typography variant="caption" color="error" sx={{ flex: 1, fontSize: '0.75rem' }}>Are you sure?</Typography>
+            <Button size="small" onClick={() => setDeleteConfirm(false)}>Cancel</Button>
+            <Button size="small" color="error" variant="contained" onClick={() => { if (transaction) { onDelete(transaction._id); onClose(); } }}>
+              Delete
+            </Button>
+          </>
+        ) : (
+          <>
+            <IconButton size="small" onClick={() => setDeleteConfirm(true)} disabled={loading} sx={{ color: 'rgba(251,113,133,0.5)', '&:hover': { color: '#fb7185' }, mr: 'auto' }}>
+              <DeleteIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+            <Button onClick={onClose} disabled={loading}>Cancel</Button>
+            <Button variant="contained" onClick={handleSubmit} disabled={loading} size="large">
+              {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save'}
+            </Button>
+          </>
+        )}
       </DialogActions>
     </Dialog>
   );
