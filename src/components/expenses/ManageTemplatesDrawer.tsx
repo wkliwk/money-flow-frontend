@@ -20,6 +20,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionTemplate, useTemplates } from '../../hooks/useTemplates';
 import { TransactionType } from '../../types';
 import { PRESET_CATEGORIES } from './CategorySelect';
+import { ITEM_PRESETS } from './ItemPicker';
 
 interface Props {
   open: boolean;
@@ -31,6 +32,7 @@ interface Props {
 
 const emptyForm = () => ({
   label: '',
+  item: '',
   description: '',
   type: 'expense' as TransactionType,
   category: '',
@@ -45,6 +47,7 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
     if (!form.label.trim() || !form.description.trim()) return;
     onAdd({
       label: form.label.trim(),
+      item: form.item || undefined,
       description: form.description.trim(),
       type: form.type,
       category: form.category.trim(),
@@ -149,6 +152,26 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
                   </Box>
                 );
               })}
+            </Box>
+
+            {/* Item quick pick */}
+            <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
+              {ITEM_PRESETS.filter((p) => p.type === form.type).map((p) => (
+                <Chip
+                  key={p.label}
+                  label={p.label}
+                  size="small"
+                  clickable
+                  onClick={() => setForm((f) => ({ ...f, item: f.item === p.label ? '' : p.label, category: p.category }))}
+                  sx={{
+                    fontSize: '0.7rem', height: 24,
+                    bgcolor: form.item === p.label ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
+                    color: form.item === p.label ? '#818cf8' : 'text.disabled',
+                    border: '1px solid',
+                    borderColor: form.item === p.label ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)',
+                  }}
+                />
+              ))}
             </Box>
 
             <TextField label="Chip label" placeholder='e.g. "Lunch"' size="small" fullWidth value={form.label} onChange={(e) => setForm((f) => ({ ...f, label: e.target.value }))} sx={{ mb: 1 }} />

@@ -4,6 +4,7 @@ import { TransactionType } from '../types';
 export interface TransactionTemplate {
   id: string;
   label: string;
+  item?: string;
   description: string;
   type: TransactionType;
   category: string;

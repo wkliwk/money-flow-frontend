@@ -79,9 +79,10 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   };
 
   const handleTemplateSelect = (t: TransactionTemplate) => {
-    setDescription(t.description);
     setType(t.type);
     setCategory(t.category);
+    setDescription(t.description);
+    if (t.item) setItem(t.item);
     if (t.defaultAmount) setAmount(String(t.defaultAmount));
   };
 
