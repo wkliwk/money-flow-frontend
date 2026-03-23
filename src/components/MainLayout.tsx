@@ -272,7 +272,7 @@ const MainLayout: React.FC = () => {
   }, [transactions, monthFiltered, search, typeFilter, sortBy]);
 
   const handleExport = () => {
-    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount'];
+    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Participants'];
     const rows = filteredTransactions.map((t) => [
       new Date(t.date || t.createdAt).toISOString().split('T')[0],
       t.item ? `"${t.item.replace(/"/g, '""')}"` : '',
@@ -280,6 +280,7 @@ const MainLayout: React.FC = () => {
       t.type,
       t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
       t.amount,
+      t.participants?.length ? `"${t.participants.join(', ')}"` : '',
     ]);
     const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
