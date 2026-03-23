@@ -95,6 +95,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
       setError('');
+      setDeleteConfirm(false);
     }
   }, [transaction]);
 

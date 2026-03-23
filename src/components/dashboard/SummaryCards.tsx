@@ -108,7 +108,9 @@ const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, co
               )}
               {card.label === 'Net Balance' && income > 0 && (
                 <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: net >= 0 ? '#34d399' : '#fb7185', fontWeight: 600 }}>
-                  {net >= 0 ? Math.round((net / income) * 100) : -Math.round((Math.abs(net) / income) * 100)}% savings rate
+                  {net >= 0
+                    ? `${Math.round((net / income) * 100)}% savings rate`
+                    : `${Math.round((Math.abs(net) / income) * 100)}% over income`}
                 </Typography>
               )}
             </CardContent>

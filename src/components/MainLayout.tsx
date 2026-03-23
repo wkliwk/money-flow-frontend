@@ -110,28 +110,29 @@ const MainLayout: React.FC = () => {
       if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
       const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
+      if (addOpen || editTransaction) return;
       setAddOpen(true);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, []);
+  }, [addOpen, editTransaction]);
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
     const created = await createExpense({ ...data, owner });
-    setTransactions((prev) => [created, ...prev].sort((a, b) =>
-      new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
-    ));
+    setTransactions((prev) => [created, ...prev]);
     showSnackbar('Transaction added');
   };
 
   const handleDelete = useCallback((id: string) => {
-    const t = transactions.find((tx) => tx._id === id);
-    if (!t) return;
-    pendingDelete.current = t;
-    setTransactions((prev) => prev.filter((tx) => tx._id !== id));
+    setTransactions((prev) => {
+      const t = prev.find((tx) => tx._id === id);
+      if (!t) return prev;
+      pendingDelete.current = t;
+      return prev.filter((tx) => tx._id !== id);
+    });
     setUndoSnackbar(true);
-  }, [transactions]);
+  }, []);
 
   const commitDelete = useCallback(async () => {
     const t = pendingDelete.current;
@@ -626,9 +627,7 @@ const MainLayout: React.FC = () => {
         onDuplicate={async (data) => {
           const owner = getOwnerFromToken();
           const created = await createExpense({ ...data, owner });
-          setTransactions((prev) => [created, ...prev].sort((a, b) =>
-            new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
-          ));
+          setTransactions((prev) => [created, ...prev]);
           showSnackbar('Transaction logged again');
         }}
         existingCategories={existingCategories}
@@ -653,7 +652,7 @@ const MainLayout: React.FC = () => {
         open={undoSnackbar}
         autoHideDuration={5000}
         onClose={(_, reason) => {
-          if (reason !== 'escapeKeyDown') {
+          if (reason === 'timeout') {
             setUndoSnackbar(false);
             commitDelete();
           }

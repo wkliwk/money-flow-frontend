@@ -59,7 +59,7 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onI
           // Budget: look up category total vs category budget
           const cat = ITEM_TO_CATEGORY[name] || name;
           const budget = budgets[cat] || budgets[name];
-          const catTotal = budget ? (categoryTotals[cat] || value) : null;
+          const catTotal = budget ? (categoryTotals[cat] ?? 0) : null;
           const budgetPct = budget && catTotal ? Math.min((catTotal / budget) * 100, 100) : null;
           const budgetColor = budgetPct === null ? color : budgetPct >= 100 ? '#fb7185' : budgetPct >= 80 ? '#fbbf24' : '#34d399';
           const over = budget && catTotal && catTotal > budget;
