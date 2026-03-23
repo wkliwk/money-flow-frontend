@@ -32,6 +32,19 @@ const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, co
 
   const expenseDelta = prevMonthTransactions && prevMonthTransactions.length > 0 ? expenses - prevExpenses : null;
 
+  const todayStr = new Date().toISOString().split('T')[0];
+  const todayExpenses = transactions
+    .filter((t) => t.type === 'expense' && (t.date || t.createdAt || '').startsWith(todayStr))
+    .reduce((sum, t) => sum + t.amount, 0);
+
+  const now = new Date();
+  const daysElapsed = now.getDate();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const isCurrentMonth = transactions.some((t) => (t.date || t.createdAt || '').startsWith(todayStr.slice(0, 7)));
+  const projectedExpenses = isCurrentMonth && expenses > 0 && daysElapsed < daysInMonth
+    ? (expenses / daysElapsed) * daysInMonth
+    : null;
+
   const cards = [
     {
       label: 'Income',
@@ -101,8 +114,18 @@ const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, co
               <Typography variant="h5" fontWeight={700} sx={{ color: card.color, letterSpacing: '-0.02em' }}>
                 {card.value}
               </Typography>
+              {card.label === 'Expenses' && todayExpenses > 0 && (
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: 'text.disabled', fontWeight: 600 }}>
+                  Today: {symbol}{fmt(convert(todayExpenses))}
+                </Typography>
+              )}
+              {card.label === 'Expenses' && projectedExpenses !== null && (
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.25, color: 'text.disabled', fontWeight: 500 }}>
+                  On pace for {symbol}{fmt(convert(projectedExpenses))}
+                </Typography>
+              )}
               {card.label === 'Expenses' && expenseDelta !== null && (
-                <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: expenseDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.25, color: expenseDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
                   {expenseDelta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(expenseDelta)))} vs last month
                 </Typography>
               )}
