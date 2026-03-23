@@ -26,6 +26,8 @@ import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import TrendsChart from './dashboard/TrendsChart';
+import SpendingBreakdown from './dashboard/SpendingBreakdown';
+import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
@@ -192,7 +194,7 @@ const MainLayout: React.FC = () => {
       </AppBar>
 
       <Container maxWidth="lg" sx={{ py: { xs: 2, sm: 4 }, px: { xs: 1.5, sm: 3 }, pb: 14 }}>
-        {/* Mobile: hero card with month picker + big balance */}
+        {/* Mobile: hero card with month picker + big balance + breakdown */}
         <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
           <MobileHero
             transactions={monthFiltered}
@@ -203,6 +205,8 @@ const MainLayout: React.FC = () => {
             convert={convert}
             symbol={symbol}
           />
+          <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+          <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
         </Box>
 
         {/* Desktop: separate month picker + summary cards + chart */}
@@ -214,6 +218,7 @@ const MainLayout: React.FC = () => {
           <SummaryCards transactions={monthFiltered} convert={convert} symbol={symbol} />
           <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
           <CategoryChart transactions={monthFiltered} />
+          <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
         </Box>
 
         <FilterBar
