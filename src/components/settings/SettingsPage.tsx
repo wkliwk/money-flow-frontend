@@ -18,7 +18,7 @@ import AddIcon from '@mui/icons-material/Add';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { clearToken } from '../../services/auth';
-import { CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
+import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
@@ -49,6 +49,7 @@ const emptyRecurring = (): Omit<RecurringItem, 'id'> => ({
 
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
   const userId = getUserId();
+  const { symbol, convert } = useFxRates();
   const { budgets, setBudget } = useBudgets();
   const { items: recurring, addItem: addRecurring, deleteItem: deleteRecurring } = useRecurring();
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -110,7 +111,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
       <Box sx={{ borderRadius: 2, border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden', mb: 2 }}>
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            Monthly Budgets (HKD)
+            Monthly Budgets
           </Typography>
           <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
             Set limits per category — progress bars appear on the Home breakdown.
@@ -126,7 +127,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{cat}</Typography>
                   {spent > 0 && (
                     <Typography sx={{ fontSize: '0.65rem', color: over ? '#fb7185' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
-                      HK${Math.round(spent).toLocaleString()} this month{over ? ' — over!' : ''}
+                      {symbol}{Math.round(convert(spent)).toLocaleString()} this month{over ? ' — over!' : ''}
                     </Typography>
                   )}
                 </Box>
@@ -137,7 +138,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   value={drafts[cat]}
                   onChange={(e) => setDrafts((d) => ({ ...d, [cat]: e.target.value }))}
                   onBlur={() => handleBudgetBlur(cat)}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>HK$</Typography></InputAdornment> }}
+                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>{symbol}</Typography></InputAdornment> }}
                   sx={{ width: 140, '& .MuiInputBase-input': { fontSize: '0.82rem', py: 0.75 } }}
                   inputProps={{ min: 0 }}
                 />
@@ -164,7 +165,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                 <ListItem key={r.id} disableGutters sx={{ py: 0.75 }}>
                   <ListItemText
                     primary={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{r.label || r.description}</Typography>}
-                    secondary={<Typography variant="caption" color="text.disabled">HK${r.amount} · {r.type}{r.item ? ` · ${r.item}` : ''}</Typography>}
+                    secondary={<Typography variant="caption" color="text.disabled">{symbol}{convert(r.amount)} · {r.type}{r.item ? ` · ${r.item}` : ''}</Typography>}
                   />
                   <IconButton size="small" onClick={() => deleteRecurring(r.id)} sx={{ color: 'rgba(251,113,133,0.4)', '&:hover': { color: '#fb7185' } }}>
                     <DeleteIcon sx={{ fontSize: 16 }} />
@@ -198,7 +199,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               </Box>
               <TextField label="Label" placeholder='e.g. "Netflix"' size="small" fullWidth value={recurringDraft.label} onChange={(e) => setRecurringDraft((d) => ({ ...d, label: e.target.value }))} sx={{ mb: 1 }} />
               <TextField label="Description" size="small" fullWidth value={recurringDraft.description} onChange={(e) => setRecurringDraft((d) => ({ ...d, description: e.target.value }))} sx={{ mb: 1 }} />
-              <TextField label="Amount (HKD)" type="number" size="small" fullWidth value={recurringDraft.amount || ''} onChange={(e) => setRecurringDraft((d) => ({ ...d, amount: parseFloat(e.target.value) || 0 }))} sx={{ mb: 1.5 }} inputProps={{ min: 0 }} />
+              <TextField label={`Amount (${currency})`} type="number" size="small" fullWidth value={recurringDraft.amount || ''} onChange={(e) => setRecurringDraft((d) => ({ ...d, amount: parseFloat(e.target.value) || 0 }))} sx={{ mb: 1.5 }} inputProps={{ min: 0 }} />
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button size="small" onClick={() => { setShowRecurringForm(false); setRecurringDraft(emptyRecurring()); }} sx={{ color: 'text.secondary' }}>Cancel</Button>
                 <Button size="small" variant="contained" disabled={!recurringDraft.amount || (!recurringDraft.label && !recurringDraft.description)}
