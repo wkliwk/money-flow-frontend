@@ -485,6 +485,30 @@ const MainLayout: React.FC = () => {
                 onTypeFilterChange={setTypeFilter}
                 onExport={handleExport}
               />
+              {filteredTransactions.length > 0 && (() => {
+                const fIncome = filteredTransactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                const fExpense = filteredTransactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                const fNet = fIncome - fExpense;
+                return (
+                  <Box sx={{ display: 'flex', gap: 2, mb: 1.5, px: 0.5 }}>
+                    {fIncome > 0 && (
+                      <Typography sx={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 600 }}>
+                        +{symbol}{convert(fIncome).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    )}
+                    {fExpense > 0 && (
+                      <Typography sx={{ fontSize: '0.75rem', color: '#fb7185', fontWeight: 600 }}>
+                        -{symbol}{convert(fExpense).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                      </Typography>
+                    )}
+                    {fIncome > 0 && fExpense > 0 && (
+                      <Typography sx={{ fontSize: '0.75rem', color: fNet >= 0 ? '#818cf8' : 'text.secondary', fontWeight: 600, ml: 'auto' }}>
+                        {fNet >= 0 ? '+' : ''}{symbol}{convert(fNet).toLocaleString(undefined, { maximumFractionDigits: 0 })} net
+                      </Typography>
+                    )}
+                  </Box>
+                );
+              })()}
               <ExpenseList
                 transactions={filteredTransactions}
                 onEdit={(t) => setEditTransaction(t)}
