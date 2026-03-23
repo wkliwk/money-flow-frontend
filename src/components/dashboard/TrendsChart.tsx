@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Box, Typography, Card, CardContent } from '@mui/material';
 import {
   ComposedChart,
@@ -20,10 +20,16 @@ interface Props {
 }
 
 const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
+  const [showYtd, setShowYtd] = useState(false);
+
   const data = useMemo(() => {
-    const months = Array.from({ length: 6 }, (_, i) =>
-      dayjs().subtract(5 - i, 'month').startOf('month')
-    );
+    const months = showYtd
+      ? Array.from({ length: dayjs().month() + 1 }, (_, i) =>
+          dayjs().startOf('year').add(i, 'month')
+        )
+      : Array.from({ length: 6 }, (_, i) =>
+          dayjs().subtract(5 - i, 'month').startOf('month')
+        );
 
     return months.map((m) => {
       const inMonth = transactions.filter((t) => {
@@ -35,7 +41,7 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
       const net = income - expense;
       return { label: m.format('MMM'), month: m, income, expense, net };
     });
-  }, [transactions]);
+  }, [transactions, showYtd]);
 
   const allZero = data.every((d) => d.income === 0 && d.expense === 0);
   if (allZero) return null;
@@ -53,20 +59,27 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent sx={{ p: 3 }}>
-        <Typography
-          variant="caption"
-          sx={{
-            color: 'text.secondary',
-            fontWeight: 600,
-            fontSize: '0.7rem',
-            letterSpacing: '0.08em',
-            textTransform: 'uppercase',
-            display: 'block',
-            mb: 2,
-          }}
-        >
-          6-Month Trends
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+          <Typography
+            variant="caption"
+            sx={{
+              color: 'text.secondary',
+              fontWeight: 600,
+              fontSize: '0.7rem',
+              letterSpacing: '0.08em',
+              textTransform: 'uppercase',
+            }}
+          >
+            {showYtd ? `${dayjs().year()} Year to Date` : '6-Month Trends'}
+          </Typography>
+          <Typography
+            variant="caption"
+            onClick={() => setShowYtd((v) => !v)}
+            sx={{ fontSize: '0.68rem', color: showYtd ? '#818cf8' : 'text.disabled', fontWeight: 600, cursor: 'pointer', userSelect: 'none', letterSpacing: '0.03em' }}
+          >
+            {showYtd ? '6M' : 'YTD'}
+          </Typography>
+        </Box>
 
         {/* Legend */}
         <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
