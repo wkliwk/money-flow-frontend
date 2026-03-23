@@ -141,7 +141,7 @@ const MainLayout: React.FC = () => {
       const searchLow = search.toLowerCase();
       const matchesSearch =
         search === '' ||
-        t.description.toLowerCase().includes(searchLow) ||
+        (t.description || '').toLowerCase().includes(searchLow) ||
         (t.item || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
