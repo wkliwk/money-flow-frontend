@@ -6,6 +6,7 @@ import { ITEM_PRESETS } from '../expenses/ItemPicker';
 
 interface Props {
   transactions: Transaction[];
+  prevMonthTransactions?: Transaction[];
   convert: (hkd: number) => number;
   symbol: string;
   onItemClick?: (name: string) => void;
@@ -17,8 +18,18 @@ ITEM_PRESETS.forEach((p) => { ITEM_TO_CATEGORY[p.label] = p.category; });
 
 const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
-const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onItemClick }) => {
+const SpendingBreakdown: React.FC<Props> = ({ transactions, prevMonthTransactions, convert, symbol, onItemClick }) => {
   const { budgets } = useBudgets();
+
+  const prevCategoryTotals = useMemo(() => {
+    const map: Record<string, number> = {};
+    (prevMonthTransactions ?? []).filter((t) => t.type === 'expense').forEach((t) => {
+      const key = t.item || t.category || 'Other';
+      const cat = ITEM_TO_CATEGORY[key] || t.category || key;
+      map[cat] = (map[cat] || 0) + t.amount;
+    });
+    return map;
+  }, [prevMonthTransactions]);
 
   const { rows, categoryTotals } = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense');
@@ -58,6 +69,8 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onI
 
           // Budget: look up category total vs category budget
           const cat = ITEM_TO_CATEGORY[name] || name;
+          const prevCatTotal = prevCategoryTotals[cat] ?? 0;
+          const catDelta = prevCatTotal > 0 ? Math.round(((categoryTotals[cat] ?? value) - prevCatTotal) / prevCatTotal * 100) : null;
           const budget = budgets[cat] || budgets[name];
           const catTotal = budget ? (categoryTotals[cat] ?? 0) : null;
           const budgetPct = budget && catTotal ? Math.min((catTotal / budget) * 100, 100) : null;
@@ -79,6 +92,11 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onI
                   {!budget && (
                     <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
                       {symbol}{convert(value).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    </Typography>
+                  )}
+                  {catDelta !== null && (
+                    <Typography sx={{ fontSize: '0.65rem', color: catDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+                      {catDelta > 0 ? '↑' : '↓'}{Math.abs(catDelta)}%
                     </Typography>
                   )}
                 </Box>

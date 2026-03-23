@@ -78,6 +78,7 @@ const MainLayout: React.FC = () => {
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
+  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [addOpen, setAddOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -253,7 +254,7 @@ const MainLayout: React.FC = () => {
 
   const filteredTransactions = useMemo(() => {
     const pool = search !== '' ? transactions : monthFiltered;
-    return pool.filter((t) => {
+    const filtered = pool.filter((t) => {
       const searchLow = search.toLowerCase();
       const matchesSearch =
         search === '' ||
@@ -263,7 +264,11 @@ const MainLayout: React.FC = () => {
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
-  }, [transactions, monthFiltered, search, typeFilter]);
+    if (sortBy === 'amount') {
+      return [...filtered].sort((a, b) => b.amount - a.amount);
+    }
+    return filtered;
+  }, [transactions, monthFiltered, search, typeFilter, sortBy]);
 
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount'];
@@ -404,7 +409,7 @@ const MainLayout: React.FC = () => {
                   convert={convert}
                   symbol={symbol}
                 />
-                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 2 }}>
@@ -475,9 +480,9 @@ const MainLayout: React.FC = () => {
                     </Box>
                   );
                 })()}
-                <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
+                <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} convert={convert} symbol={symbol} />
                 <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
-                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 3 }}>
@@ -528,11 +533,13 @@ const MainLayout: React.FC = () => {
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
+                sortBy={sortBy}
                 total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
                 searchAllTime={search !== ''}
                 onSearchChange={setSearch}
                 onTypeFilterChange={setTypeFilter}
+                onSortChange={setSortBy}
                 onExport={handleExport}
               />
               {filteredTransactions.length > 0 && (() => {

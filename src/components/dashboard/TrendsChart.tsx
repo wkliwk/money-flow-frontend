@@ -17,9 +17,11 @@ import { Transaction } from '../../types';
 interface Props {
   transactions: Transaction[];
   onMonthSelect: (month: Dayjs) => void;
+  convert: (hkd: number) => number;
+  symbol: string;
 }
 
-const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
+const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, symbol }) => {
   const [showYtd, setShowYtd] = useState(false);
 
   const data = useMemo(() => {
@@ -46,8 +48,10 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
   const allZero = data.every((d) => d.income === 0 && d.expense === 0);
   if (allZero) return null;
 
-  const formatValue = (v: number) =>
-    v >= 1000 ? `HK$${(v / 1000).toFixed(0)}k` : `HK$${v}`;
+  const formatValue = (v: number) => {
+    const c = convert(v);
+    return c >= 1000 ? `${symbol}${(c / 1000).toFixed(0)}k` : `${symbol}${c}`;
+  };
 
   const handleBarClick = (e: unknown) => {
     const label = (e as { activeLabel?: string })?.activeLabel;
@@ -120,12 +124,12 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect }) => {
             />
             <Tooltip
               formatter={(value, name) => {
-                const n = Number(value);
+                const n = convert(Number(value));
                 if (name === 'Net') {
                   const sign = n >= 0 ? '+' : '';
-                  return [`${sign}HK$${n.toLocaleString()}`, 'Net'];
+                  return [`${sign}${symbol}${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, 'Net'];
                 }
-                return [`HK$${n.toLocaleString()}`, name as string];
+                return [`${symbol}${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, name as string];
               }}
               contentStyle={{
                 background: '#1e293b',
