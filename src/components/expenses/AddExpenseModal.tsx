@@ -38,6 +38,7 @@ interface Props {
   onSubmit: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
+  knownParticipants?: string[];
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -49,7 +50,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {} }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [] }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -288,7 +289,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           )}
         </Box>
 
-        <ParticipantPicker value={participants} onChange={setParticipants} />
+        <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2 }}>

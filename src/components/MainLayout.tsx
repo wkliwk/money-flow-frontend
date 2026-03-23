@@ -126,6 +126,12 @@ const MainLayout: React.FC = () => {
     [transactions]
   );
 
+  const knownParticipants = useMemo(() => {
+    const seen = new Set<string>();
+    transactions.forEach((t) => (t.participants ?? []).forEach((p) => seen.add(p)));
+    return Array.from(seen).slice(0, 10);
+  }, [transactions]);
+
   const descriptionsByItem = useMemo(() => {
     const map: Record<string, string[]> = {};
     transactions.forEach((t) => {
@@ -480,6 +486,7 @@ const MainLayout: React.FC = () => {
         onSubmit={handleAdd}
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
+        knownParticipants={knownParticipants}
       />
 
       <EditExpenseModal
@@ -499,6 +506,7 @@ const MainLayout: React.FC = () => {
         }}
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
+        knownParticipants={knownParticipants}
       />
 
       <Snackbar

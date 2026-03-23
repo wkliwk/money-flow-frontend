@@ -41,6 +41,7 @@ interface Props {
   onDuplicate: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
+  knownParticipants?: string[];
 }
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
@@ -59,7 +60,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {} }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [] }) => {
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -308,7 +309,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           )}
         </Box>
 
-        <ParticipantPicker value={participants} onChange={setParticipants} />
+        <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>

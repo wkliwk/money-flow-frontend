@@ -5,9 +5,10 @@ import AddIcon from '@mui/icons-material/Add';
 interface Props {
   value: string[];
   onChange: (names: string[]) => void;
+  suggestions?: string[];
 }
 
-const ParticipantPicker: React.FC<Props> = ({ value, onChange }) => {
+const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] }) => {
   const [input, setInput] = useState('');
 
   const add = () => {
@@ -18,11 +19,22 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange }) => {
     setInput('');
   };
 
+  const toggle = (name: string) => {
+    if (value.includes(name)) {
+      onChange(value.filter((n) => n !== name));
+    } else {
+      onChange([...value, name]);
+    }
+  };
+
+  const unselectedSuggestions = suggestions.filter((s) => !value.includes(s));
+
   return (
     <Box sx={{ mt: 1.5 }}>
       <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
         With
       </Typography>
+      {/* Selected participants */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: value.length ? 1 : 0 }}>
         {value.map((name) => (
           <Chip
@@ -41,6 +53,28 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange }) => {
           />
         ))}
       </Box>
+      {/* Suggestion chips */}
+      {unselectedSuggestions.length > 0 && (
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mb: 1 }}>
+          {unselectedSuggestions.map((name) => (
+            <Chip
+              key={name}
+              label={name}
+              size="small"
+              onClick={() => toggle(name)}
+              sx={{
+                height: 26,
+                fontSize: '0.75rem',
+                bgcolor: 'rgba(148,163,184,0.07)',
+                color: 'text.secondary',
+                border: '1px solid rgba(148,163,184,0.15)',
+                cursor: 'pointer',
+                '&:hover': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
+              }}
+            />
+          ))}
+        </Box>
+      )}
       <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center' }}>
         <TextField
           size="small"
