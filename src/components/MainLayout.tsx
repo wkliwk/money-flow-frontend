@@ -191,6 +191,18 @@ const MainLayout: React.FC = () => {
     return map;
   }, [transactions]);
 
+  // description → most recent amount used for that description (for autocomplete)
+  const amountsByDescription = useMemo(() => {
+    const map: Record<string, number> = {};
+    // Sort newest first so first hit is most recent
+    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
+      .forEach((t) => {
+        const key = (t.description?.trim() || t.item || '').toLowerCase();
+        if (key && !map[key]) map[key] = t.amount;
+      });
+    return map;
+  }, [transactions]);
+
   const monthFiltered = useMemo(() => {
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
@@ -669,6 +681,7 @@ const MainLayout: React.FC = () => {
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
         recentItems={recentItems}
+        amountsByDescription={amountsByDescription}
       />
 
       <EditExpenseModal

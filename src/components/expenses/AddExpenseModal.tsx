@@ -40,6 +40,7 @@ interface Props {
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
   recentItems?: string[];
+  amountsByDescription?: Record<string, number>;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -51,11 +52,11 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
-  const { symbol, rates, currency, setCurrency } = useFxRates();
+  const { symbol, rates, currency, setCurrency, convert } = useFxRates();
   const { presets: itemPresets } = useItemPresets();
   const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
   const [manageOpen, setManageOpen] = useState(false);
@@ -223,6 +224,24 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           const builtIn = item ? (ITEM_SUGGESTIONS[item] || []) : [];
           const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history, ...builtIn])).slice(0, 10);
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
+        })()}
+
+        {/* Amount suggestion from history */}
+        {(() => {
+          if (amount) return null; // Don't suggest if amount already entered
+          const key = (description.trim() || item || '').toLowerCase();
+          const suggested = key ? amountsByDescription[key] : undefined;
+          if (!suggested) return null;
+          return (
+            <Box sx={{ mt: 0.75, mb: 0.5 }}>
+              <Chip
+                label={`Last time: ${symbol}${convert(suggested).toLocaleString(undefined, { maximumFractionDigits: 0 })} — use this?`}
+                size="small"
+                onClick={() => setAmount(String(suggested))}
+                sx={{ fontSize: '0.72rem', height: 26, bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.25)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(129,140,248,0.18)' } }}
+              />
+            </Box>
+          );
         })()}
 
         {/* Currency selector */}
