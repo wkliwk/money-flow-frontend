@@ -7,9 +7,10 @@ interface Props {
   transactions: Transaction[];
   convert: (hkd: number) => number;
   symbol: string;
+  onPersonClick?: (name: string) => void;
 }
 
-const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) => {
+const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onPersonClick }) => {
   const rows = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense' && t.participants?.length);
     if (expenses.length === 0) return [];
@@ -41,7 +42,7 @@ const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) => 
       </Box>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
         {rows.map(({ name, amount, count }) => (
-          <Box key={name} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.75, px: 1.25, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.07)' }}>
+          <Box key={name} onClick={() => onPersonClick?.(name)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.75, px: 1.25, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.07)', cursor: onPersonClick ? 'pointer' : 'default', '&:hover': onPersonClick ? { bgcolor: 'rgba(148,163,184,0.08)' } : {} }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#818cf8' }}>

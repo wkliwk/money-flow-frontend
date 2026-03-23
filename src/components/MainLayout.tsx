@@ -260,7 +260,8 @@ const MainLayout: React.FC = () => {
         search === '' ||
         (t.description || '').toLowerCase().includes(searchLow) ||
         (t.item || '').toLowerCase().includes(searchLow) ||
-        (t.category || '').toLowerCase().includes(searchLow);
+        (t.category || '').toLowerCase().includes(searchLow) ||
+        (t.participants || []).some((p) => p.toLowerCase().includes(searchLow));
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
     });
@@ -410,7 +411,7 @@ const MainLayout: React.FC = () => {
                   symbol={symbol}
                 />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
@@ -483,7 +484,7 @@ const MainLayout: React.FC = () => {
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} convert={convert} symbol={symbol} />
                 <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>

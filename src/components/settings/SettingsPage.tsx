@@ -138,7 +138,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   value={drafts[cat]}
                   onChange={(e) => setDrafts((d) => ({ ...d, [cat]: e.target.value }))}
                   onBlur={() => handleBudgetBlur(cat)}
-                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>{symbol}</Typography></InputAdornment> }}
+                  InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>HK$</Typography></InputAdornment> }}
                   sx={{ width: 140, '& .MuiInputBase-input': { fontSize: '0.82rem', py: 0.75 } }}
                   inputProps={{ min: 0 }}
                 />
@@ -199,7 +199,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               </Box>
               <TextField label="Label" placeholder='e.g. "Netflix"' size="small" fullWidth value={recurringDraft.label} onChange={(e) => setRecurringDraft((d) => ({ ...d, label: e.target.value }))} sx={{ mb: 1 }} />
               <TextField label="Description" size="small" fullWidth value={recurringDraft.description} onChange={(e) => setRecurringDraft((d) => ({ ...d, description: e.target.value }))} sx={{ mb: 1 }} />
-              <TextField label={`Amount (${currency})`} type="number" size="small" fullWidth value={recurringDraft.amount || ''} onChange={(e) => setRecurringDraft((d) => ({ ...d, amount: parseFloat(e.target.value) || 0 }))} sx={{ mb: 1.5 }} inputProps={{ min: 0 }} />
+              <TextField label="Amount (HKD)" type="number" size="small" fullWidth value={recurringDraft.amount || ''} onChange={(e) => setRecurringDraft((d) => ({ ...d, amount: parseFloat(e.target.value) || 0 }))} sx={{ mb: 1.5 }} inputProps={{ min: 0 }} />
               <Box sx={{ display: 'flex', gap: 1 }}>
                 <Button size="small" onClick={() => { setShowRecurringForm(false); setRecurringDraft(emptyRecurring()); }} sx={{ color: 'text.secondary' }}>Cancel</Button>
                 <Button size="small" variant="contained" disabled={!recurringDraft.amount || (!recurringDraft.label && !recurringDraft.description)}
