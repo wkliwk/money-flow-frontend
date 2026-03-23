@@ -56,7 +56,7 @@ const ManageItemsPage: React.FC = () => {
           <Box key={item.label + item.type}>
             {idx > 0 && <Divider sx={{ borderColor: 'rgba(148,163,184,0.06)' }} />}
             <Box sx={{ px: 2, py: 1.25 }}>
-              {editing === item.label + item.type ? (
+              {editing === item.label ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <SvgIcon component={() => React.cloneElement(item.icon, { sx: { fontSize: 20, color: item.color } })} />
                   <Typography sx={{ fontSize: '0.85rem', fontWeight: 600, minWidth: 60 }}>{item.label}</Typography>
@@ -90,7 +90,7 @@ const ManageItemsPage: React.FC = () => {
                   </Box>
                   <IconButton
                     size="small"
-                    onClick={() => startEdit(item.label + item.type)}
+                    onClick={() => startEdit(item.label)}
                     sx={{ color: 'text.disabled', '&:hover': { color: '#818cf8' } }}
                   >
                     <EditIcon sx={{ fontSize: 16 }} />
