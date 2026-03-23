@@ -398,7 +398,7 @@ const MainLayout: React.FC = () => {
                   convert={convert}
                   symbol={symbol}
                 />
-                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 2 }}>
@@ -445,7 +445,7 @@ const MainLayout: React.FC = () => {
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} />
                 <CategoryChart transactions={monthFiltered} />
-                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
+                <SpendingBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} />
                 {monthFiltered.length > 0 && (
                   <Box sx={{ mt: 3 }}>

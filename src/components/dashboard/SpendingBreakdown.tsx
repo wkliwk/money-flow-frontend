@@ -8,6 +8,7 @@ interface Props {
   transactions: Transaction[];
   convert: (hkd: number) => number;
   symbol: string;
+  onItemClick?: (name: string) => void;
 }
 
 // Map item label → category
@@ -16,7 +17,7 @@ ITEM_PRESETS.forEach((p) => { ITEM_TO_CATEGORY[p.label] = p.category; });
 
 const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
-const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) => {
+const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onItemClick }) => {
   const { budgets } = useBudgets();
 
   const { rows, categoryTotals } = useMemo(() => {
@@ -64,7 +65,7 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, convert, symbol }) =
           const over = budget && catTotal && catTotal > budget;
 
           return (
-            <Box key={name}>
+            <Box key={name} onClick={() => onItemClick?.(name)} sx={{ cursor: onItemClick ? 'pointer' : 'default' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.4 }}>
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: 'text.primary' }}>{name}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
