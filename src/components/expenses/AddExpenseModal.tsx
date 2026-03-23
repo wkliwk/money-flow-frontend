@@ -165,7 +165,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
             return (
               <Box
                 key={card.value}
-                onClick={() => setType(card.value)}
+                onClick={() => { setType(card.value); setItem(''); setCategory(''); }}
                 sx={{
                   flex: 1,
                   display: 'flex',
@@ -197,8 +197,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           })}
         </Box>
 
-        {/* Item picker — sets item + category */}
-        <ItemPicker value={item} onSelect={handleItemSelect} />
+        {/* Item picker — sets item + category, filtered by type */}
+        <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
 
         {/* Description — optional free-text note */}
         <TextField

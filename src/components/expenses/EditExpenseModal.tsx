@@ -26,6 +26,7 @@ import { Transaction, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
+
 import ParticipantPicker from './ParticipantPicker';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 
@@ -165,7 +166,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
             return (
               <Box
                 key={card.value}
-                onClick={() => setType(card.value)}
+                onClick={() => { setType(card.value); setItem(''); setCategory(''); }}
                 sx={{
                   flex: 1,
                   display: 'flex',
@@ -197,8 +198,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           })}
         </Box>
 
-        {/* Item picker */}
-        <ItemPicker value={item} onSelect={handleItemSelect} />
+        {/* Item picker — filtered by current type */}
+        <ItemPicker value={item} type={type} onSelect={handleItemSelect} />
 
         {/* Description — optional free-text note */}
         <TextField
