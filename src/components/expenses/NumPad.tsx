@@ -27,7 +27,7 @@ function fmt(n: number): string {
 const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   const isFxAvailable = !!fxSymbol && !!fxRate;
   const rate = fxRate ?? 1;
-  const [inputInFx, setInputInFx] = useState(false);
+  const [inputInFx, setInputInFx] = useState(() => isFxAvailable);
   const [fxInput, setFxInput] = useState('');
   const [storedValue, setStoredValue] = useState<number | null>(null);
   const [pendingOp, setPendingOp] = useState<string | null>(null);
