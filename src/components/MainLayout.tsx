@@ -44,6 +44,7 @@ import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
+import { useRecurring } from '../hooks/useRecurring';
 import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
@@ -62,6 +63,7 @@ const MainLayout: React.FC = () => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
+  const { items: recurringItems, markApplied } = useRecurring();
   const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -201,6 +203,31 @@ const MainLayout: React.FC = () => {
     return count;
   }, [transactions]);
 
+  const currentMonthKey = dayjs().format('YYYY-MM');
+  const pendingRecurring = useMemo(
+    () => recurringItems.filter((r) => r.lastApplied !== currentMonthKey),
+    [recurringItems, currentMonthKey]
+  );
+
+  const applyRecurring = async () => {
+    const owner = getOwnerFromToken();
+    for (const r of pendingRecurring) {
+      await createExpense({
+        description: r.description || r.label,
+        amount: r.amount,
+        type: r.type,
+        item: r.item,
+        category: r.category,
+        participants: r.participants,
+        date: dayjs().format('YYYY-MM-DD'),
+        owner,
+      });
+    }
+    markApplied(pendingRecurring.map((r) => r.id), currentMonthKey);
+    await fetchTransactions();
+    showSnackbar(`${pendingRecurring.length} recurring transaction${pendingRecurring.length > 1 ? 's' : ''} added`);
+  };
+
   const categorySpend = useMemo(() => {
     const map: Record<string, number> = {};
     monthFiltered.filter((t) => t.type === 'expense').forEach((t) => {
@@ -333,6 +360,18 @@ const MainLayout: React.FC = () => {
         >
           {activeTab === 0 && (
             <>
+              {/* Recurring prompt banner */}
+              {pendingRecurring.length > 0 && (
+                <Box sx={{ mb: 2, py: 1.5, px: 2, borderRadius: 2, bgcolor: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                  <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', flex: 1 }}>
+                    {pendingRecurring.length} recurring transaction{pendingRecurring.length > 1 ? 's' : ''} pending for {dayjs().format('MMMM')}
+                  </Typography>
+                  <Button size="small" variant="contained" onClick={applyRecurring} sx={{ fontSize: '0.75rem', px: 1.5, flexShrink: 0 }}>
+                    Apply
+                  </Button>
+                </Box>
+              )}
+
               {/* Mobile: hero card with month picker + big balance + breakdown */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
                 <MobileHero
