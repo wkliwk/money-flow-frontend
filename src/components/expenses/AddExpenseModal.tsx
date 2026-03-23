@@ -115,7 +115,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
     {
       value: 'expense' as TransactionType,
       label: 'Expense',
-      icon: <TrendingDownIcon sx={{ fontSize: 28 }} />,
+      icon: <TrendingDownIcon sx={{ fontSize: 20 }} />,
       color: '#fb7185',
       bg: 'rgba(251,113,133,0.1)',
       border: 'rgba(251,113,133,0.35)',
@@ -124,7 +124,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
     {
       value: 'income' as TransactionType,
       label: 'Income',
-      icon: <TrendingUpIcon sx={{ fontSize: 28 }} />,
+      icon: <TrendingUpIcon sx={{ fontSize: 20 }} />,
       color: '#34d399',
       bg: 'rgba(52,211,153,0.07)',
       border: 'rgba(52,211,153,0.35)',
@@ -153,7 +153,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
         />
 
         {/* Type selector — icon cards */}
-        <Box sx={{ display: 'flex', gap: 1.5, mb: 2, mt: 1 }}>
+        <Box sx={{ display: 'flex', gap: 1, mb: 1.5, mt: 0.5 }}>
           {typeCards.map((card) => {
             const selected = type === card.value;
             return (
@@ -163,10 +163,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, existingCat
                 sx={{
                   flex: 1,
                   display: 'flex',
-                  flexDirection: 'column',
+                  flexDirection: 'row',
                   alignItems: 'center',
+                  justifyContent: 'center',
                   gap: 0.75,
-                  py: 2,
+                  py: 1,
                   borderRadius: 2.5,
                   cursor: 'pointer',
                   border: '2px solid',
