@@ -9,6 +9,7 @@ import CurrencyPicker from './CurrencyPicker';
 
 interface Props {
   transactions: Transaction[];
+  prevMonthTransactions?: Transaction[];
   selectedMonth: Dayjs | null;
   onChange: (month: Dayjs | null) => void;
   currency: Currency;
@@ -22,6 +23,7 @@ const fmt = (n: number) =>
 
 const MobileHero: React.FC<Props> = ({
   transactions,
+  prevMonthTransactions,
   selectedMonth,
   onChange,
   currency,
@@ -31,6 +33,9 @@ const MobileHero: React.FC<Props> = ({
 }) => {
   const income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const prevExpenses = (prevMonthTransactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+  const showDelta = selectedMonth && prevMonthTransactions && prevMonthTransactions.length > 0;
+  const delta = expenses - prevExpenses;
   const net = income - expenses;
   const isPositive = net >= 0;
 
@@ -106,6 +111,11 @@ const MobileHero: React.FC<Props> = ({
         >
           {isPositive ? '+' : '-'}{symbol}{fmt(convert(Math.abs(net)))}
         </Typography>
+        {showDelta && (
+          <Typography sx={{ fontSize: '0.65rem', mt: 0.75, color: delta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+            {delta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(delta)))} spending vs last month
+          </Typography>
+        )}
       </Box>
 
       {/* Income / Expense row */}

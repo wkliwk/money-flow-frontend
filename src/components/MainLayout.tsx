@@ -145,6 +145,15 @@ const MainLayout: React.FC = () => {
     });
   }, [transactions, selectedMonth]);
 
+  const prevMonthFiltered = useMemo(() => {
+    if (!selectedMonth) return [];
+    const prev = selectedMonth.subtract(1, 'month');
+    return transactions.filter((t) => {
+      const d = dayjs(t.date || t.createdAt);
+      return d.isValid() && d.isSame(prev, 'month');
+    });
+  }, [transactions, selectedMonth]);
+
   const filteredTransactions = useMemo(() => {
     return monthFiltered.filter((t) => {
       const searchLow = search.toLowerCase();
@@ -272,6 +281,7 @@ const MainLayout: React.FC = () => {
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
                 <MobileHero
                   transactions={monthFiltered}
+                  prevMonthTransactions={prevMonthFiltered}
                   selectedMonth={selectedMonth}
                   onChange={setSelectedMonth}
                   currency={currency}
