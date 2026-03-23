@@ -154,6 +154,18 @@ const MainLayout: React.FC = () => {
     });
   }, [transactions, selectedMonth]);
 
+  const streak = useMemo(() => {
+    const days = new Set(transactions.map((t) => dayjs(t.date || t.createdAt).format('YYYY-MM-DD')));
+    let count = 0;
+    let cursor = dayjs();
+    if (!days.has(cursor.format('YYYY-MM-DD'))) cursor = cursor.subtract(1, 'day');
+    while (days.has(cursor.format('YYYY-MM-DD'))) {
+      count++;
+      cursor = cursor.subtract(1, 'day');
+    }
+    return count;
+  }, [transactions]);
+
   const filteredTransactions = useMemo(() => {
     return monthFiltered.filter((t) => {
       const searchLow = search.toLowerCase();
@@ -282,6 +294,7 @@ const MainLayout: React.FC = () => {
                 <MobileHero
                   transactions={monthFiltered}
                   prevMonthTransactions={prevMonthFiltered}
+                  streak={streak}
                   selectedMonth={selectedMonth}
                   onChange={setSelectedMonth}
                   currency={currency}

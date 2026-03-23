@@ -10,6 +10,7 @@ import CurrencyPicker from './CurrencyPicker';
 interface Props {
   transactions: Transaction[];
   prevMonthTransactions?: Transaction[];
+  streak?: number;
   selectedMonth: Dayjs | null;
   onChange: (month: Dayjs | null) => void;
   currency: Currency;
@@ -24,6 +25,7 @@ const fmt = (n: number) =>
 const MobileHero: React.FC<Props> = ({
   transactions,
   prevMonthTransactions,
+  streak,
   selectedMonth,
   onChange,
   currency,
@@ -55,6 +57,15 @@ const MobileHero: React.FC<Props> = ({
         boxShadow: `0 8px 32px ${isPositive ? 'rgba(129,140,248,0.1)' : 'rgba(251,113,133,0.1)'}`,
       }}
     >
+      {/* Streak badge */}
+      {streak && streak >= 2 && (
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+          <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#fbbf24', bgcolor: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', px: 1, py: 0.25, borderRadius: 1, letterSpacing: '0.03em' }}>
+            🔥 {streak} day streak
+          </Typography>
+        </Box>
+      )}
+
       {/* Month navigator */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
         <IconButton size="small" onClick={handlePrev} sx={{ p: 1.5, color: 'text.secondary' }}>
