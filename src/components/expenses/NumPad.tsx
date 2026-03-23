@@ -193,6 +193,40 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
         )}
       </Box>
 
+      {/* Quick amount presets */}
+      <Box sx={{ display: 'flex', gap: 0.75, mb: 0.75 }}>
+        {[50, 100, 200, 500].map((preset) => (
+          <ButtonBase
+            key={preset}
+            onClick={() => {
+              setStoredValue(null);
+              setPendingOp(null);
+              setWaitForNext(false);
+              if (inputInFx && isFxAvailable) {
+                const fx = fmt(preset / fxRate!);
+                setFxInput(fx);
+                onChange(fmt(preset));
+              } else {
+                onChange(String(preset));
+              }
+            }}
+            sx={{
+              flex: 1,
+              py: 0.6,
+              borderRadius: 1.5,
+              bgcolor: 'rgba(129,140,248,0.07)',
+              border: '1px solid rgba(129,140,248,0.18)',
+              '&:active': { bgcolor: 'rgba(129,140,248,0.2)', transform: 'scale(0.95)' },
+              transition: 'all 0.1s ease',
+            }}
+          >
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#818cf8' }}>
+              {preset}
+            </Typography>
+          </ButtonBase>
+        ))}
+      </Box>
+
       {/* Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0.75 }}>
         {['7','8','9'].map(k => (
