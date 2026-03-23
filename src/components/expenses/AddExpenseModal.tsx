@@ -23,7 +23,7 @@ import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { TransactionRequest, TransactionType } from '../../types';
 import NumPad from './NumPad';
-import ItemPicker, { ItemPreset } from './ItemPicker';
+import ItemPicker, { ItemPreset, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
@@ -210,7 +210,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         {(() => {
           const preset = item ? itemPresets[item] : '';
           const history = item ? (descriptionsByItem[item] || []) : [];
-          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history])).slice(0, 8);
+          const builtIn = item ? (ITEM_SUGGESTIONS[item] || []) : [];
+          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history, ...builtIn])).slice(0, 10);
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
         })()}
 

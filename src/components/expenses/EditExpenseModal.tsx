@@ -26,7 +26,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import { Transaction, TransactionRequest, TransactionType } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
-import ItemPicker, { ItemPreset, ITEM_PRESETS } from './ItemPicker';
+import ItemPicker, { ItemPreset, ITEM_PRESETS, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
 import ParticipantPicker from './ParticipantPicker';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -230,7 +230,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         {(() => {
           const preset = item ? itemPresets[item] : '';
           const history = item ? (descriptionsByItem[item] || []) : [];
-          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history])).slice(0, 8);
+          const builtIn = item ? (ITEM_SUGGESTIONS[item] || []) : [];
+          const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history, ...builtIn])).slice(0, 10);
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
         })()}
 

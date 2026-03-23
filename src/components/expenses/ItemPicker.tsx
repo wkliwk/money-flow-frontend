@@ -45,6 +45,22 @@ export const ITEM_PRESETS: ItemPreset[] = [
   { label: '其他',   en: 'Other',      icon: <CategoryIcon />,    category: 'Other',      color: '#94a3b8', type: 'income' },
 ];
 
+export const ITEM_SUGGESTIONS: Record<string, string[]> = {
+  '早餐': ["McDonald's", 'Tim Hortons', 'Starbucks', '茶餐廳', '麥當勞'],
+  '午餐': ['茶餐廳', "McDonald's", 'Subway', '快餐', '便利店'],
+  '晚餐': ['火鍋', '茶餐廳', '日本菜', '西餐', '燒烤'],
+  '車費': ['MTR', 'Bus', 'Uber', 'Taxi', 'TransLink'],
+  '費用': ['Rent', 'Electricity', 'Internet', 'Phone', 'Water'],
+  '超市': ['T&T', 'Costco', 'Walmart', 'PARKnSHOP', 'AEON'],
+  '學費': ['Coursera', 'Udemy', 'Course fee'],
+  '工資': ['Salary', 'Paycheque'],
+  '自由工': ['Client payment', 'Contract work', 'Invoice'],
+  '投資': ['Dividend', 'Stock sale', 'Interest'],
+  '兼職': ['Part-time work', 'Shift pay'],
+  '獎金': ['Year-end bonus', 'Performance bonus'],
+  '租金': ['Rental income'],
+};
+
 interface Props {
   value: string;
   type: TransactionType;
