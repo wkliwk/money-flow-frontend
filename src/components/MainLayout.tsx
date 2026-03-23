@@ -375,6 +375,9 @@ const MainLayout: React.FC = () => {
                                   {t.item && t.description && (
                                     <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
                                   )}
+                                  {t.participants && t.participants.length > 0 && (
+                                    <Typography sx={{ fontSize: '0.63rem', color: 'text.disabled', mt: 0.25 }}>with {t.participants.join(', ')}</Typography>
+                                  )}
                                 </Box>
                                 <Typography fontWeight={700} sx={{ color: t.type === 'income' ? '#34d399' : '#fb7185', fontSize: '0.9rem', flexShrink: 0 }}>
                                   {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
