@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   TextField,
@@ -8,6 +8,8 @@ import {
   InputAdornment,
   IconButton,
   Tooltip,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
@@ -25,7 +27,7 @@ interface Props {
   onSearchChange: (v: string) => void;
   onTypeFilterChange: (v: TransactionType | 'all') => void;
   onSortChange: (v: 'date' | 'amount') => void;
-  onExport: () => void;
+  onExport: (format: 'csv' | 'json') => void;
 }
 
 const FilterBar: React.FC<Props> = ({
@@ -40,7 +42,21 @@ const FilterBar: React.FC<Props> = ({
   onSortChange,
   onExport,
 }) => {
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const isActive = search !== '' || typeFilter !== 'all';
+
+  const handleExportClick = (event: React.MouseEvent<HTMLElement>) => {
+    setExportMenuAnchor(event.currentTarget);
+  };
+
+  const handleExportClose = () => {
+    setExportMenuAnchor(null);
+  };
+
+  const handleExportFormat = (format: 'csv' | 'json') => {
+    onExport(format);
+    handleExportClose();
+  };
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -88,11 +104,11 @@ const FilterBar: React.FC<Props> = ({
             <SortIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title={filtered === 0 ? 'No transactions to export' : 'Download CSV'}>
+        <Tooltip title={filtered === 0 ? 'No transactions to export' : 'Export as CSV or JSON'}>
           <span>
             <IconButton
               size="small"
-              onClick={onExport}
+              onClick={handleExportClick}
               disabled={filtered === 0}
               sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
             >
@@ -100,6 +116,18 @@ const FilterBar: React.FC<Props> = ({
             </IconButton>
           </span>
         </Tooltip>
+        <Menu
+          anchorEl={exportMenuAnchor}
+          open={Boolean(exportMenuAnchor)}
+          onClose={handleExportClose}
+        >
+          <MenuItem onClick={() => handleExportFormat('csv')}>
+            CSV
+          </MenuItem>
+          <MenuItem onClick={() => handleExportFormat('json')}>
+            JSON
+          </MenuItem>
+        </Menu>
       </Box>
       {isActive && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>

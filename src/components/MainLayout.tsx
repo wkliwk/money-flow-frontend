@@ -33,6 +33,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
+import axiosInstance from '../axiosInstance';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
@@ -296,29 +297,25 @@ const MainLayout: React.FC = () => {
     return filtered;
   }, [transactions, monthFiltered, search, typeFilter, sortBy]);
 
-  const handleExport = () => {
-    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Participants'];
-    const rows = filteredTransactions.map((t) => [
-      new Date(t.date || t.createdAt).toISOString().split('T')[0],
-      t.item ? `"${t.item.replace(/"/g, '""')}"` : '',
-      `"${t.description.replace(/"/g, '""')}"`,
-      t.type,
-      t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
-      t.amount,
-      t.participants?.length ? `"${t.participants.join(', ')}"` : '',
-    ]);
-    const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = search
-      ? `money-flow-search.csv`
-      : selectedMonth
-        ? `money-flow-${selectedMonth.format('YYYY-MM')}.csv`
-        : 'money-flow-all.csv';
-    a.click();
-    URL.revokeObjectURL(url);
+  const handleExport = (format: 'csv' | 'json') => {
+    const endpoint = format === 'csv' ? '/api/export/csv' : '/api/export/json';
+    const mimeType = format === 'csv' ? 'text/csv' : 'application/json';
+    const fileExtension = format;
+
+    axiosInstance
+      .get(endpoint, { responseType: 'blob' })
+      .then((response) => {
+        const blob = new Blob([response.data], { type: mimeType });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `money-flow-${new Date().toISOString().split('T')[0]}.${fileExtension}`;
+        a.click();
+        URL.revokeObjectURL(url);
+      })
+      .catch(() => {
+        // Error notification could be added here
+      });
   };
 
   const navItems = [
