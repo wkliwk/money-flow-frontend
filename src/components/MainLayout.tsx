@@ -99,8 +99,10 @@ const MainLayout: React.FC = () => {
 
   const fetchTransactions = async () => {
     try {
-      const data = await getExpenses();
-      setTransactions(data);
+      const response = await getExpenses();
+      // Handle both paginated and non-paginated responses for backwards compatibility
+      const data = response.data || response;
+      setTransactions(Array.isArray(data) ? data : []);
     } catch {
       showSnackbar('Failed to load transactions', 'error');
     }
