@@ -118,7 +118,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     setLoading(true);
     setError('');
     try {
-      const updated = await updateExpense(transaction._id, {
+      const payload = {
         description: description.trim() || item,
         amount: parsedAmount,
         type,
@@ -127,8 +127,15 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         participants: participants,
         date: resolvedDate,
         owner: transaction.owner,
+      };
+      const updated = await updateExpense(transaction._id, payload);
+      // Keep UI state in sync immediately even if API response is partially shaped.
+      onSaved({
+        ...transaction,
+        ...payload,
+        ...updated,
+        participants: updated?.participants ?? payload.participants ?? [],
       });
-      onSaved(updated);
       onClose();
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Failed to update transaction');
