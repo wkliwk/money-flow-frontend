@@ -48,6 +48,7 @@ import { useRecurring } from '../hooks/useRecurring';
 import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
+import MonthlyReportModal from './dashboard/MonthlyReportModal';
 import { useBudgets } from '../hooks/useBudgets';
 
 function getOwnerFromToken(): string {
@@ -83,6 +84,7 @@ const MainLayout: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [addOpen, setAddOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -487,7 +489,12 @@ const MainLayout: React.FC = () => {
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                   <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-                  <CurrencyPicker currency={currency} onChange={setCurrency} />
+                  <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Button size="small" variant="outlined" onClick={() => setReportOpen(true)} sx={{ fontSize: '0.75rem', py: 0.75 }}>
+                      📊 Report
+                    </Button>
+                    <CurrencyPicker currency={currency} onChange={setCurrency} />
+                  </Box>
                 </Box>
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 {(() => {
@@ -709,6 +716,15 @@ const MainLayout: React.FC = () => {
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
         recentItems={recentItems}
+      />
+
+      <MonthlyReportModal
+        open={reportOpen}
+        onClose={() => setReportOpen(false)}
+        transactions={transactions}
+        selectedMonth={selectedMonth}
+        convert={convert}
+        symbol={symbol}
       />
 
       <Snackbar
