@@ -10,6 +10,7 @@ export interface RecurringItem {
   type: TransactionType;
   category?: string;
   participants?: string[];
+  frequency?: 'monthly' | 'weekly' | 'daily';
   lastApplied?: string; // 'YYYY-MM'
 }
 

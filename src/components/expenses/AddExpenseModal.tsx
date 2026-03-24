@@ -21,6 +21,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import RepeatIcon from '@mui/icons-material/Repeat';
 import { TransactionRequest, TransactionType } from '../../types';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_SUGGESTIONS } from './ItemPicker';
@@ -31,6 +32,9 @@ import ParticipantPicker from './ParticipantPicker';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
+import { useRecurring } from '../../hooks/useRecurring';
+
+type RecurringFrequency = 'monthly' | 'weekly' | 'daily';
 
 interface Props {
   open: boolean;
@@ -58,6 +62,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const { templates, addTemplate, deleteTemplate } = useTemplates();
   const { symbol, rates, currency, setCurrency, convert } = useFxRates();
   const { presets: itemPresets } = useItemPresets();
+  const { addItem: addRecurringItem } = useRecurring();
   const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
   const [manageOpen, setManageOpen] = useState(false);
   const [item, setItem] = useState('');
@@ -68,6 +73,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -98,6 +105,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
+    setIsRecurring(false);
+    setFrequency('monthly');
     setError('');
     onClose();
   };
@@ -119,6 +128,18 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         participants: participants,
         date: resolvedDate,
       });
+      if (isRecurring) {
+        addRecurringItem({
+          label: item || description.trim(),
+          item: item || undefined,
+          description: description.trim() || item,
+          amount: parsedAmount,
+          type,
+          category: category || undefined,
+          participants: participants.length ? participants : undefined,
+          frequency,
+        });
+      }
       if (addAnother) {
         // Reset amount and description, keep item/type/date/participants
         setAmount('');
@@ -318,6 +339,44 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        {/* Recurring toggle */}
+        <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Chip
+            icon={<RepeatIcon sx={{ fontSize: '14px !important' }} />}
+            label="Repeat"
+            size="small"
+            clickable
+            onClick={() => setIsRecurring((v) => !v)}
+            sx={{
+              fontSize: '0.75rem',
+              height: 30,
+              bgcolor: isRecurring ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+              color: isRecurring ? '#818cf8' : 'text.secondary',
+              border: '1px solid',
+              borderColor: isRecurring ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+              fontWeight: isRecurring ? 600 : 400,
+            }}
+          />
+          {isRecurring && (['monthly', 'weekly', 'daily'] as RecurringFrequency[]).map((f) => (
+            <Chip
+              key={f}
+              label={f.charAt(0).toUpperCase() + f.slice(1)}
+              size="small"
+              clickable
+              onClick={() => setFrequency(f)}
+              sx={{
+                fontSize: '0.72rem',
+                height: 28,
+                bgcolor: frequency === f ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
+                color: frequency === f ? '#818cf8' : 'text.disabled',
+                border: '1px solid',
+                borderColor: frequency === f ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.1)',
+                fontWeight: frequency === f ? 700 : 400,
+              }}
+            />
+          ))}
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
