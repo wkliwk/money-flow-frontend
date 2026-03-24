@@ -49,6 +49,7 @@ import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
+import SpendingAnomalyAlert from './dashboard/SpendingAnomalyAlert';
 
 function getOwnerFromToken(): string {
   try {
@@ -432,7 +433,10 @@ const MainLayout: React.FC = () => {
                 );
               })()}
 
-              {/* Mobile: hero card with month picker + big balance + breakdown */}
+              {/* Spending anomaly alerts */}
+              <SpendingAnomalyAlert transactions={transactions} convert={convert} symbol={symbol} />
+
+              {/* Mobile: preset chips + hero card */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
                 <MobileHero
                   transactions={monthFiltered}
