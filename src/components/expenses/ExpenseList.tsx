@@ -14,6 +14,7 @@ import {
   CardContent,
   useMediaQuery,
   useTheme,
+  Checkbox,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -30,6 +31,10 @@ interface Props {
   onDelete: (id: string) => void;
   convert: (hkd: number) => number;
   symbol: string;
+  selectedIds?: Set<string>;
+  onSelectChange?: (id: string, selected: boolean) => void;
+  onSelectAll?: (selected: boolean) => void;
+  showBulkActions?: boolean;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -62,7 +67,17 @@ function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) 
   return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol }) => {
+const ExpenseList: React.FC<Props> = ({
+  transactions,
+  onEdit,
+  onDelete,
+  convert,
+  symbol,
+  selectedIds = new Set(),
+  onSelectChange,
+  onSelectAll,
+  showBulkActions = false,
+}) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -133,12 +148,21 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   <Card
                     key={t._id}
                     sx={{
-                      border: '1px solid rgba(148,163,184,0.08)',
+                      border: selectedIds.has(t._id) ? '2px solid #818cf8' : '1px solid rgba(148,163,184,0.08)',
                       background: 'rgba(30,41,59,0.5)',
                       backdropFilter: 'blur(8px)',
                       borderLeft: `3px solid ${accentColor}44`,
+                      position: 'relative',
                     }}
                   >
+                    {showBulkActions && (
+                      <Checkbox
+                        checked={selectedIds.has(t._id)}
+                        onChange={(e) => onSelectChange?.(t._id, e.target.checked)}
+                        size="small"
+                        sx={{ position: 'absolute', top: 8, right: 8, zIndex: 1 }}
+                      />
+                    )}
                     <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
                       <CardContent sx={{ p: '14px 16px', '&:last-child': { pb: '14px' } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
@@ -194,6 +218,16 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
         <Table>
           <TableHead>
             <TableRow>
+              {showBulkActions && (
+                <TableCell sx={{ width: 48, py: 1 }}>
+                  <Checkbox
+                    indeterminate={selectedIds.size > 0 && selectedIds.size < transactions.length}
+                    checked={selectedIds.size === transactions.length && transactions.length > 0}
+                    onChange={(e) => onSelectAll?.(e.target.checked)}
+                    size="small"
+                  />
+                </TableCell>
+              )}
               <TableCell>Date</TableCell>
               <TableCell>Description</TableCell>
               <TableCell>With</TableCell>
@@ -204,7 +238,16 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
           </TableHead>
           <TableBody>
             {transactions.map((t) => (
-              <TableRow key={t._id} hover>
+              <TableRow key={t._id} hover selected={selectedIds.has(t._id)}>
+                {showBulkActions && (
+                  <TableCell sx={{ width: 48, py: 1 }} onClick={(e) => e.stopPropagation()}>
+                    <Checkbox
+                      checked={selectedIds.has(t._id)}
+                      onChange={(e) => onSelectChange?.(t._id, e.target.checked)}
+                      size="small"
+                    />
+                  </TableCell>
+                )}
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
                 <TableCell sx={{ maxWidth: 200 }}>
                   <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
