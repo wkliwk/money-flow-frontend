@@ -35,6 +35,8 @@ interface Props {
   onSelectChange?: (id: string, selected: boolean) => void;
   onSelectAll?: (selected: boolean) => void;
   showBulkActions?: boolean;
+  search?: string;
+  onClearSearch?: () => void;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -77,20 +79,36 @@ const ExpenseList: React.FC<Props> = ({
   onSelectChange,
   onSelectAll,
   showBulkActions = false,
+  search = '',
+  onClearSearch,
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   if (transactions.length === 0) {
+    const isSearchActive = search.trim() !== '';
     return (
       <Box sx={{ textAlign: 'center', py: 10 }}>
         <AccountBalanceWalletIcon sx={{ fontSize: 56, color: 'text.disabled', opacity: 0.4 }} />
         <Typography variant="h6" color="text.secondary" mt={2} fontWeight={600}>
-          No transactions yet
+          {isSearchActive ? 'No results found' : 'No transactions yet'}
         </Typography>
         <Typography variant="body2" color="text.secondary" mt={0.5}>
-          Tap the + button to record your first one
+          {isSearchActive
+            ? `Nothing matches "${search}"`
+            : 'Tap the + button to record your first one'}
         </Typography>
+        {isSearchActive && onClearSearch && (
+          <Typography
+            variant="body2"
+            color="primary"
+            mt={1}
+            sx={{ cursor: 'pointer', textDecoration: 'underline' }}
+            onClick={onClearSearch}
+          >
+            Clear search
+          </Typography>
+        )}
       </Box>
     );
   }

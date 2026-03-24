@@ -369,6 +369,7 @@ const MainLayout: React.FC = () => {
         (t.description || '').toLowerCase().includes(searchLow) ||
         (t.item || '').toLowerCase().includes(searchLow) ||
         (t.category || '').toLowerCase().includes(searchLow) ||
+        (t.notes || '').toLowerCase().includes(searchLow) ||
         (t.participants || []).some((p) => p.toLowerCase().includes(searchLow));
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       return matchesSearch && matchesType;
@@ -707,6 +708,8 @@ const MainLayout: React.FC = () => {
                 onSelectChange={handleSelectChange}
                 onSelectAll={handleSelectAll}
                 showBulkActions={bulkMode}
+                search={search}
+                onClearSearch={() => setSearch('')}
               />
             </>
           )}
