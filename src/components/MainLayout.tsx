@@ -30,7 +30,7 @@ import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense, updateExpense } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import MonthPicker from './dashboard/MonthPicker';
 import MobileHero from './dashboard/MobileHero';
@@ -40,6 +40,7 @@ import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
+import BulkActionBar from './expenses/BulkActionBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import { useFxRates } from '../hooks/useFxRates';
@@ -85,6 +86,8 @@ const MainLayout: React.FC = () => {
   const [addOpen, setAddOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -168,6 +171,68 @@ const MainLayout: React.FC = () => {
       const fresh = await getExpense(updated._id);
       setTransactions((prev) => prev.map((t) => (t._id === fresh._id ? fresh : t)));
     } catch {}
+  };
+
+  const handleSelectChange = (id: string, selected: boolean) => {
+    const newSet = new Set(selectedIds);
+    if (selected) {
+      newSet.add(id);
+    } else {
+      newSet.delete(id);
+    }
+    setSelectedIds(newSet);
+  };
+
+  const handleSelectAll = (selected: boolean) => {
+    if (selected) {
+      setSelectedIds(new Set(filteredTransactions.map((t) => t._id)));
+    } else {
+      setSelectedIds(new Set());
+    }
+  };
+
+  const handleBulkDelete = async () => {
+    const promises = Array.from(selectedIds).map((id) => deleteExpense(id));
+    await Promise.all(promises);
+    setTransactions((prev) => prev.filter((t) => !selectedIds.has(t._id)));
+    setSelectedIds(new Set());
+    showSnackbar(`Deleted ${selectedIds.size} transaction${selectedIds.size !== 1 ? 's' : ''}`);
+  };
+
+  const handleBulkTag = async (tags: string[]) => {
+    const promises = Array.from(selectedIds).map(async (id) => {
+      const t = transactions.find((x) => x._id === id);
+      if (!t) return;
+      const existingTags = new Set(t.tags ?? []);
+      tags.forEach((tag) => existingTags.add(tag));
+      await updateExpense(id, { ...t, tags: Array.from(existingTags) });
+    });
+    await Promise.all(promises);
+    setTransactions((prev) => prev.map((t) => {
+      if (!selectedIds.has(t._id)) return t;
+      const existingTags = new Set(t.tags ?? []);
+      tags.forEach((tag) => existingTags.add(tag));
+      return { ...t, tags: Array.from(existingTags) };
+    }));
+    setSelectedIds(new Set());
+    showSnackbar(`Tagged ${selectedIds.size} transaction${selectedIds.size !== 1 ? 's' : ''}`);
+  };
+
+  const handleBulkExportSelected = async () => {
+    const selected = transactions.filter((t) => selectedIds.has(t._id));
+    const csv = ['Date,Description,Category,Type,Amount,Participants,Tags'].concat(
+      selected.map(
+        (t) =>
+          `"${new Date(t.date || t.createdAt).toISOString().split('T')[0]}","${(t.description || '').replace(/"/g, '""')}","${(t.category || '').replace(/"/g, '""')}","${t.type}",${t.amount},"${(t.participants ?? []).join('; ')}","${(t.tags ?? []).join('; ')}"`,
+      ),
+    ).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `money-flow-selected-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   };
 
   const existingCategories = useMemo(
@@ -584,6 +649,8 @@ const MainLayout: React.FC = () => {
                 onTypeFilterChange={setTypeFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
+                bulkMode={bulkMode}
+                onBulkModeChange={setBulkMode}
               />
               {filteredTransactions.length > 0 && (() => {
                 const fIncome = filteredTransactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
@@ -615,6 +682,10 @@ const MainLayout: React.FC = () => {
                 onDelete={handleDelete}
                 convert={convert}
                 symbol={symbol}
+                selectedIds={selectedIds}
+                onSelectChange={handleSelectChange}
+                onSelectAll={handleSelectAll}
+                showBulkActions={bulkMode}
               />
             </>
           )}
@@ -726,6 +797,21 @@ const MainLayout: React.FC = () => {
         convert={convert}
         symbol={symbol}
       />
+
+      {bulkMode && selectedIds.size > 0 && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          selectedIds={selectedIds}
+          knownTags={Array.from(new Set(transactions.flatMap((t) => t.tags ?? [])))}
+          onDeleteSelected={handleBulkDelete}
+          onTagSelected={handleBulkTag}
+          onExportSelected={handleBulkExportSelected}
+          onClose={() => {
+            setSelectedIds(new Set());
+            setBulkMode(false);
+          }}
+        />
+      )}
 
       <Snackbar
         open={snackbar.open}

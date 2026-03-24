@@ -26,6 +26,8 @@ interface Props {
   onTypeFilterChange: (v: TransactionType | 'all') => void;
   onSortChange: (v: 'date' | 'amount') => void;
   onExport: () => void;
+  bulkMode?: boolean;
+  onBulkModeChange?: (enabled: boolean) => void;
 }
 
 const FilterBar: React.FC<Props> = ({
@@ -39,6 +41,8 @@ const FilterBar: React.FC<Props> = ({
   onTypeFilterChange,
   onSortChange,
   onExport,
+  bulkMode = false,
+  onBulkModeChange,
 }) => {
   const isActive = search !== '' || typeFilter !== 'all';
 
@@ -99,6 +103,19 @@ const FilterBar: React.FC<Props> = ({
               <DownloadIcon fontSize="small" />
             </IconButton>
           </span>
+        </Tooltip>
+        <Tooltip title={bulkMode ? 'Exit bulk select mode' : 'Enable bulk select'}>
+          <IconButton
+            size="small"
+            onClick={() => onBulkModeChange?.(!bulkMode)}
+            disabled={filtered === 0}
+            sx={{
+              color: bulkMode ? '#818cf8' : 'text.secondary',
+              '&:hover': { color: bulkMode ? '#818cf8' : 'text.primary' },
+            }}
+          >
+            ☑️
+          </IconButton>
         </Tooltip>
       </Box>
       {isActive && (
