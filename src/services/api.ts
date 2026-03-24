@@ -37,3 +37,46 @@ export const updateExpense = async (id: string, data: TransactionRequest) => {
 export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
+
+// Net Worth
+export interface NetWorthSnapshot {
+  _id: string;
+  userId: string;
+  date: Date;
+  assets: {
+    cash?: number;
+    investments?: number;
+    property?: number;
+    other?: number;
+  };
+  liabilities: {
+    loans?: number;
+    creditCardDebt?: number;
+    other?: number;
+  };
+  netWorth?: number;
+}
+
+export const getNetWorthSnapshots = async (months = 12) => {
+  const res = await axiosInstance.get('/api/net-worth', { params: { months } });
+  return res.data;
+};
+
+export const getLatestNetWorth = async () => {
+  const res = await axiosInstance.get('/api/net-worth/latest');
+  return res.data;
+};
+
+export const createNetWorthSnapshot = async (data: Partial<NetWorthSnapshot>) => {
+  const res = await axiosInstance.post('/api/net-worth', data);
+  return res.data;
+};
+
+export const updateNetWorthSnapshot = async (id: string, data: Partial<NetWorthSnapshot>) => {
+  const res = await axiosInstance.put(`/api/net-worth/${id}`, data);
+  return res.data;
+};
+
+export const deleteNetWorthSnapshot = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/net-worth/${id}`);
+};
