@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
+import ImportModal from './ImportModal';
 import {
   Box,
   Typography,
@@ -57,6 +58,8 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   );
   const [showRecurringForm, setShowRecurringForm] = useState(false);
   const [recurringDraft, setRecurringDraft] = useState(emptyRecurring());
+  const [importOpen, setImportOpen] = useState(false);
+  const handleImported = useCallback(() => { window.location.reload(); }, []);
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -220,6 +223,15 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
 
       <Button
         variant="outlined"
+        onClick={() => setImportOpen(true)}
+        fullWidth
+        sx={{ mb: 1.5 }}
+      >
+        Import transactions (CSV)
+      </Button>
+
+      <Button
+        variant="outlined"
         color="error"
         startIcon={<LogoutIcon />}
         onClick={handleLogout}
@@ -228,6 +240,12 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
       >
         Sign Out
       </Button>
+
+      <ImportModal
+        open={importOpen}
+        onClose={() => setImportOpen(false)}
+        onImported={handleImported}
+      />
     </Box>
   );
 };

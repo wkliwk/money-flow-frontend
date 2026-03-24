@@ -37,3 +37,19 @@ export const updateExpense = async (id: string, data: TransactionRequest) => {
 export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
+
+// Import
+export interface ImportResult {
+  imported: number;
+  skipped: number;
+  errors: { row: number; reason: string }[];
+}
+
+export const importExpensesCSV = async (file: File): Promise<ImportResult> => {
+  const form = new FormData();
+  form.append('file', file);
+  const res = await axiosInstance.post('/api/import/expenses', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  });
+  return res.data;
+};
