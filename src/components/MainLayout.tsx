@@ -51,6 +51,7 @@ import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
 import MonthlyReportModal from './dashboard/MonthlyReportModal';
 import { useBudgets } from '../hooks/useBudgets';
+import BudgetProgress from './dashboard/BudgetProgress';
 import {
   trackAppOpened,
   trackTransactionAdded,
@@ -520,6 +521,22 @@ const MainLayout: React.FC = () => {
                   </Box>
                 );
               })()}
+
+              {/* Budget progress bars */}
+              {Object.keys(budgets).length > 0 && (
+                <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: 'rgba(30,41,59,0.5)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700, display: 'block', mb: 1.5 }}>
+                    Budgets
+                  </Typography>
+                  <BudgetProgress
+                    budgets={budgets}
+                    categorySpend={categorySpend}
+                    convert={convert}
+                    symbol={symbol}
+                    onGoToSettings={() => setActiveTab(3)}
+                  />
+                </Box>
+              )}
 
               {/* Mobile: hero card with month picker + big balance + breakdown */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
