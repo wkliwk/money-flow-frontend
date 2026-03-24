@@ -26,6 +26,7 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import dayjs, { Dayjs } from 'dayjs';
@@ -49,6 +50,7 @@ import { useRecurring } from '../hooks/useRecurring';
 import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
+import AnalyticsPage from './analytics/AnalyticsPage';
 import MonthlyReportModal from './dashboard/MonthlyReportModal';
 import { useBudgets } from '../hooks/useBudgets';
 import BudgetProgress from './dashboard/BudgetProgress';
@@ -77,7 +79,7 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -409,6 +411,7 @@ const MainLayout: React.FC = () => {
   const navItems = [
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
+    { label: 'Analytics', icon: <BarChartIcon /> },
     { label: 'Items', icon: <CategoryIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
@@ -533,7 +536,7 @@ const MainLayout: React.FC = () => {
                     categorySpend={categorySpend}
                     convert={convert}
                     symbol={symbol}
-                    onGoToSettings={() => setActiveTab(3)}
+                    onGoToSettings={() => setActiveTab(4)}
                   />
                 </Box>
               )}
@@ -551,7 +554,6 @@ const MainLayout: React.FC = () => {
                   convert={convert}
                   symbol={symbol}
                 />
-                <TrendsChart transactions={transactions} onMonthSelect={handleMonthChange} convert={convert} symbol={symbol} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
@@ -628,8 +630,6 @@ const MainLayout: React.FC = () => {
                     </Box>
                   );
                 })()}
-                <TrendsChart transactions={transactions} onMonthSelect={handleMonthChange} convert={convert} symbol={symbol} />
-                <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
@@ -732,9 +732,20 @@ const MainLayout: React.FC = () => {
             </>
           )}
 
-          {activeTab === 2 && <ManageItemsPage />}
+          {activeTab === 2 && (
+            <AnalyticsPage
+              transactions={transactions}
+              monthFiltered={monthFiltered}
+              onMonthSelect={handleMonthChange}
+              onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }}
+              convert={convert}
+              symbol={symbol}
+            />
+          )}
 
-          {activeTab === 3 && (
+          {activeTab === 3 && <ManageItemsPage />}
+
+          {activeTab === 4 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
