@@ -186,6 +186,12 @@ const MainLayout: React.FC = () => {
     return Array.from(seen).slice(0, 10);
   }, [transactions]);
 
+  const knownTags = useMemo(() => {
+    const seen = new Set<string>();
+    transactions.forEach((t) => (t.tags ?? []).forEach((tag) => seen.add(tag)));
+    return Array.from(seen).sort();
+  }, [transactions]);
+
   const descriptionsByItem = useMemo(() => {
     const map: Record<string, string[]> = {};
     transactions.forEach((t) => {
@@ -686,6 +692,7 @@ const MainLayout: React.FC = () => {
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
+        knownTags={knownTags}
         recentItems={recentItems}
         amountsByDescription={amountsByDescription}
       />
@@ -708,6 +715,7 @@ const MainLayout: React.FC = () => {
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
+        knownTags={knownTags}
         recentItems={recentItems}
       />
 

@@ -14,6 +14,7 @@ import {
   Typography,
   Box,
   Chip,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import TodayIcon from '@mui/icons-material/Today';
@@ -39,6 +40,7 @@ interface Props {
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
+  knownTags?: string[];
   recentItems?: string[];
   amountsByDescription?: Record<string, number>;
 }
@@ -52,7 +54,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {} }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], knownTags = [], recentItems = [], amountsByDescription = {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -68,6 +70,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -98,6 +101,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
+    setTags([]);
     setError('');
     onClose();
   };
@@ -117,6 +121,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        tags: tags.length > 0 ? tags : undefined,
         date: resolvedDate,
       });
       if (addAnother) {
@@ -318,6 +323,43 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Tags
+          </Typography>
+          <Autocomplete
+            multiple
+            freeSolo
+            size="small"
+            options={knownTags}
+            value={tags}
+            onChange={(_event, newValue) => setTags(newValue)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Add tags…"
+                sx={{ '& .MuiInputBase-input': { fontSize: '0.85rem', py: 0.75 } }}
+              />
+            )}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  {...getTagProps({ index })}
+                  label={option}
+                  size="small"
+                  sx={{
+                    height: 26,
+                    fontSize: '0.75rem',
+                    bgcolor: 'rgba(129,140,248,0.12)',
+                    color: '#818cf8',
+                    border: '1px solid rgba(129,140,248,0.3)',
+                  }}
+                />
+              ))
+            }
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>

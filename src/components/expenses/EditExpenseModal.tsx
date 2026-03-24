@@ -14,6 +14,7 @@ import {
   Typography,
   Box,
   Chip,
+  Autocomplete,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -42,6 +43,7 @@ interface Props {
   existingCategories: string[];
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
+  knownTags?: string[];
   recentItems?: string[];
 }
 
@@ -61,7 +63,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], knownTags = [], recentItems = [] }) => {
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
@@ -75,6 +77,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [tags, setTags] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -93,6 +96,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
+      setTags(transaction.tags ?? []);
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -125,6 +129,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        tags: tags.length > 0 ? tags : undefined,
         date: resolvedDate,
         owner: transaction.owner,
       };
@@ -135,6 +140,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         ...payload,
         ...updated,
         participants: updated?.participants ?? payload.participants ?? [],
+        tags: updated?.tags ?? payload.tags ?? [],
       });
       onClose();
     } catch (err: any) {
@@ -328,6 +334,43 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Tags
+          </Typography>
+          <Autocomplete
+            multiple
+            freeSolo
+            size="small"
+            options={knownTags}
+            value={tags}
+            onChange={(_event, newValue) => setTags(newValue)}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                placeholder="Add tags…"
+                sx={{ '& .MuiInputBase-input': { fontSize: '0.85rem', py: 0.75 } }}
+              />
+            )}
+            renderTags={(value, getTagProps) =>
+              value.map((option, index) => (
+                <Chip
+                  {...getTagProps({ index })}
+                  label={option}
+                  size="small"
+                  sx={{
+                    height: 26,
+                    fontSize: '0.75rem',
+                    bgcolor: 'rgba(129,140,248,0.12)',
+                    color: '#818cf8',
+                    border: '1px solid rgba(129,140,248,0.3)',
+                  }}
+                />
+              ))
+            }
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>

@@ -160,6 +160,24 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 with {t.participants.join(', ')}
                               </Typography>
                             )}
+                            {t.tags && t.tags.length > 0 && (
+                              <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                                {t.tags.map((tag) => (
+                                  <Chip
+                                    key={tag}
+                                    label={tag}
+                                    size="small"
+                                    sx={{
+                                      height: 20,
+                                      fontSize: '0.65rem',
+                                      bgcolor: 'rgba(129,140,248,0.12)',
+                                      color: '#818cf8',
+                                      border: '1px solid rgba(129,140,248,0.2)',
+                                    }}
+                                  />
+                                ))}
+                              </Box>
+                            )}
                           </Box>
 
                           {/* Right: amount (tap card to edit/delete) */}
@@ -201,8 +219,30 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
             {transactions.map((t) => (
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
+                <TableCell sx={{ maxWidth: 200 }}>
+                  <Box>
+                    <Box sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
+                    </Box>
+                    {t.tags && t.tags.length > 0 && (
+                      <Box sx={{ display: 'flex', gap: 0.5, mt: 0.5, flexWrap: 'wrap' }}>
+                        {t.tags.map((tag) => (
+                          <Chip
+                            key={tag}
+                            label={tag}
+                            size="small"
+                            sx={{
+                              height: 20,
+                              fontSize: '0.65rem',
+                              bgcolor: 'rgba(129,140,248,0.12)',
+                              color: '#818cf8',
+                              border: '1px solid rgba(129,140,248,0.2)',
+                            }}
+                          />
+                        ))}
+                      </Box>
+                    )}
+                  </Box>
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
                   {t.participants && t.participants.length > 0 ? t.participants.join(', ') : '—'}
