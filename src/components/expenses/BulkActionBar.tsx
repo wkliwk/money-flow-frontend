@@ -30,7 +30,6 @@ interface Props {
 
 const BulkActionBar: React.FC<Props> = ({
   selectedCount,
-  selectedIds,
   knownTags,
   onDeleteSelected,
   onTagSelected,
