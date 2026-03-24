@@ -5,6 +5,9 @@ import './index.css';
 import App from './App';
 import reportWebVitals from './reportWebVitals';
 import { register as registerSW } from './serviceWorkerRegistration';
+import { initAnalytics } from './analytics';
+
+initAnalytics();
 
 if (process.env.REACT_APP_SENTRY_DSN) {
   Sentry.init({

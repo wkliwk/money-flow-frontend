@@ -51,6 +51,14 @@ import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
 import MonthlyReportModal from './dashboard/MonthlyReportModal';
 import { useBudgets } from '../hooks/useBudgets';
+import {
+  trackAppOpened,
+  trackTransactionAdded,
+  trackTransactionEdited,
+  trackTransactionDeleted,
+  trackMonthChanged,
+  identifyUser,
+} from '../analytics';
 
 function getOwnerFromToken(): string {
   try {
@@ -80,6 +88,13 @@ const MainLayout: React.FC = () => {
   }, []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
+  const handleMonthChange = useCallback((newMonth: Dayjs | null) => {
+    const direction = newMonth && selectedMonth
+      ? (newMonth.isAfter(selectedMonth, 'month') ? 'next' : 'prev')
+      : 'next';
+    trackMonthChanged(direction);
+    setSelectedMonth(newMonth);
+  }, [selectedMonth]);
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
@@ -111,6 +126,9 @@ const MainLayout: React.FC = () => {
 
   useEffect(() => {
     fetchTransactions();
+    const userId = getOwnerFromToken();
+    if (userId) identifyUser(userId);
+    trackAppOpened();
   }, []);
 
   useEffect(() => {
@@ -129,6 +147,7 @@ const MainLayout: React.FC = () => {
     const owner = getOwnerFromToken();
     const created = await createExpense({ ...data, owner });
     setTransactions((prev) => [created, ...prev]);
+    trackTransactionAdded(data.type);
     showSnackbar('Transaction added');
   };
 
@@ -148,6 +167,7 @@ const MainLayout: React.FC = () => {
     pendingDelete.current = null;
     try {
       await deleteExpense(t._id);
+      trackTransactionDeleted();
     } catch {
       setTransactions((prev) => [t, ...prev]);
       showSnackbar('Failed to delete transaction', 'error');
@@ -165,6 +185,7 @@ const MainLayout: React.FC = () => {
   const handleSaved = async (updated: Transaction) => {
     // Optimistic update for immediate UI feedback
     setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
+    trackTransactionEdited();
     showSnackbar('Transaction updated');
     // Re-fetch from server to guarantee all fields (e.g. participants) are in sync
     try {
@@ -506,7 +527,7 @@ const MainLayout: React.FC = () => {
                   prevMonthTransactions={prevMonthFiltered}
                   streak={streak}
                   selectedMonth={selectedMonth}
-                  onChange={setSelectedMonth}
+                  onChange={handleMonthChange}
                   currency={currency}
                   onCurrencyChange={setCurrency}
                   convert={convert}
@@ -553,7 +574,7 @@ const MainLayout: React.FC = () => {
               {/* Desktop: separate month picker + summary cards + chart */}
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+                  <MonthPicker selectedMonth={selectedMonth} onChange={handleMonthChange} />
                   <Box sx={{ display: 'flex', gap: 1 }}>
                     <Button size="small" variant="outlined" onClick={() => setReportOpen(true)} sx={{ fontSize: '0.75rem', py: 0.75 }}>
                       📊 Report
@@ -634,7 +655,7 @@ const MainLayout: React.FC = () => {
             <>
               {search === '' && (
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 }}>
-                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
+                  <MonthPicker selectedMonth={selectedMonth} onChange={handleMonthChange} />
                   <CurrencyPicker currency={currency} onChange={setCurrency} />
                 </Box>
               )}
