@@ -68,6 +68,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
@@ -98,6 +99,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
+    setNotes('');
     setError('');
     onClose();
   };
@@ -117,6 +119,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        notes: notes.trim() || undefined,
         date: resolvedDate,
       });
       if (addAnother) {
@@ -318,6 +321,25 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        {/* Notes */}
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Notes (optional)
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Add any additional notes..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            multiline
+            rows={2}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${notes.length}/500`}
+            sx={{ fontSize: '0.85rem' }}
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>

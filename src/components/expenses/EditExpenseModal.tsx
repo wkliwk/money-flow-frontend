@@ -75,6 +75,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -93,6 +94,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
+      setNotes(transaction.notes ?? '');
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -125,6 +127,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        notes: notes.trim() || undefined,
         date: resolvedDate,
         owner: transaction.owner,
       };
@@ -328,6 +331,25 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        {/* Notes */}
+        <Box sx={{ mt: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+            Notes (optional)
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            placeholder="Add any additional notes..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            multiline
+            rows={2}
+            inputProps={{ maxLength: 500 }}
+            helperText={`${notes.length}/500`}
+            sx={{ fontSize: '0.85rem' }}
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>

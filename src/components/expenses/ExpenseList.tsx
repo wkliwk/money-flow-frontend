@@ -160,6 +160,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 with {t.participants.join(', ')}
                               </Typography>
                             )}
+                            {t.notes && (
+                              <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', mt: 0.25, display: 'block', fontStyle: 'italic', maxHeight: '2.4em', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {t.notes}
+                              </Typography>
+                            )}
                           </Box>
 
                           {/* Right: amount (tap card to edit/delete) */}
@@ -201,8 +206,15 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
             {transactions.map((t) => (
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
+                <TableCell sx={{ maxWidth: 200 }}>
+                  <Typography sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
+                  </Typography>
+                  {t.notes && (
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.disabled', fontStyle: 'italic', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', mt: 0.25 }}>
+                      {t.notes}
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
                   {t.participants && t.participants.length > 0 ? t.participants.join(', ') : '—'}

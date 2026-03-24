@@ -9,6 +9,7 @@ export interface Transaction {
   category?: string;
   item?: string;
   participants?: string[];
+  notes?: string;
   date: string;
   createdAt: string;
   updatedAt: string;
@@ -22,5 +23,6 @@ export interface TransactionRequest {
   category?: string;
   item?: string;
   participants?: string[];
+  notes?: string;
   date?: string;
 }
