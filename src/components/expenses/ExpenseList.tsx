@@ -18,6 +18,7 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
+import RepeatIcon from '@mui/icons-material/Repeat';
 import { Transaction } from '../../types';
 import { ITEM_PRESETS } from './ItemPicker';
 
@@ -30,6 +31,7 @@ interface Props {
   onDelete: (id: string) => void;
   convert: (hkd: number) => number;
   symbol: string;
+  recurringLabels?: Set<string>;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -62,7 +64,7 @@ function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) 
   return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol }) => {
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
@@ -129,6 +131,10 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                 {group.items.map((t) => {
                   const itemColor = t.item ? ITEM_COLOR[t.item] : undefined;
                   const accentColor = itemColor || (t.type === 'income' ? '#34d399' : '#fb7185');
+                  const isRecurring = recurringLabels && (
+                    (t.item && recurringLabels.has(t.item)) ||
+                    recurringLabels.has(t.description)
+                  );
                   return (
                   <Card
                     key={t._id}
@@ -144,12 +150,17 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                           {/* Left: title + participants */}
                           <Box sx={{ minWidth: 0, flex: 1 }}>
-                            <Typography
-                              fontWeight={600}
-                              sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.9rem' }}
-                            >
-                              {t.item || t.description}
-                            </Typography>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                              <Typography
+                                fontWeight={600}
+                                sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.9rem' }}
+                              >
+                                {t.item || t.description}
+                              </Typography>
+                              {isRecurring && (
+                                <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
+                              )}
+                            </Box>
                             {t.item && t.description && t.description !== t.item && (
                               <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', lineHeight: 1.2 }}>
                                 {t.description}
@@ -198,11 +209,19 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
             </TableRow>
           </TableHead>
           <TableBody>
-            {transactions.map((t) => (
+            {transactions.map((t) => {
+              const isRecurring = recurringLabels && (
+                (t.item && recurringLabels.has(t.item)) ||
+                recurringLabels.has(t.description)
+              );
+              return (
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
                 <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  {t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <span>{t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}</span>
+                    {isRecurring && <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />}
+                  </Box>
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
                   {t.participants && t.participants.length > 0 ? t.participants.join(', ') : '—'}
@@ -220,7 +239,8 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   <IconButton size="small" onClick={() => onDelete(t._id)}><DeleteIcon fontSize="small" /></IconButton>
                 </TableCell>
               </TableRow>
-            ))}
+              );
+            })}
           </TableBody>
         </Table>
       )}

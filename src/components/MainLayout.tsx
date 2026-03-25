@@ -284,6 +284,11 @@ const MainLayout: React.FC = () => {
     [recurringItems, currentMonthKey]
   );
 
+  const recurringLabels = useMemo(
+    () => new Set(recurringItems.flatMap((r) => [r.label, r.item, r.description].filter(Boolean) as string[])),
+    [recurringItems]
+  );
+
   const applyRecurring = async () => {
     const owner = getOwnerFromToken();
     for (const r of pendingRecurring) {
@@ -681,6 +686,7 @@ const MainLayout: React.FC = () => {
                 onDelete={handleDelete}
                 convert={convert}
                 symbol={symbol}
+                recurringLabels={recurringLabels}
               />
             </>
           )}
