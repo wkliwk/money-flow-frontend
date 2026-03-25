@@ -1,4 +1,10 @@
 import { renderHook, act } from '@testing-library/react';
+
+jest.mock('../../services/api', () => ({
+  getBudgets: () => Promise.resolve([]),
+  saveBudgets: () => Promise.resolve(undefined),
+}));
+
 import { useBudgets } from '../useBudgets';
 
 describe('useBudgets', () => {
