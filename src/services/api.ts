@@ -37,3 +37,19 @@ export const updateExpense = async (id: string, data: TransactionRequest) => {
 export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
+
+// Budgets
+export interface Budget {
+  category: string;
+  limit: number;
+}
+
+export const getBudgets = async (): Promise<Budget[]> => {
+  const res = await axiosInstance.get('/api/budgets');
+  return res.data.budgets;
+};
+
+export const saveBudgets = async (budgets: Budget[]): Promise<Budget[]> => {
+  const res = await axiosInstance.put('/api/budgets', { budgets });
+  return res.data.budgets;
+};
