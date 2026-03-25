@@ -42,6 +42,7 @@ import ExpenseList from './expenses/ExpenseList';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
+import QuickExpenseInput from './expenses/QuickExpenseInput';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
@@ -87,6 +88,7 @@ const MainLayout: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [addOpen, setAddOpen] = useState(false);
+  const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
@@ -115,15 +117,26 @@ const MainLayout: React.FC = () => {
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
-      if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
       const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
+
+      // Cmd+K / Ctrl+K for quick expense
+      if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
+        e.preventDefault();
+        if (!addOpen && !editTransaction && !quickExpenseOpen) {
+          setQuickExpenseOpen(true);
+        }
+        return;
+      }
+
+      // 'n' for normal add expense
+      if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
       if (addOpen || editTransaction) return;
       setAddOpen(true);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [addOpen, editTransaction]);
+  }, [addOpen, editTransaction, quickExpenseOpen]);
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
@@ -780,6 +793,13 @@ const MainLayout: React.FC = () => {
         recentItems={recentItems}
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
+      />
+
+      <QuickExpenseInput
+        open={quickExpenseOpen}
+        onClose={() => setQuickExpenseOpen(false)}
+        onSubmit={handleAdd}
+        existingCategories={existingCategories}
       />
 
       <EditExpenseModal
