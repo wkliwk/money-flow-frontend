@@ -15,6 +15,7 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] 
     const name = input.trim();
     if (!name) return;
     if (value.some((n) => n.toLowerCase() === name.toLowerCase())) { setInput(''); return; }
+    console.log('[DEBUG] ParticipantPicker: Adding participant', { current: value, adding: name, newArray: [...value, name] });
     onChange([...value, name]);
     setInput('');
   };
