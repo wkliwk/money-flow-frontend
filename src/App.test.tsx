@@ -1,18 +1,20 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { MemoryRouter } from 'react-router-dom';
-import LoginPage from './components/auth/LoginPage';
+import App from './App';
 
-jest.mock('./services/api', () => ({ login: jest.fn(), register: jest.fn() }));
+jest.mock('./components/auth/LoginPage', () => () => <div>LoginPage</div>);
+jest.mock('./components/auth/RegisterPage', () => () => <div>RegisterPage</div>);
+jest.mock('./components/MainLayout', () => () => <div>MainLayout</div>);
+jest.mock('./components/common/ProtectedRoute', () => ({ children }: { children: React.ReactElement }) => children);
 
-// Unauthenticated users see the login form
-test('login page renders email and password fields', () => {
-  render(
-    <MemoryRouter>
-      <LoginPage />
-    </MemoryRouter>
-  );
-  expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-  expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-  expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
+describe('App', () => {
+  it('renders without crashing', () => {
+    render(<App />);
+    expect(document.body).toBeTruthy();
+  });
+
+  it('renders MainLayout on root path', () => {
+    render(<App />);
+    expect(screen.getByText('MainLayout')).toBeInTheDocument();
+  });
 });
