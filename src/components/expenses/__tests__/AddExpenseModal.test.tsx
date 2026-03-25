@@ -24,6 +24,10 @@ jest.mock('../../../hooks/useItemPresets', () => ({
   useItemPresets: () => ({ presets: {}, setPreset: jest.fn(), deletePreset: jest.fn() }),
 }));
 
+jest.mock('../../../hooks/useRecurring', () => ({
+  useRecurring: () => ({ items: [], addItem: jest.fn(), markApplied: jest.fn() }),
+}));
+
 const defaultProps = {
   open: true,
   onClose: jest.fn(),
@@ -315,6 +319,7 @@ describe('AddExpenseModal', () => {
     expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
 
+<<<<<<< HEAD
   describe('duplicate detection (409 response)', () => {
     const fillAndSubmit = async (onSubmit: jest.Mock, saveButton = /^save$/i) => {
       render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} />);
