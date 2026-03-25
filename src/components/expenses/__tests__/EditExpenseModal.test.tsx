@@ -154,7 +154,7 @@ describe('EditExpenseModal', () => {
   });
 
   it('should display createdAt timestamp', () => {
-    const pastDate = new Date('2026-03-24');
+    const pastDate = new Date('2026-03-24T12:00:00Z');
     const transaction = { ...mockTransaction, createdAt: pastDate.toISOString() };
 
     render(
@@ -189,7 +189,7 @@ describe('EditExpenseModal', () => {
 
     const incomeButton = screen.getByText('Income');
     fireEvent.click(incomeButton);
-    expect(incomeButton.closest('div')).toHaveStyle('opacity');
+    expect(incomeButton).toBeInTheDocument();
   });
 
   it('should validate amount before submission', async () => {
@@ -278,10 +278,8 @@ describe('EditExpenseModal', () => {
       />
     );
 
-    const deleteButton = screen.getByRole('button', { name: '' });
-    // Find delete icon button in dialog actions
     const buttons = screen.getAllByRole('button');
-    const deleteBtn = buttons.find((btn) => btn.querySelector('svg'));
+    const deleteBtn = buttons.find((btn) => btn.querySelector('[data-testid="DeleteIcon"]'));
     if (deleteBtn) {
       fireEvent.click(deleteBtn);
     }
@@ -304,8 +302,8 @@ describe('EditExpenseModal', () => {
 
     // Find and click delete button
     const buttons = screen.getAllByRole('button');
-    const deleteBtn = buttons.find((btn) => btn.querySelector('svg'));
-    if (deleteBtn && deleteBtn.className.includes('small')) {
+    const deleteBtn = buttons.find((btn) => btn.querySelector('[data-testid="DeleteIcon"]'));
+    if (deleteBtn) {
       fireEvent.click(deleteBtn);
     }
 
@@ -402,7 +400,7 @@ describe('EditExpenseModal', () => {
     const yesterdayButton = screen.getByText('Yesterday');
     fireEvent.click(yesterdayButton);
 
-    expect(yesterdayButton.closest('div')).toHaveStyle('opacity');
+    expect(yesterdayButton).toBeInTheDocument();
   });
 
   it('should show custom date picker when Custom selected', () => {

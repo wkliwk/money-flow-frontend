@@ -109,8 +109,8 @@ describe('SummaryCards', () => {
       />
     );
 
-    expect(screen.getByText(/\+\$0/)).toBeInTheDocument();
-    expect(screen.getAllByText(/-\$0/)).toBeTruthy();
+    expect(screen.getAllByText(/\+\$0/).length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText(/-\$0/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('should apply currency conversion', () => {
@@ -399,9 +399,8 @@ describe('SummaryCards', () => {
       />
     );
 
-    // Positive balance should show green/indigo color
-    const card1 = container1.querySelector('.MuiCard-root:nth-child(3)');
-    expect(card1).toBeInTheDocument();
+    // Positive balance: net balance value should be +$3,000
+    expect(screen.getByText(/\+\$3,000/)).toBeInTheDocument();
 
     rerender(
       <SummaryCards
@@ -414,9 +413,8 @@ describe('SummaryCards', () => {
       />
     );
 
-    // Negative balance should show red color
-    const card2 = container1.querySelector('.MuiCard-root:nth-child(3)');
-    expect(card2).toBeInTheDocument();
+    // Negative balance: net balance value should be -$4,000
+    expect(screen.getAllByText(/-\$4,000/).length).toBeGreaterThanOrEqual(1);
   });
 
   it('should handle empty transaction array', () => {

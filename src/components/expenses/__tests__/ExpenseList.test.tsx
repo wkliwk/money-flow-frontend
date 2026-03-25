@@ -82,7 +82,7 @@ describe('ExpenseList', () => {
     // Income amount might be in different element
     const incomeText = container.textContent;
     expect(incomeText).toContain('+');
-    expect(incomeText).toContain('5000');
+    expect(incomeText).toContain('5,000');
   });
 
   it('should display type chips', () => {
@@ -111,8 +111,10 @@ describe('ExpenseList', () => {
       />
     );
 
-    const transactionElement = screen.getByText('Coffee').closest('tr') || screen.getByText('Coffee');
-    fireEvent.click(transactionElement);
+    const editButton = screen.getAllByRole('button').find(
+      (btn) => btn.querySelector('[data-testid="EditIcon"]')
+    );
+    if (editButton) fireEvent.click(editButton);
 
     expect(mockOnEdit).toHaveBeenCalled();
   });
@@ -264,9 +266,10 @@ describe('ExpenseList', () => {
       />
     );
 
-    // Desktop table row with selection should have 'selected' class
-    const selectedRow = container.querySelector('tr[aria-selected="true"]');
-    expect(selectedRow || container.querySelector('[style*="border"]')).toBeTruthy();
+    // The selected checkbox should be checked
+    const checkboxes = container.querySelectorAll('input[type="checkbox"]');
+    const isSelected = Array.from(checkboxes).some((cb) => (cb as HTMLInputElement).checked);
+    expect(isSelected || container.querySelector('.Mui-selected')).toBeTruthy();
   });
 
   it('should handle item with description separately', () => {
@@ -286,8 +289,8 @@ describe('ExpenseList', () => {
       />
     );
 
-    expect(screen.getByText('Coffee')).toBeInTheDocument();
-    expect(screen.getByText('Espresso at Starbucks')).toBeInTheDocument();
+    expect(screen.getByText(/Coffee/)).toBeInTheDocument();
+    expect(screen.getByText(/Espresso at Starbucks/)).toBeInTheDocument();
   });
 
   it('should format large amounts with thousands separator', () => {

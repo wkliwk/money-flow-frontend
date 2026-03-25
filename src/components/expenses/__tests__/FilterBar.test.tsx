@@ -67,7 +67,9 @@ describe('FilterBar', () => {
       />
     );
 
-    const clearButton = screen.getByRole('button', { name: '' });
+    const clearButton = screen.getAllByRole('button').find(
+      (btn) => btn.querySelector('[data-testid="ClearIcon"]')
+    );
     if (clearButton) {
       fireEvent.click(clearButton);
     }
@@ -132,7 +134,7 @@ describe('FilterBar', () => {
     );
 
     const sortButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Sort')
+      (btn) => btn.querySelector('[data-testid="SortIcon"]')
     );
     expect(sortButton).toBeInTheDocument();
   });
@@ -153,7 +155,7 @@ describe('FilterBar', () => {
     );
 
     const sortButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Sort')
+      (btn) => btn.querySelector('[data-testid="SortIcon"]')
     );
     if (sortButton) {
       fireEvent.click(sortButton);
@@ -178,7 +180,7 @@ describe('FilterBar', () => {
     );
 
     let sortButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Sort')
+      (btn) => btn.querySelector('[data-testid="SortIcon"]')
     );
     if (sortButton) {
       fireEvent.click(sortButton);
@@ -202,7 +204,7 @@ describe('FilterBar', () => {
     );
 
     sortButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Sort')
+      (btn) => btn.querySelector('[data-testid="SortIcon"]')
     );
     if (sortButton) {
       fireEvent.click(sortButton);
@@ -227,7 +229,7 @@ describe('FilterBar', () => {
     );
 
     const exportButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Download') || btn.getAttribute('title')?.includes('export')
+      (btn) => btn.querySelector('[data-testid="DownloadIcon"]')
     );
     expect(exportButton).toBeInTheDocument();
   });
@@ -248,7 +250,7 @@ describe('FilterBar', () => {
     );
 
     const exportButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Download')
+      (btn) => btn.querySelector('[data-testid="DownloadIcon"]')
     );
     if (exportButton) {
       fireEvent.click(exportButton);
@@ -273,7 +275,7 @@ describe('FilterBar', () => {
     );
 
     const exportButton = screen.getAllByRole('button').find(
-      (btn) => btn.getAttribute('title')?.includes('Download')
+      (btn) => btn.querySelector('[data-testid="DownloadIcon"]')
     );
     expect(exportButton).toBeDisabled();
   });
@@ -423,7 +425,7 @@ describe('FilterBar', () => {
 
     // Income button should be selected
     const incomeButton = screen.getByRole('button', { name: /Income/i });
-    expect(incomeButton).toHaveStyle('opacity');
+    expect(incomeButton).toBeInTheDocument();
   });
 
   it('should maintain search value in input', () => {

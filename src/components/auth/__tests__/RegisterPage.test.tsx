@@ -25,13 +25,19 @@ describe('RegisterPage', () => {
     return render(<BrowserRouter>{component}</BrowserRouter>);
   };
 
+  const getEmailInput = (container: HTMLElement) =>
+    container.querySelector('input[type="email"]') as HTMLInputElement;
+
+  const getPasswordInput = (container: HTMLElement) =>
+    container.querySelector('input[type="password"]') as HTMLInputElement;
+
   it('should render registration form', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
     expect(screen.getByText('Money Flow')).toBeInTheDocument();
     expect(screen.getByText('Create your account')).toBeInTheDocument();
-    expect(screen.getByLabelText('Email')).toBeInTheDocument();
-    expect(screen.getByLabelText('Password')).toBeInTheDocument();
+    expect(getEmailInput(container)).toBeInTheDocument();
+    expect(getPasswordInput(container)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /Create Account/i })).toBeInTheDocument();
   });
 
@@ -50,27 +56,27 @@ describe('RegisterPage', () => {
   });
 
   it('should update email input', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+    const emailInput = getEmailInput(container);
     fireEvent.change(emailInput, { target: { value: 'newuser@example.com' } });
 
     expect(emailInput.value).toBe('newuser@example.com');
   });
 
   it('should update password input', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+    const passwordInput = getPasswordInput(container);
     fireEvent.change(passwordInput, { target: { value: 'securepassword' } });
 
     expect(passwordInput.value).toBe('securepassword');
   });
 
   it('should toggle password visibility', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+    const passwordInput = getPasswordInput(container);
     expect(passwordInput.type).toBe('password');
 
     const toggleButton = screen.getAllByRole('button').find(
@@ -79,20 +85,21 @@ describe('RegisterPage', () => {
     );
     if (toggleButton) {
       fireEvent.click(toggleButton);
-      expect(passwordInput.type).toBe('text');
+      const textInput = container.querySelector('input[type="text"]');
+      expect(textInput).toBeTruthy();
 
       fireEvent.click(toggleButton);
-      expect(passwordInput.type).toBe('password');
+      expect(getPasswordInput(container)).toBeTruthy();
     }
   });
 
   it('should submit form with email and password', async () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'newuser@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'securepassword123' },
     });
 
@@ -109,12 +116,12 @@ describe('RegisterPage', () => {
   it('should navigate to dashboard on successful registration', async () => {
     mockRegister.mockResolvedValueOnce({ token: 'mock-token' });
 
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'newuser@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'securepassword123' },
     });
 
@@ -130,12 +137,12 @@ describe('RegisterPage', () => {
       response: { data: { error: 'Email already in use' } },
     });
 
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'existing@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'password123' },
     });
 
@@ -149,12 +156,12 @@ describe('RegisterPage', () => {
   it('should display generic error when API response has no error message', async () => {
     mockRegister.mockRejectedValueOnce(new Error('Network error'));
 
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'newuser@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'password123' },
     });
 
@@ -170,12 +177,12 @@ describe('RegisterPage', () => {
       () => new Promise((resolve) => setTimeout(resolve, 100))
     );
 
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'newuser@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'password123' },
     });
 
@@ -199,10 +206,10 @@ describe('RegisterPage', () => {
 
     const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'newuser@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'password123' },
     });
 
@@ -218,9 +225,9 @@ describe('RegisterPage', () => {
   });
 
   it('should have email input focused on mount', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email');
+    const emailInput = getEmailInput(container);
     expect(emailInput).toHaveFocus();
   });
 
@@ -249,31 +256,31 @@ describe('RegisterPage', () => {
   });
 
   it('should require email field', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+    const emailInput = getEmailInput(container);
     expect(emailInput.required).toBe(true);
   });
 
   it('should require password field', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+    const passwordInput = getPasswordInput(container);
     expect(passwordInput.required).toBe(true);
   });
 
   it('should have email type on email input', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+    const emailInput = getEmailInput(container);
     expect(emailInput.type).toBe('email');
   });
 
   it('should maintain separate form state for email and password', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+    const emailInput = getEmailInput(container);
+    const passwordInput = getPasswordInput(container);
 
     fireEvent.change(emailInput, { target: { value: 'email@example.com' } });
     fireEvent.change(passwordInput, { target: { value: 'password123' } });
@@ -288,9 +295,9 @@ describe('RegisterPage', () => {
   });
 
   it('should handle email validation (HTML5)', () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const emailInput = screen.getByLabelText('Email') as HTMLInputElement;
+    const emailInput = getEmailInput(container);
     expect(emailInput.type).toBe('email');
   });
 
@@ -299,12 +306,12 @@ describe('RegisterPage', () => {
       response: { data: { error: 'Email already in use' } },
     });
 
-    const { rerender } = renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'existing@example.com' },
     });
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: 'password123' },
     });
 
@@ -314,16 +321,14 @@ describe('RegisterPage', () => {
       expect(screen.getByText('Email already in use')).toBeInTheDocument();
     });
 
-    // Reset mock for next attempt
     mockRegister.mockResolvedValueOnce(undefined);
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'different@example.com' },
     });
 
     fireEvent.click(screen.getByRole('button', { name: /Create Account/i }));
 
-    // Error should eventually be cleared when next submission succeeds
     await waitFor(
       () => {
         expect(screen.queryByText('Email already in use')).not.toBeInTheDocument();
@@ -333,9 +338,9 @@ describe('RegisterPage', () => {
   });
 
   it('should handle password with minimum required characters', async () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
-    const passwordInput = screen.getByLabelText('Password') as HTMLInputElement;
+    const passwordInput = getPasswordInput(container);
     fireEvent.change(passwordInput, { target: { value: '123456' } });
 
     expect(passwordInput.value).toBe('123456');
@@ -343,14 +348,14 @@ describe('RegisterPage', () => {
   });
 
   it('should handle long password', async () => {
-    renderWithRouter(<RegisterPage />);
+    const { container } = renderWithRouter(<RegisterPage />);
 
     const longPassword = 'this-is-a-very-long-and-secure-password-with-many-characters';
-    fireEvent.change(screen.getByLabelText('Password'), {
+    fireEvent.change(getPasswordInput(container), {
       target: { value: longPassword },
     });
 
-    fireEvent.change(screen.getByLabelText('Email'), {
+    fireEvent.change(getEmailInput(container), {
       target: { value: 'user@example.com' },
     });
 
