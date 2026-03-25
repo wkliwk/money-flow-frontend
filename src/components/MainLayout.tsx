@@ -32,7 +32,7 @@ import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
-import MonthPicker from './dashboard/MonthPicker';
+import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import TrendsChart from './dashboard/TrendsChart';
@@ -45,7 +45,6 @@ import EditExpenseModal from './expenses/EditExpenseModal';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
-import CurrencyPicker from './dashboard/CurrencyPicker';
 import ManageItemsPage from './items/ManageItemsPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
@@ -77,7 +76,13 @@ const MainLayout: React.FC = () => {
     return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
   }, []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [datePreset, setDatePreset] = useState<DatePreset>(() => {
+    const saved = localStorage.getItem('mf_date_preset') as DatePreset | null;
+    return saved ?? 'month';
+  });
   const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
+  const [customStart, setCustomStart] = useState('');
+  const [customEnd, setCustomEnd] = useState('');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
@@ -209,22 +214,57 @@ const MainLayout: React.FC = () => {
     return map;
   }, [transactions]);
 
+  const handlePresetChange = (p: DatePreset) => {
+    setDatePreset(p);
+    localStorage.setItem('mf_date_preset', p);
+    if (p === 'month' && !selectedMonth) setSelectedMonth(dayjs());
+  };
+
+  const handleCustomChange = (start: string, end: string) => {
+    setCustomStart(start);
+    setCustomEnd(end);
+  };
+
   const monthFiltered = useMemo(() => {
+    if (datePreset === 'all-time') return transactions;
+    if (datePreset === 'week') {
+      const start = dayjs().startOf('week');
+      return transactions.filter((t) => {
+        const d = dayjs(t.date || t.createdAt);
+        return d.isValid() && !d.isBefore(start);
+      });
+    }
+    if (datePreset === 'last-month') {
+      const lm = dayjs().subtract(1, 'month');
+      return transactions.filter((t) => {
+        const d = dayjs(t.date || t.createdAt);
+        return d.isValid() && d.isSame(lm, 'month');
+      });
+    }
+    if (datePreset === 'custom' && customStart && customEnd) {
+      const start = dayjs(customStart).startOf('day');
+      const end = dayjs(customEnd).endOf('day');
+      return transactions.filter((t) => {
+        const d = dayjs(t.date || t.createdAt);
+        return d.isValid() && !d.isBefore(start) && !d.isAfter(end);
+      });
+    }
+    // 'month' preset (or custom with no dates yet)
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
       const d = dayjs(t.date || t.createdAt);
       return d.isValid() && d.isSame(selectedMonth, 'month');
     });
-  }, [transactions, selectedMonth]);
+  }, [transactions, datePreset, selectedMonth, customStart, customEnd]);
 
   const prevMonthFiltered = useMemo(() => {
-    if (!selectedMonth) return [];
+    if (datePreset !== 'month' || !selectedMonth) return [];
     const prev = selectedMonth.subtract(1, 'month');
     return transactions.filter((t) => {
       const d = dayjs(t.date || t.createdAt);
       return d.isValid() && d.isSame(prev, 'month');
     });
-  }, [transactions, selectedMonth]);
+  }, [transactions, datePreset, selectedMonth]);
 
   const streak = useMemo(() => {
     const days = new Set(transactions.map((t) => dayjs(t.date || t.createdAt).format('YYYY-MM-DD')));
@@ -307,11 +347,13 @@ const MainLayout: React.FC = () => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = search
-      ? `money-flow-search.csv`
-      : selectedMonth
-        ? `money-flow-${selectedMonth.format('YYYY-MM')}.csv`
-        : 'money-flow-all.csv';
+    const fileSuffix = datePreset === 'month' && selectedMonth
+      ? selectedMonth.format('YYYY-MM')
+      : datePreset === 'last-month' ? dayjs().subtract(1, 'month').format('YYYY-MM')
+      : datePreset === 'week' ? `week-${dayjs().startOf('week').format('YYYY-MM-DD')}`
+      : datePreset === 'custom' && customStart ? `${customStart}_${customEnd}`
+      : 'all';
+    a.download = search ? 'money-flow-search.csv' : `money-flow-${fileSuffix}.csv`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -432,8 +474,21 @@ const MainLayout: React.FC = () => {
                 );
               })()}
 
-              {/* Mobile: hero card with month picker + big balance + breakdown */}
+              {/* Mobile: preset chips + hero card */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                <Box sx={{ mb: 1.5 }}>
+                  <DateRangeControl
+                    preset={datePreset}
+                    selectedMonth={selectedMonth}
+                    customStart={customStart}
+                    customEnd={customEnd}
+                    currency={currency}
+                    onPresetChange={handlePresetChange}
+                    onMonthChange={setSelectedMonth}
+                    onCustomChange={handleCustomChange}
+                    onCurrencyChange={setCurrency}
+                  />
+                </Box>
                 <MobileHero
                   transactions={monthFiltered}
                   prevMonthTransactions={prevMonthFiltered}
@@ -483,11 +538,20 @@ const MainLayout: React.FC = () => {
                 )}
               </Box>
 
-              {/* Desktop: separate month picker + summary cards + chart */}
+              {/* Desktop: date range control + summary cards + chart */}
               <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-                  <CurrencyPicker currency={currency} onChange={setCurrency} />
+                <Box sx={{ mb: 2 }}>
+                  <DateRangeControl
+                    preset={datePreset}
+                    selectedMonth={selectedMonth}
+                    customStart={customStart}
+                    customEnd={customEnd}
+                    currency={currency}
+                    onPresetChange={handlePresetChange}
+                    onMonthChange={setSelectedMonth}
+                    onCustomChange={handleCustomChange}
+                    onCurrencyChange={setCurrency}
+                  />
                 </Box>
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 {(() => {
@@ -561,9 +625,18 @@ const MainLayout: React.FC = () => {
           {activeTab === 1 && (
             <>
               {search === '' && (
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0 }}>
-                  <MonthPicker selectedMonth={selectedMonth} onChange={setSelectedMonth} />
-                  <CurrencyPicker currency={currency} onChange={setCurrency} />
+                <Box sx={{ mb: 1.5 }}>
+                  <DateRangeControl
+                    preset={datePreset}
+                    selectedMonth={selectedMonth}
+                    customStart={customStart}
+                    customEnd={customEnd}
+                    currency={currency}
+                    onPresetChange={handlePresetChange}
+                    onMonthChange={setSelectedMonth}
+                    onCustomChange={handleCustomChange}
+                    onCurrencyChange={setCurrency}
+                  />
                 </Box>
               )}
               <FilterBar
