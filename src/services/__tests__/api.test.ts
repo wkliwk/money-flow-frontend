@@ -1,4 +1,4 @@
-import { getExpenses, getExpense, createExpense, updateExpense, deleteExpense } from '../api';
+import { getExpenses, getExpense, createExpense, updateExpense, deleteExpense, login, register } from '../api';
 import axiosInstance from '../../axiosInstance';
 
 jest.mock('../../axiosInstance', () => ({
@@ -59,5 +59,19 @@ describe('api service', () => {
     (mockedAxios.delete as jest.Mock).mockResolvedValue({});
     await deleteExpense('1');
     expect(mockedAxios.delete).toHaveBeenCalledWith('/api/expenses/1');
+  });
+
+  it('login calls POST /auth/login and stores token', async () => {
+    (mockedAxios.post as jest.Mock).mockResolvedValue({ data: { token: 'abc123' } });
+    await login('user@test.com', 'password');
+    expect(mockedAxios.post).toHaveBeenCalledWith('/auth/login', { email: 'user@test.com', password: 'password' });
+    expect(localStorage.getItem('mf_token')).toBe('abc123');
+  });
+
+  it('register calls POST /auth/register and stores token', async () => {
+    (mockedAxios.post as jest.Mock).mockResolvedValue({ data: { token: 'reg456' } });
+    await register('newuser@test.com', 'newpass');
+    expect(mockedAxios.post).toHaveBeenCalledWith('/auth/register', { email: 'newuser@test.com', password: 'newpass' });
+    expect(localStorage.getItem('mf_token')).toBe('reg456');
   });
 });

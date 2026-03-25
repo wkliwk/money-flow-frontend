@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import SpendingBreakdown from '../SpendingBreakdown';
 import { Transaction } from '../../../types';
 
@@ -57,5 +57,34 @@ describe('SpendingBreakdown', () => {
       />
     );
     expect(screen.getByText('Spending Breakdown')).toBeInTheDocument();
+  });
+
+  it('calls onItemClick when a row is clicked', () => {
+    const onItemClick = jest.fn();
+    const transactions = [makeTransaction({ item: 'Coffee', amount: 200 })];
+    render(
+      <SpendingBreakdown
+        transactions={transactions}
+        convert={(n) => n}
+        symbol="HK$"
+        onItemClick={onItemClick}
+      />
+    );
+    fireEvent.click(screen.getByText('Coffee'));
+    expect(onItemClick).toHaveBeenCalledWith('Coffee');
+  });
+
+  it('renders with prevMonthTransactions for delta calculation', () => {
+    const transactions = [makeTransaction({ item: '早餐', amount: 200 })];
+    const prevMonthTransactions = [makeTransaction({ item: '早餐', amount: 150 })];
+    render(
+      <SpendingBreakdown
+        transactions={transactions}
+        prevMonthTransactions={prevMonthTransactions}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText('早餐')).toBeInTheDocument();
   });
 });

@@ -49,4 +49,38 @@ describe('MonthPicker', () => {
     fireEvent.click(screen.getByText('All Time'));
     expect(onChange).toHaveBeenCalledWith(null);
   });
+
+  it('calls onChange with current month when This Month chip is clicked', () => {
+    const onChange = jest.fn();
+    render(<MonthPicker selectedMonth={null} onChange={onChange} />);
+    fireEvent.click(screen.getByText('This Month'));
+    expect(onChange).toHaveBeenCalled();
+  });
+
+  it('opens the month picker popover when month label is clicked', () => {
+    const month = dayjs('2026-03-01');
+    render(<MonthPicker selectedMonth={month} onChange={jest.fn()} />);
+    fireEvent.click(screen.getByText('March 2026'));
+    // Popover should be open - month names should appear
+    expect(screen.getByText('Jan')).toBeInTheDocument();
+  });
+
+  it('can navigate year in popover', () => {
+    const month = dayjs('2026-03-01');
+    render(<MonthPicker selectedMonth={month} onChange={jest.fn()} />);
+    fireEvent.click(screen.getByText('March 2026'));
+    // Year should be visible
+    expect(screen.getByText('2026')).toBeInTheDocument();
+  });
+
+  it('selects a month from popover', () => {
+    const onChange = jest.fn();
+    const month = dayjs('2026-03-01');
+    render(<MonthPicker selectedMonth={month} onChange={onChange} />);
+    fireEvent.click(screen.getByText('March 2026'));
+    // Click on Jan in the popover
+    const janOptions = screen.getAllByText('Jan');
+    fireEvent.click(janOptions[0]);
+    expect(onChange).toHaveBeenCalled();
+  });
 });

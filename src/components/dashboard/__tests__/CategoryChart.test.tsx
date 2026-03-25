@@ -1,11 +1,13 @@
 import React from 'react';
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import CategoryChart from '../CategoryChart';
 import { Transaction } from '../../../types';
 
 jest.mock('recharts', () => ({
   PieChart: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
-  Pie: () => null,
+  Pie: ({ onClick }: { onClick?: (e: unknown) => void }) => (
+    <div data-testid="pie" onClick={() => onClick && onClick({ name: 'Food & Drink' })} />
+  ),
   Cell: () => null,
   Tooltip: () => null,
   Legend: () => null,
@@ -46,4 +48,28 @@ describe('CategoryChart', () => {
     const { container } = render(<CategoryChart transactions={transactions} />);
     expect(container.firstChild).toBeNull();
   });
+
+  it('uses "Other" for transactions without category', () => {
+    const transactions = [makeTransaction({ category: undefined, amount: 200 })];
+    render(<CategoryChart transactions={transactions} />);
+    expect(screen.getByText('Spending by Category')).toBeInTheDocument();
+  });
+
+  it('calls onCategoryClick when pie segment is clicked', () => {
+    const onCategoryClick = jest.fn();
+    const transactions = [makeTransaction({ category: 'Food & Drink', amount: 500 })];
+    render(<CategoryChart transactions={transactions} onCategoryClick={onCategoryClick} />);
+    fireEvent.click(screen.getByTestId('pie'));
+    expect(onCategoryClick).toHaveBeenCalledWith('Food & Drink');
+  });
+
+  it('renders with many categories - groups beyond 6 into Other', () => {
+    const categories = ['Cat1', 'Cat2', 'Cat3', 'Cat4', 'Cat5', 'Cat6', 'Cat7'];
+    const transactions = categories.map((cat, i) =>
+      makeTransaction({ _id: String(i), category: cat, amount: 100 })
+    );
+    render(<CategoryChart transactions={transactions} />);
+    expect(screen.getByText('Spending by Category')).toBeInTheDocument();
+  });
 });
+

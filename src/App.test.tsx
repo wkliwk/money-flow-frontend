@@ -1,8 +1,20 @@
 import React from 'react';
-import { render } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
+import App from './App';
 
-// Smoke test — just ensure the module can be imported without errors.
-// Full routing tests live in component-level test files.
-test('App module loads without throwing', () => {
-  expect(true).toBe(true);
+jest.mock('./components/auth/LoginPage', () => () => <div>LoginPage</div>);
+jest.mock('./components/auth/RegisterPage', () => () => <div>RegisterPage</div>);
+jest.mock('./components/MainLayout', () => () => <div>MainLayout</div>);
+jest.mock('./components/common/ProtectedRoute', () => ({ children }: { children: React.ReactElement }) => children);
+
+describe('App', () => {
+  it('renders without crashing', () => {
+    render(<App />);
+    expect(document.body).toBeTruthy();
+  });
+
+  it('renders MainLayout on root path', () => {
+    render(<App />);
+    expect(screen.getByText('MainLayout')).toBeInTheDocument();
+  });
 });

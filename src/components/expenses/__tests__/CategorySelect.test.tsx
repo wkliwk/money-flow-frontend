@@ -27,4 +27,11 @@ describe('CategorySelect', () => {
     // Transport chip should be in the DOM
     expect(screen.getByText(/Transport/)).toBeInTheDocument();
   });
+
+  it('includes existing categories in options', () => {
+    render(
+      <CategorySelect value="" onChange={jest.fn()} existingCategories={['My Custom Category', '  trimmed  ']} />
+    );
+    expect(screen.getByText('My Custom Category')).toBeInTheDocument();
+  });
 });

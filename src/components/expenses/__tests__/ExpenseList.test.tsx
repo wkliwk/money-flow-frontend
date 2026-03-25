@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import ExpenseList from '../ExpenseList';
 import { Transaction } from '../../../types';
+import dayjs from 'dayjs';
 
 const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
   _id: '1',
@@ -23,12 +24,18 @@ const defaultProps = {
   symbol: 'HK$',
 };
 
-describe('ExpenseList', () => {
+// Desktop (default) tests
+describe('ExpenseList (desktop)', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('shows empty state when no transactions', () => {
     render(<ExpenseList {...defaultProps} />);
     expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+  });
+
+  it('shows empty state helper text', () => {
+    render(<ExpenseList {...defaultProps} />);
+    expect(screen.getByText(/tap the \+ button/i)).toBeInTheDocument();
   });
 
   it('renders transaction descriptions in desktop table', () => {
@@ -71,4 +78,52 @@ describe('ExpenseList', () => {
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Expense')).toBeInTheDocument();
   });
+
+  it('renders positive amount for income', () => {
+    const transactions = [makeTransaction({ type: 'income', amount: 1000 })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('+HK$1,000')).toBeInTheDocument();
+  });
+
+  it('renders negative amount for expense', () => {
+    const transactions = [makeTransaction({ type: 'expense', amount: 500 })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('-HK$500')).toBeInTheDocument();
+  });
+
+  it('renders item name in description when transaction has item', () => {
+    const transactions = [makeTransaction({ item: 'Food', description: 'Lunch' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText(/Food/)).toBeInTheDocument();
+  });
+
+  it('renders participants column when present', () => {
+    const transactions = [makeTransaction({ participants: ['Alice', 'Bob'] })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Alice, Bob')).toBeInTheDocument();
+  });
+
+  it('renders multiple transactions', () => {
+    const transactions = Array.from({ length: 5 }, (_, i) =>
+      makeTransaction({ _id: String(i), description: `Item ${i}` })
+    );
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Item 0')).toBeInTheDocument();
+    expect(screen.getByText('Item 4')).toBeInTheDocument();
+  });
+
+  it('renders table headers', () => {
+    const transactions = [makeTransaction({})];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Date')).toBeInTheDocument();
+    expect(screen.getByText('Description')).toBeInTheDocument();
+    expect(screen.getByText('Amount')).toBeInTheDocument();
+  });
+
+  it('shows dash for no participants', () => {
+    const transactions = [makeTransaction({ participants: [] })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('—')).toBeInTheDocument();
+  });
 });
+

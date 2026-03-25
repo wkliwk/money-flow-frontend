@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import SummaryCards from '../SummaryCards';
 import { Transaction } from '../../../types';
+import dayjs from 'dayjs';
 
 const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
   _id: '1',
@@ -66,5 +67,77 @@ describe('SummaryCards', () => {
       />
     );
     expect(screen.getByText('+HK$4,000')).toBeInTheDocument();
+  });
+
+  it('shows negative net balance when expenses exceed income', () => {
+    const transactions = [
+      makeTransaction({ type: 'income', amount: 1000 }),
+      makeTransaction({ type: 'expense', amount: 2000 }),
+    ];
+    render(
+      <SummaryCards
+        transactions={transactions}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText('-HK$1,000')).toBeInTheDocument();
+  });
+
+  it('shows savings rate when income exists and net is positive', () => {
+    const transactions = [
+      makeTransaction({ type: 'income', amount: 10000 }),
+      makeTransaction({ type: 'expense', amount: 2000 }),
+    ];
+    render(
+      <SummaryCards
+        transactions={transactions}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText(/savings rate/i)).toBeInTheDocument();
+  });
+
+  it('shows over income when net is negative with income', () => {
+    const transactions = [
+      makeTransaction({ type: 'income', amount: 1000 }),
+      makeTransaction({ type: 'expense', amount: 2000 }),
+    ];
+    render(
+      <SummaryCards
+        transactions={transactions}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText(/over income/i)).toBeInTheDocument();
+  });
+
+  it('shows expense delta vs previous month', () => {
+    const prevMonth = [makeTransaction({ type: 'expense', amount: 500 })];
+    const thisMonth = [makeTransaction({ type: 'expense', amount: 800 })];
+    render(
+      <SummaryCards
+        transactions={thisMonth}
+        prevMonthTransactions={prevMonth}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText(/vs last month/i)).toBeInTheDocument();
+  });
+
+  it('shows today expenses when transactions from today exist', () => {
+    const todayDate = dayjs().format('YYYY-MM-DD');
+    const transactions = [makeTransaction({ type: 'expense', amount: 100, date: todayDate })];
+    render(
+      <SummaryCards
+        transactions={transactions}
+        convert={(n) => n}
+        symbol="HK$"
+      />
+    );
+    expect(screen.getByText(/Today:/i)).toBeInTheDocument();
   });
 });
