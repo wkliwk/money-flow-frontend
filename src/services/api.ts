@@ -1,6 +1,7 @@
 import axiosInstance from '../axiosInstance';
 import { TransactionRequest } from '../types';
 import { setToken } from './auth';
+import { ThemePreference } from '../theme';
 
 // Auth
 export const register = async (email: string, password: string): Promise<void> => {
@@ -11,6 +12,22 @@ export const register = async (email: string, password: string): Promise<void> =
 export const login = async (email: string, password: string): Promise<void> => {
   const res = await axiosInstance.post('/auth/login', { email, password });
   setToken(res.data.token);
+};
+
+// User
+export interface UserProfile {
+  _id: string;
+  email: string;
+  themePreference: ThemePreference;
+}
+
+export const getUserMe = async (): Promise<UserProfile> => {
+  const res = await axiosInstance.get('/api/users/me');
+  return res.data;
+};
+
+export const patchUserPreferences = async (prefs: { themePreference: ThemePreference }): Promise<void> => {
+  await axiosInstance.patch('/api/users/preferences', prefs);
 };
 
 // Expenses
