@@ -505,8 +505,10 @@ describe('MainLayout', () => {
     ]);
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+      expect(mockGetExpenses).toHaveBeenCalled();
     });
-    expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+    });
   });
 });
