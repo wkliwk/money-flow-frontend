@@ -1,6 +1,8 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
+import { ThemeProvider } from '@mui/material/styles';
+import { lightTheme, darkTheme } from '../../../theme';
 import LoginPage from '../LoginPage';
 
 jest.mock('../../../services/api', () => ({
@@ -21,11 +23,13 @@ describe('LoginPage', () => {
     jest.clearAllMocks();
   });
 
-  const renderPage = () =>
+  const renderPage = (theme = darkTheme) =>
     render(
-      <MemoryRouter>
-        <LoginPage />
-      </MemoryRouter>
+      <ThemeProvider theme={theme}>
+        <MemoryRouter>
+          <LoginPage />
+        </MemoryRouter>
+      </ThemeProvider>
     );
 
   it('renders login form', () => {
@@ -56,5 +60,22 @@ describe('LoginPage', () => {
     fireEvent.change(screen.getByLabelText(/password/i), { target: { value: 'wrong' } });
     fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
     await waitFor(() => expect(screen.getByText('Invalid credentials')).toBeInTheDocument());
+  });
+
+  it('renders without errors in light theme', () => {
+    renderPage(lightTheme);
+    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+  });
+
+  it('renders without errors in dark theme', () => {
+    renderPage(darkTheme);
+    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
+  });
+
+  it('shows sign up link', () => {
+    renderPage();
+    expect(screen.getByRole('link', { name: /sign up/i })).toBeInTheDocument();
   });
 });
