@@ -314,4 +314,104 @@ describe('AddExpenseModal', () => {
     // The manage button is only shown when templates exist or via edit icon
     expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
+
+  describe('duplicate detection (409 response)', () => {
+    const fillAndSubmit = async (onSubmit: jest.Mock, saveButton = /^save$/i) => {
+      render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} />);
+      const descInput = screen.getByPlaceholderText(/McDonald/i) as HTMLInputElement;
+      await act(async () => { fireEvent.change(descInput, { target: { value: 'Coffee' } }); });
+      await act(async () => { fireEvent.keyDown(descInput, { key: 'Enter' }); });
+      fireEvent.click(screen.getByText('100'));
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: saveButton })); });
+    };
+
+    it('shows duplicate dialog when API returns 409', async () => {
+      const onSubmit = jest.fn().mockRejectedValue({ response: { status: 409, data: { error: 'Duplicate' } } });
+      await fillAndSubmit(onSubmit);
+      await waitFor(() => {
+        expect(screen.getByText('Potential Duplicate Detected')).toBeInTheDocument();
+      });
+      expect(screen.getByText(/A similar transaction was recently created/)).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: 'Create Anyway' })).toBeInTheDocument();
+    });
+
+    it('dismisses duplicate dialog when Cancel is clicked', async () => {
+      const onSubmit = jest.fn().mockRejectedValue({ response: { status: 409, data: { error: 'Duplicate' } } });
+      await fillAndSubmit(onSubmit);
+      await waitFor(() => {
+        expect(screen.getByText('Potential Duplicate Detected')).toBeInTheDocument();
+      });
+      const cancelButtons = screen.getAllByRole('button', { name: 'Cancel' });
+      await act(async () => { fireEvent.click(cancelButtons[cancelButtons.length - 1]); });
+      await waitFor(() => {
+        expect(screen.queryByText('Potential Duplicate Detected')).not.toBeInTheDocument();
+      });
+    });
+
+    it('resubmits and closes modal when Create Anyway is clicked', async () => {
+      const onSubmit = jest.fn()
+        .mockRejectedValueOnce({ response: { status: 409, data: { error: 'Duplicate' } } })
+        .mockResolvedValueOnce(undefined);
+      const onClose = jest.fn();
+      render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} onClose={onClose} />);
+      const descInput = screen.getByPlaceholderText(/McDonald/i) as HTMLInputElement;
+      await act(async () => { fireEvent.change(descInput, { target: { value: 'Coffee' } }); });
+      await act(async () => { fireEvent.keyDown(descInput, { key: 'Enter' }); });
+      fireEvent.click(screen.getByText('100'));
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: /^save$/i })); });
+      await waitFor(() => {
+        expect(screen.getByText('Potential Duplicate Detected')).toBeInTheDocument();
+      });
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Anyway' })); });
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(2);
+      });
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('shows error when Create Anyway also fails', async () => {
+      const onSubmit = jest.fn()
+        .mockRejectedValueOnce({ response: { status: 409, data: { error: 'Duplicate' } } })
+        .mockRejectedValueOnce({ response: { data: { error: 'Server error' } } });
+      await fillAndSubmit(onSubmit);
+      await waitFor(() => {
+        expect(screen.getByText('Potential Duplicate Detected')).toBeInTheDocument();
+      });
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Anyway' })); });
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(2);
+      });
+      expect(screen.getByText('Server error')).toBeInTheDocument();
+    });
+
+    it('does not show duplicate dialog for non-409 errors', async () => {
+      const onSubmit = jest.fn().mockRejectedValue({ response: { status: 500, data: { error: 'Internal error' } } });
+      await fillAndSubmit(onSubmit);
+      await waitFor(() => {
+        expect(screen.getByRole('alert')).toBeInTheDocument();
+      });
+      expect(screen.queryByText('Potential Duplicate Detected')).not.toBeInTheDocument();
+    });
+
+    it('keeps modal open after Create Anyway when triggered via + Add', async () => {
+      const onSubmit = jest.fn()
+        .mockRejectedValueOnce({ response: { status: 409, data: { error: 'Duplicate' } } })
+        .mockResolvedValueOnce(undefined);
+      const onClose = jest.fn();
+      render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} onClose={onClose} />);
+      const descInput = screen.getByPlaceholderText(/McDonald/i) as HTMLInputElement;
+      await act(async () => { fireEvent.change(descInput, { target: { value: 'Taxi' } }); });
+      await act(async () => { fireEvent.keyDown(descInput, { key: 'Enter' }); });
+      fireEvent.click(screen.getByText('100'));
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: '+ Add' })); });
+      await waitFor(() => {
+        expect(screen.getByText('Potential Duplicate Detected')).toBeInTheDocument();
+      });
+      await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Create Anyway' })); });
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(2);
+      });
+      expect(onClose).not.toHaveBeenCalled();
+    });
+  });
 });

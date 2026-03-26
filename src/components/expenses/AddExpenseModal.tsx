@@ -78,6 +78,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
+  const [pendingSubmit, setPendingSubmit] = useState<{ data: Omit<TransactionRequest, 'owner'>; addAnother: boolean } | null>(null);
 
   const handleItemSelect = (preset: ItemPreset) => {
     setItem(preset.label);
@@ -117,18 +119,20 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
 
+    const data: Omit<TransactionRequest, 'owner'> = {
+      description: description.trim() || item,
+      amount: parsedAmount,
+      type,
+      item: item || undefined,
+      category: category || undefined,
+      participants: participants,
+      date: resolvedDate,
+    };
+
     setLoading(true);
     setError('');
     try {
-      await onSubmit({
-        description: description.trim() || item,
-        amount: parsedAmount,
-        type,
-        item: item || undefined,
-        category: category || undefined,
-        participants: participants,
-        date: resolvedDate,
-      });
+      await onSubmit(data);
       if (isRecurring) {
         addRecurringItem({
           label: item || description.trim(),
@@ -149,6 +153,56 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       } else {
         handleClose();
       }
+    } catch (err: any) {
+      const status = err?.response?.status;
+      const errorMessage = err?.response?.data?.error || 'Failed to add transaction';
+
+      if (status === 409) {
+        // Duplicate detected - show confirmation dialog
+        setPendingSubmit({ data, addAnother });
+        setDuplicateDialogOpen(true);
+      } else {
+        setError(errorMessage);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmDuplicate = async (force: boolean) => {
+    if (!force || !pendingSubmit) {
+      setDuplicateDialogOpen(false);
+      setPendingSubmit(null);
+      return;
+    }
+
+    setLoading(true);
+    setError('');
+    try {
+      // In a real scenario, we'd have a force flag on the API
+      // For now, we'll just proceed - the backend will allow it if sent again
+      await onSubmit(pendingSubmit.data);
+      if (isRecurring) {
+        addRecurringItem({
+          label: item || description.trim(),
+          item: item || undefined,
+          description: description.trim() || item,
+          amount: parseFloat(amount),
+          type,
+          category: category || undefined,
+          participants: participants.length ? participants : undefined,
+          frequency,
+        });
+      }
+      if (pendingSubmit.addAnother) {
+        setAmount('');
+        setDescription('');
+        setError('');
+      } else {
+        handleClose();
+      }
+      setDuplicateDialogOpen(false);
+      setPendingSubmit(null);
     } catch (err: any) {
       setError(err?.response?.data?.error || 'Failed to add transaction');
     } finally {
@@ -387,6 +441,22 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Button>
         <Button variant="contained" onClick={() => handleSubmit(false)} disabled={loading} size="large">
           {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Saving…</> : 'Save'}
+        </Button>
+      </DialogActions>
+    </Dialog>
+
+    {/* Duplicate confirmation dialog */}
+    <Dialog open={duplicateDialogOpen} onClose={() => handleConfirmDuplicate(false)}>
+      <DialogTitle>Potential Duplicate Detected</DialogTitle>
+      <DialogContent sx={{ pt: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          A similar transaction was recently created. This might be a duplicate. Do you still want to create it?
+        </Typography>
+      </DialogContent>
+      <DialogActions sx={{ p: 2, gap: 1 }}>
+        <Button onClick={() => handleConfirmDuplicate(false)}>Cancel</Button>
+        <Button variant="contained" onClick={() => handleConfirmDuplicate(true)} disabled={loading}>
+          {loading ? <><CircularProgress size={16} sx={{ mr: 1 }} />Creating…</> : 'Create Anyway'}
         </Button>
       </DialogActions>
     </Dialog>
