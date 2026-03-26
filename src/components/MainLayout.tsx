@@ -38,6 +38,7 @@ import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import TrendsChart from './dashboard/TrendsChart';
 import BudgetProgress from './dashboard/BudgetProgress';
+import SpendingInsights from './dashboard/SpendingInsights';
 import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
@@ -594,6 +595,7 @@ const MainLayout: React.FC = () => {
                   convert={convert}
                   symbol={symbol}
                 />
+                <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
@@ -649,6 +651,7 @@ const MainLayout: React.FC = () => {
                   />
                 </Box>
                 <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
+                <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
                 {(() => {
                   const weekStart = dayjs().startOf('week');
                   const lastWeekStart = weekStart.subtract(1, 'week');
