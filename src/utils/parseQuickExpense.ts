@@ -1,92 +1,84 @@
-/**
- * Parse natural language expense input
- * Examples:
- *   "coffee 5" → { item: "coffee", amount: 5 }
- *   "lunch 12.50 usd" → { item: "lunch", amount: 12.50 }
- *   "5" → { item: "", amount: 5 }
- *   "groceries" → { item: "groceries", amount: 0 }
- */
 export interface ParsedExpense {
-  item: string;
+  description: string;
   amount: number;
-  currency?: string;
+  category: string;
 }
 
-export function parseQuickExpense(input: string): ParsedExpense | null {
-  if (!input.trim()) return null;
+const KNOWN_CATEGORIES = [
+  'Food',
+  'Transport',
+  'Utilities',
+  'Entertainment',
+  'Shopping',
+  'Health',
+  'Education',
+  'Other',
+] as const;
 
-  const parts = input.trim().split(/\s+/);
-  if (parts.length === 0) return null;
-
-  let item = '';
-  let amount = 0;
-  let currency = '';
-
-  // Check if first part is a number
-  const firstIsNumber = !isNaN(parseFloat(parts[0]));
-
-  if (firstIsNumber) {
-    // Format: "5 usd" or "5"
-    amount = parseFloat(parts[0]);
-    currency = parts[1] || '';
-  } else {
-    // Format: "coffee 5 usd" or "coffee 5" or "coffee"
-    // Find where the number starts
-    let numberIndex = -1;
-    for (let i = 0; i < parts.length; i++) {
-      if (!isNaN(parseFloat(parts[i]))) {
-        numberIndex = i;
-        break;
-      }
-    }
-
-    if (numberIndex === -1) {
-      // No number found, entire input is item name
-      item = parts.join(' ');
-    } else {
-      // Everything before number is item name
-      item = parts.slice(0, numberIndex).join(' ');
-      amount = parseFloat(parts[numberIndex]);
-      if (numberIndex + 1 < parts.length) {
-        currency = parts[numberIndex + 1];
-      }
-    }
-  }
-
-  // Validate amount
-  if (isNaN(amount) || amount < 0) {
-    return null;
-  }
-
-  return {
-    item: item.toLowerCase().trim(),
-    amount,
-    ...(currency && { currency: currency.toUpperCase() }),
-  };
-}
-
-/**
- * Map common expense descriptions to categories
- */
 const CATEGORY_KEYWORDS: Record<string, string[]> = {
-  groceries: ['grocery', 'groceries', 'supermarket', 'market', 'shopping', 'food shopping'],
-  food: ['restaurant', 'dinner', 'lunch', 'breakfast', 'cafe', 'coffee', 'pizza', 'burger', 'sushi', 'food'],
-  transport: ['uber', 'taxi', 'gas', 'petrol', 'bus', 'metro', 'transport', 'parking', 'fuel'],
-  entertainment: ['movie', 'cinema', 'game', 'show', 'concert', 'entertainment', 'netflix', 'gaming'],
-  utilities: ['electricity', 'water', 'internet', 'phone', 'utility', 'utilities'],
-  health: ['doctor', 'pharmacy', 'medicine', 'gym', 'health', 'medical'],
-  clothing: ['clothes', 'shopping', 'fashion', 'dress', 'shoes', 'clothing'],
+  Food: ['food', 'restaurant', 'dinner', 'lunch', 'breakfast', 'cafe', 'coffee', 'pizza', 'burger', 'sushi', 'grocery', 'groceries', 'supermarket', 'market'],
+  Transport: ['transport', 'uber', 'taxi', 'gas', 'petrol', 'bus', 'metro', 'mtr', 'parking', 'fuel'],
+  Utilities: ['utilities', 'electricity', 'water', 'internet', 'phone', 'utility'],
+  Entertainment: ['entertainment', 'movie', 'cinema', 'game', 'show', 'concert', 'netflix', 'gaming'],
+  Shopping: ['shopping', 'clothes', 'fashion', 'dress', 'shoes', 'clothing'],
+  Health: ['health', 'doctor', 'pharmacy', 'medicine', 'gym', 'medical'],
+  Education: ['education', 'school', 'course', 'book', 'tuition', 'class'],
 };
 
-export function suggestCategory(item: string): string {
-  const itemLower = item.toLowerCase();
+function matchCategory(word: string): string | null {
+  const lower = word.toLowerCase();
+  for (const cat of KNOWN_CATEGORIES) {
+    if (cat.toLowerCase() === lower) return cat;
+  }
+  return null;
+}
 
+export function suggestCategory(description: string): string {
+  const lower = description.toLowerCase();
   for (const [category, keywords] of Object.entries(CATEGORY_KEYWORDS)) {
-    if (keywords.some((kw) => itemLower.includes(kw))) {
+    if (keywords.some((kw) => lower.includes(kw))) {
       return category;
     }
   }
+  return 'Other';
+}
 
-  // Default category
-  return 'Miscellaneous';
+export function parseQuickExpense(input: string): ParsedExpense | null {
+  const trimmed = input.trim();
+  if (!trimmed) return null;
+
+  const parts = trimmed.split(/\s+/);
+
+  let amount = 0;
+  let category = '';
+  const descParts: string[] = [];
+  let foundNumber = false;
+
+  for (const part of parts) {
+    const num = parseFloat(part);
+    if (!isNaN(num) && num >= 0 && !foundNumber) {
+      amount = num;
+      foundNumber = true;
+      continue;
+    }
+    const catMatch = matchCategory(part);
+    if (catMatch && !category) {
+      category = catMatch;
+      continue;
+    }
+    descParts.push(part);
+  }
+
+  if (!foundNumber) return null;
+
+  const description = descParts.join(' ').trim();
+
+  if (!category && description) {
+    category = suggestCategory(description);
+  }
+  if (!category) {
+    category = 'Other';
+  }
+
+  return { description, amount, category };
 }

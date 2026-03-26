@@ -3,216 +3,68 @@ import { render, screen, fireEvent, waitFor, act } from '@testing-library/react'
 import QuickExpenseInput from '../QuickExpenseInput';
 import { TransactionRequest } from '../../../types';
 
+jest.setTimeout(15000);
+
 describe('QuickExpenseInput', () => {
   const mockOnClose = jest.fn();
-  const mockOnSubmit = jest.fn<Promise<void>, [Omit<TransactionRequest, 'owner'>]>(() =>
-    Promise.resolve()
-  );
-  const existingCategories = ['groceries', 'entertainment', 'food'];
+  const mockOnSubmit = jest.fn<Promise<void>, [Omit<TransactionRequest, 'owner'>]>(() => Promise.resolve());
+  beforeEach(() => { mockOnClose.mockClear(); mockOnSubmit.mockClear(); });
 
-  beforeEach(() => {
-    mockOnClose.mockClear();
-    mockOnSubmit.mockClear();
-  });
-
-  test('renders dialog when open', () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
+  test('renders when open', () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
     expect(screen.getByText('Quick Expense')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText(/e.g. coffee 5 usd/)).toBeInTheDocument();
+    expect(screen.getByLabelText('Quick expense input')).toBeInTheDocument();
   });
 
-  test('does not render when closed', () => {
-    const { container } = render(
-      <QuickExpenseInput
-        open={false}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
+  test('hidden when closed', () => {
+    const { container } = render(<QuickExpenseInput open={false} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
     expect(container.querySelector('[role="dialog"]')).not.toBeInTheDocument();
   });
 
-  test('submits expense with parsed data', async () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
+  test('submits parsed data', async () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.change(screen.getByLabelText('Quick expense input'), { target: { value: 'coffee 5' } }); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Add Expense/i })); });
+    await waitFor(() => { expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({ description: 'coffee', amount: 5, category: 'Food', type: 'expense' })); });
+  });
 
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'coffee 5' } });
-    });
+  test('closes after submit', async () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.change(screen.getByLabelText('Quick expense input'), { target: { value: 'lunch 85' } }); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Add Expense/i })); });
+    await waitFor(() => { expect(mockOnClose).toHaveBeenCalled(); });
+  });
 
-    const button = screen.getByRole('button', { name: /Add Expense/i });
-    await act(async () => {
-      fireEvent.click(button);
-    });
+  test('Enter key submits', async () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.change(screen.getByLabelText('Quick expense input'), { target: { value: 'MTR 500 transport' } }); });
+    await act(async () => { fireEvent.keyDown(screen.getByLabelText('Quick expense input'), { key: 'Enter' }); });
+    await waitFor(() => { expect(mockOnSubmit).toHaveBeenCalledWith(expect.objectContaining({ description: 'MTR', amount: 500, category: 'Transport' })); });
+  });
 
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          item: 'coffee',
-          amount: 5,
-          category: 'food',
-          description: 'coffee',
-        })
-      );
-    });
-  }, 15000);
-
-  test('closes dialog after successful submit', async () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'lunch 12.50' } });
-    });
-
-    const button = screen.getByRole('button', { name: /Add Expense/i });
-    await act(async () => {
-      fireEvent.click(button);
-    });
-
-    await waitFor(() => {
-      expect(mockOnClose).toHaveBeenCalled();
-    });
-  }, 15000);
-
-  test('submits with Enter key', async () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'groceries 45' } });
-    });
-    await act(async () => {
-      fireEvent.keyDown(input, { key: 'Enter' });
-    });
-
-    await waitFor(() => {
-      expect(mockOnSubmit).toHaveBeenCalledWith(
-        expect.objectContaining({
-          item: 'groceries',
-          amount: 45,
-          category: 'groceries',
-        })
-      );
-    });
-  }, 15000);
-
-  test('closes dialog with Escape key', async () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.keyDown(input, { key: 'Escape' });
-    });
-
+  test('Escape closes', async () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.keyDown(screen.getByLabelText('Quick expense input'), { key: 'Escape' }); });
     expect(mockOnClose).toHaveBeenCalled();
   });
 
-  test('shows preview of parsed expense', async () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'taxi 15.50' } });
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('Preview:')).toBeInTheDocument();
-    });
-    // Item name is inside a <strong> tag
-    expect(screen.getByText('taxi')).toBeInTheDocument();
-    // Amount is rendered as "$15.50" but split across text nodes, so use container text
-    expect(screen.getByText(/15\.50/)).toBeInTheDocument();
-    expect(screen.getByText('transport')).toBeInTheDocument();
+  test('shows preview', async () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.change(screen.getByLabelText('Quick expense input'), { target: { value: 'taxi 15.50' } }); });
+    await waitFor(() => { expect(screen.getByText('taxi')).toBeInTheDocument(); expect(screen.getByText(/15\.50/)).toBeInTheDocument(); expect(screen.getByText(/Transport/)).toBeInTheDocument(); });
   });
 
-  test('disables submit button for invalid amount', () => {
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const button = screen.getByRole('button', { name: /Add Expense/i });
-    expect(button).toBeDisabled();
+  test('disabled for empty', () => {
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    expect(screen.getByRole('button', { name: /Add Expense/i })).toBeDisabled();
   });
 
-  test('handles submit error gracefully', async () => {
-    const error = new Error('API Error');
-    mockOnSubmit.mockRejectedValueOnce(error);
-
-    render(
-      <QuickExpenseInput
-        open={true}
-        onClose={mockOnClose}
-        onSubmit={mockOnSubmit}
-        existingCategories={existingCategories}
-      />
-    );
-
-    const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await act(async () => {
-      fireEvent.change(input, { target: { value: 'coffee 5' } });
-    });
-
-    const button = screen.getByRole('button', { name: /Add Expense/i });
-    await act(async () => {
-      fireEvent.click(button);
-    });
-
-    await waitFor(() => {
-      expect(screen.getByText('API Error')).toBeInTheDocument();
-    });
-
-    // Dialog should stay open on error
+  test('handles error', async () => {
+    mockOnSubmit.mockRejectedValueOnce(new Error('API Error'));
+    render(<QuickExpenseInput open={true} onClose={mockOnClose} onSubmit={mockOnSubmit} existingCategories={[]} />);
+    await act(async () => { fireEvent.change(screen.getByLabelText('Quick expense input'), { target: { value: 'coffee 5' } }); });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /Add Expense/i })); });
+    await waitFor(() => { expect(screen.getByText('API Error')).toBeInTheDocument(); });
     expect(mockOnClose).not.toHaveBeenCalled();
-  }, 15000);
+  });
 });
