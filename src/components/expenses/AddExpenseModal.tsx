@@ -79,6 +79,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
@@ -115,6 +116,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setTxCurrency('HKD');
     setIsRecurring(false);
     setFrequency('monthly');
+    setNotes('');
     setError('');
     onClose();
   };
@@ -136,6 +138,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       category: category || undefined,
       participants: participants,
       paymentMethod: paymentMethod || undefined,
+      notes: notes.trim() || undefined,
       date: resolvedDate,
       ...(isForeign ? {
         currency: txCurrency,
@@ -164,6 +167,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         // Reset amount and description, keep item/type/date/participants
         setAmount('');
         setDescription('');
+        setNotes('');
         setError('');
       } else {
         handleClose();
@@ -411,6 +415,30 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
 
         <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
+
+        {/* Notes */}
+        <Box sx={{ mt: 1.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Notes (optional)
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.68rem', color: notes.length > 450 ? (notes.length >= 500 ? 'error.main' : 'warning.main') : 'text.disabled' }}>
+              {notes.length}/500
+            </Typography>
+          </Box>
+          <TextField
+            multiline
+            minRows={2}
+            maxRows={4}
+            fullWidth
+            size="small"
+            placeholder="Add a note..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+            inputProps={{ maxLength: 500 }}
+            sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem' } }}
+          />
+        </Box>
 
         {/* Recurring toggle */}
         <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>

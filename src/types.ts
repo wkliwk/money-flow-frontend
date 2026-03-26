@@ -27,6 +27,7 @@ export interface Transaction {
   currency?: string;
   originalAmount?: number;
   exchangeRate?: number;
+  notes?: string;
   date: string;
   createdAt: string;
   updatedAt: string;
@@ -44,5 +45,6 @@ export interface TransactionRequest {
   currency?: string;
   originalAmount?: number;
   exchangeRate?: number;
+  notes?: string;
   date?: string;
 }

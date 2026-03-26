@@ -172,5 +172,19 @@ describe('ExpenseList (desktop)', () => {
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('-HK$100')).toBeInTheDocument();
   });
+
+  it('shows note icon for transactions with notes (desktop)', () => {
+    const transactions = [makeTransaction({ notes: 'Dinner with client' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    const noteIcons = document.querySelectorAll('[data-testid="NotesIcon"]');
+    expect(noteIcons.length).toBeGreaterThan(0);
+  });
+
+  it('does not show note icon when no notes (desktop)', () => {
+    const transactions = [makeTransaction({ notes: undefined })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    const noteIcons = document.querySelectorAll('[data-testid="NotesIcon"]');
+    expect(noteIcons.length).toBe(0);
+  });
 });
 

@@ -78,6 +78,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
+  const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -98,6 +99,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setParticipants(transaction.participants ?? []);
       setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
       setTxCurrency((transaction.currency as Currency) || 'HKD');
+      setNotes(transaction.notes || '');
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -133,6 +135,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         category: category || undefined,
         participants: participants,
         paymentMethod: paymentMethod || undefined,
+        notes: notes.trim() || undefined,
         date: resolvedDate,
         owner: transaction.owner,
         ...(isForeign ? {
@@ -356,6 +359,30 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
 
         <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
+
+        {/* Notes */}
+        <Box sx={{ mt: 1.5 }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Notes (optional)
+            </Typography>
+            <Typography variant="caption" sx={{ fontSize: '0.68rem', color: notes.length > 450 ? (notes.length >= 500 ? 'error.main' : 'warning.main') : 'text.disabled' }}>
+              {notes.length}/500
+            </Typography>
+          </Box>
+          <TextField
+            multiline
+            minRows={2}
+            maxRows={4}
+            fullWidth
+            size="small"
+            placeholder="Add a note..."
+            value={notes}
+            onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+            inputProps={{ maxLength: 500 }}
+            sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem' } }}
+          />
+        </Box>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
