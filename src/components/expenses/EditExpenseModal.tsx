@@ -30,7 +30,7 @@ import ItemPicker, { ItemPreset, ITEM_PRESETS, ITEM_SUGGESTIONS } from './ItemPi
 import DescriptionPicker from './DescriptionPicker';
 import ParticipantPicker from './ParticipantPicker';
 import PaymentMethodPicker from './PaymentMethodPicker';
-import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
+import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
 
 interface Props {
@@ -282,33 +282,6 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history, ...builtIn])).slice(0, 10);
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
         })()}
-
-        {/* Transaction currency selector */}
-        <Box sx={{ mt: 1.5, mb: 0.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-            Currency
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-            {CURRENCIES.map((c) => (
-              <Chip
-                key={c}
-                label={`${CURRENCY_SYMBOLS[c]} ${c}`}
-                size="small"
-                clickable
-                onClick={() => setTxCurrency(c)}
-                sx={{
-                  fontSize: '0.72rem',
-                  height: 28,
-                  bgcolor: txCurrency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: txCurrency === c ? '#818cf8' : 'text.secondary',
-                  border: '1px solid',
-                  borderColor: txCurrency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
-                  fontWeight: txCurrency === c ? 700 : 400,
-                }}
-              />
-            ))}
-          </Box>
-        </Box>
 
         {/* Amount — calculator keypad with FX support */}
         <NumPad

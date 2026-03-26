@@ -120,10 +120,9 @@ describe('AddExpenseModal', () => {
     expect(screen.getAllByText(/HK\$/).length).toBeGreaterThan(0);
   });
 
-  it('shows currency chips for all currencies', () => {
+  it('shows HK$ in NumPad amount display when currency is HKD', () => {
     render(<AddExpenseModal {...defaultProps} />);
-    expect(screen.getByText('HK$ HKD')).toBeInTheDocument();
-    expect(screen.getByText('CA$ CAD')).toBeInTheDocument();
+    expect(screen.getAllByText(/HK\$/).length).toBeGreaterThan(0);
   });
 
   it('shows error when Save is clicked without description or item', async () => {
@@ -145,9 +144,9 @@ describe('AddExpenseModal', () => {
     expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
 
-  it('shows Currency section label', () => {
+  it('shows Amount label in NumPad', () => {
     render(<AddExpenseModal {...defaultProps} />);
-    expect(screen.getByText('Currency')).toBeInTheDocument();
+    expect(screen.getByText('Amount')).toBeInTheDocument();
   });
 
   it('shows Date section label', () => {
