@@ -321,7 +321,6 @@ describe('AddExpenseModal', () => {
     expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
 
-<<<<<<< HEAD
   describe('duplicate detection (409 response)', () => {
     const fillAndSubmit = async (onSubmit: jest.Mock, saveButton = /^save$/i) => {
       render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} />);
