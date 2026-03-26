@@ -16,7 +16,7 @@ export const login = async (email: string, password: string): Promise<void> => {
 // Expenses
 export const getExpenses = async () => {
   const res = await axiosInstance.get('/api/expenses');
-  return res.data;
+  return res.data.data; // API returns { data, total, page, pages }
 };
 
 export const getExpense = async (id: string) => {
