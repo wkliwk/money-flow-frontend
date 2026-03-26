@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
-import PaymentMethodPicker from '../PaymentMethodPicker';
+import PaymentMethodPicker, { getPaymentMethodIcon } from '../PaymentMethodPicker';
 import { PAYMENT_METHODS, PaymentMethod } from '../../../types';
 
 describe('PaymentMethodPicker', () => {
@@ -35,5 +35,10 @@ describe('PaymentMethodPicker', () => {
     render(<PaymentMethodPicker value={'Cash' as PaymentMethod} onChange={onChange} />);
     fireEvent.click(screen.getByText('PayMe'));
     expect(onChange).toHaveBeenCalledWith('PayMe');
+  });
+
+  it('getPaymentMethodIcon returns a React node for known method', () => {
+    const icon = getPaymentMethodIcon('Cash');
+    expect(icon).toBeTruthy();
   });
 });
