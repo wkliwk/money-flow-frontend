@@ -12,7 +12,7 @@ const CurrencyPicker: React.FC<Props> = ({ currency, onChange }) => (
     {CURRENCIES.map((c) => (
       <Chip
         key={c}
-        label={CURRENCY_SYMBOLS[c]}
+        label={`${CURRENCY_SYMBOLS[c]} ${c}`}
         size="small"
         clickable
         onClick={() => onChange(c)}
