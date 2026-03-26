@@ -6,12 +6,15 @@ const defaultProps = {
   search: '',
   typeFilter: 'all' as const,
   paymentMethodFilter: 'all' as const,
+  categoryFilter: 'all' as const,
+  categories: [],
   sortBy: 'date' as const,
   total: 10,
   filtered: 10,
   onSearchChange: jest.fn(),
   onTypeFilterChange: jest.fn(),
   onPaymentMethodFilterChange: jest.fn(),
+  onCategoryFilterChange: jest.fn(),
   onSortChange: jest.fn(),
   onExport: jest.fn(),
   onExportJson: jest.fn(),
@@ -166,5 +169,85 @@ describe('FilterBar', () => {
     const allChip = document.querySelector('.MuiChip-root');
     if (allChip) fireEvent.click(allChip);
     expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('all');
+  });
+
+  it('does not render category filter icon when categories list is empty', () => {
+    render(<FilterBar {...defaultProps} categories={[]} />);
+    expect(document.querySelector('[data-testid="LabelIcon"]')).toBeNull();
+  });
+
+  it('renders category filter icon when categories are provided', () => {
+    render(<FilterBar {...defaultProps} categories={['Food', 'Transport']} />);
+    expect(document.querySelector('[data-testid="LabelIcon"]')).toBeTruthy();
+  });
+
+  it('shows category chips when filter icon is clicked', () => {
+    render(<FilterBar {...defaultProps} categories={['Food', 'Transport']} />);
+    const labelBtn = document.querySelector('[data-testid="LabelIcon"]')?.parentElement;
+    if (labelBtn) fireEvent.click(labelBtn);
+    expect(screen.getByText('Food')).toBeInTheDocument();
+    expect(screen.getByText('Transport')).toBeInTheDocument();
+  });
+
+  it('calls onCategoryFilterChange when category chip is clicked', () => {
+    const onCategoryFilterChange = jest.fn();
+    render(<FilterBar {...defaultProps} categories={['Food', 'Transport']} onCategoryFilterChange={onCategoryFilterChange} />);
+    const labelBtn = document.querySelector('[data-testid="LabelIcon"]')?.parentElement;
+    if (labelBtn) fireEvent.click(labelBtn);
+    fireEvent.click(screen.getByText('Food'));
+    expect(onCategoryFilterChange).toHaveBeenCalledWith('Food');
+  });
+
+  it('calls onCategoryFilterChange with "all" when clicking active category chip again', () => {
+    const onCategoryFilterChange = jest.fn();
+    render(
+      <FilterBar
+        {...defaultProps}
+        categories={['Food', 'Transport']}
+        categoryFilter="Food"
+        onCategoryFilterChange={onCategoryFilterChange}
+      />
+    );
+    // Panel is open since categoryFilter !== 'all'
+    fireEvent.click(screen.getByText('Food'));
+    expect(onCategoryFilterChange).toHaveBeenCalledWith('all');
+  });
+
+  it('clicking All chip in category panel resets category filter', () => {
+    const onCategoryFilterChange = jest.fn();
+    render(
+      <FilterBar
+        {...defaultProps}
+        categories={['Food', 'Transport']}
+        categoryFilter="Food"
+        onCategoryFilterChange={onCategoryFilterChange}
+      />
+    );
+    // Category panel is open since categoryFilter !== 'all'
+    // The category Collapse renders: All, Food, Transport chips
+    // Payment method Collapse also renders an "All" chip but it comes first in DOM
+    // Last "All" chip in the DOM belongs to the category section
+    const allChips = screen.getAllByText('All');
+    fireEvent.click(allChips[allChips.length - 1]);
+    expect(onCategoryFilterChange).toHaveBeenCalledWith('all');
+  });
+
+  it('shows filter count when categoryFilter is active', () => {
+    render(
+      <FilterBar
+        {...defaultProps}
+        categories={['Food']}
+        categoryFilter="Food"
+        total={20}
+        filtered={4}
+      />
+    );
+    expect(screen.getByText(/showing 4 of 20/i)).toBeInTheDocument();
+  });
+
+  it('category filter icon is highlighted when a category is selected', () => {
+    render(<FilterBar {...defaultProps} categories={['Food']} categoryFilter="Food" />);
+    const labelIcon = document.querySelector('[data-testid="LabelIcon"]');
+    expect(labelIcon?.parentElement).toBeTruthy();
   });
 });

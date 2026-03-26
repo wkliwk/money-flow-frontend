@@ -96,6 +96,7 @@ const MainLayout: React.FC = () => {
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
+  const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -366,13 +367,14 @@ const MainLayout: React.FC = () => {
         (t.notes || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
-      return matchesSearch && matchesType && matchesPayment;
+      const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
+      return matchesSearch && matchesType && matchesPayment && matchesCategory;
     });
     if (sortBy === 'amount') {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, sortBy]);
+  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, sortBy]);
 
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
@@ -816,6 +818,8 @@ const MainLayout: React.FC = () => {
                 search={search}
                 typeFilter={typeFilter}
                 paymentMethodFilter={paymentMethodFilter}
+                categoryFilter={categoryFilter}
+                categories={existingCategories}
                 sortBy={sortBy}
                 total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
@@ -823,6 +827,7 @@ const MainLayout: React.FC = () => {
                 onSearchChange={setSearch}
                 onTypeFilterChange={setTypeFilter}
                 onPaymentMethodFilterChange={setPaymentMethodFilter}
+                onCategoryFilterChange={setCategoryFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
                 onExportJson={handleExportJson}

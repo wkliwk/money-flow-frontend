@@ -22,12 +22,15 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
+import LabelIcon from '@mui/icons-material/Label';
 import { TransactionType, PAYMENT_METHODS, PaymentMethod } from '../../types';
 
 interface Props {
   search: string;
   typeFilter: TransactionType | 'all';
   paymentMethodFilter: PaymentMethod | 'all';
+  categoryFilter: string | 'all';
+  categories: string[];
   sortBy: 'date' | 'amount';
   total: number;
   filtered: number;
@@ -35,6 +38,7 @@ interface Props {
   onSearchChange: (v: string) => void;
   onTypeFilterChange: (v: TransactionType | 'all') => void;
   onPaymentMethodFilterChange: (v: PaymentMethod | 'all') => void;
+  onCategoryFilterChange: (v: string | 'all') => void;
   onSortChange: (v: 'date' | 'amount') => void;
   onExport: () => void;
   onExportJson: () => void;
@@ -44,6 +48,8 @@ const FilterBar: React.FC<Props> = ({
   search,
   typeFilter,
   paymentMethodFilter,
+  categoryFilter,
+  categories,
   sortBy,
   total,
   filtered,
@@ -51,13 +57,15 @@ const FilterBar: React.FC<Props> = ({
   onSearchChange,
   onTypeFilterChange,
   onPaymentMethodFilterChange,
+  onCategoryFilterChange,
   onSortChange,
   onExport,
   onExportJson,
 }) => {
   const [showPaymentFilter, setShowPaymentFilter] = useState(paymentMethodFilter !== 'all');
+  const [showCategoryFilter, setShowCategoryFilter] = useState(categoryFilter !== 'all');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
-  const isActive = search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all';
+  const isActive = search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all';
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -112,6 +120,25 @@ const FilterBar: React.FC<Props> = ({
             <FilterListIcon fontSize="small" />
           </IconButton>
         </Tooltip>
+        {categories.length > 0 && (
+          <Tooltip title="Filter by category">
+            <IconButton
+              size="small"
+              aria-label="Filter by category"
+              onClick={() => {
+                const next = !showCategoryFilter;
+                setShowCategoryFilter(next);
+                if (!next) onCategoryFilterChange('all');
+              }}
+              sx={{
+                color: categoryFilter !== 'all' ? '#818cf8' : 'text.secondary',
+                '&:hover': { color: 'text.primary' },
+              }}
+            >
+              <LabelIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
         <Tooltip title={sortBy === 'date' ? 'Sort by amount' : 'Sort by date'}>
           <IconButton
             size="small"
@@ -201,6 +228,43 @@ const FilterBar: React.FC<Props> = ({
                 border: '1px solid',
                 borderColor: paymentMethodFilter === m ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
                 fontWeight: paymentMethodFilter === m ? 700 : 400,
+              }}
+            />
+          ))}
+        </Box>
+      </Collapse>
+      <Collapse in={showCategoryFilter && categories.length > 0}>
+        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 1.5 }}>
+          <Chip
+            label="All"
+            size="small"
+            clickable
+            onClick={() => onCategoryFilterChange('all')}
+            sx={{
+              fontSize: '0.72rem',
+              height: 26,
+              bgcolor: categoryFilter === 'all' ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+              color: categoryFilter === 'all' ? '#818cf8' : 'text.secondary',
+              border: '1px solid',
+              borderColor: categoryFilter === 'all' ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+              fontWeight: categoryFilter === 'all' ? 700 : 400,
+            }}
+          />
+          {categories.map((cat) => (
+            <Chip
+              key={cat}
+              label={cat}
+              size="small"
+              clickable
+              onClick={() => onCategoryFilterChange(categoryFilter === cat ? 'all' : cat)}
+              sx={{
+                fontSize: '0.72rem',
+                height: 26,
+                bgcolor: categoryFilter === cat ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                color: categoryFilter === cat ? '#818cf8' : 'text.secondary',
+                border: '1px solid',
+                borderColor: categoryFilter === cat ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                fontWeight: categoryFilter === cat ? 700 : 400,
               }}
             />
           ))}

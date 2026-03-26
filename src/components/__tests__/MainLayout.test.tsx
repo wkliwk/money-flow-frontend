@@ -562,6 +562,33 @@ describe('MainLayout', () => {
     });
   });
 
+  it('category filter shows only matching transactions', async () => {
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', category: 'Food & Drink' }),
+      makeTransaction({ _id: '2', description: 'Bus fare', category: 'Transport' }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByText('Coffee'));
+    // Both transactions visible initially
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    expect(screen.getByText('Bus fare')).toBeInTheDocument();
+    // Open category filter panel
+    const labelIcon = document.querySelector('[data-testid="LabelIcon"]');
+    if (labelIcon?.parentElement) {
+      await act(async () => { fireEvent.click(labelIcon.parentElement!); });
+    }
+    // Click the Food & Drink category chip
+    await waitFor(() => screen.getByText('Food & Drink'));
+    await act(async () => { fireEvent.click(screen.getByText('Food & Drink')); });
+    await waitFor(() => {
+      expect(screen.getByText('Coffee')).toBeInTheDocument();
+      expect(screen.queryByText('Bus fare')).not.toBeInTheDocument();
+    });
+  });
+
   it('search by notes content filters transactions', async () => {
     mockGetExpenses.mockResolvedValue([
       makeTransaction({ _id: '1', description: 'Lunch', notes: 'client meeting' }),
