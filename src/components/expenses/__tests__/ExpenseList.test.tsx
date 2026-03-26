@@ -123,7 +123,27 @@ describe('ExpenseList (desktop)', () => {
   it('shows dash for no participants', () => {
     const transactions = [makeTransaction({ participants: [] })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    expect(screen.getByText('—')).toBeInTheDocument();
+    const dashes = screen.getAllByText('\u2014');
+    expect(dashes.length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('renders Payment column header', () => {
+    const transactions = [makeTransaction({})];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Payment')).toBeInTheDocument();
+  });
+
+  it('shows payment method when set', () => {
+    const transactions = [makeTransaction({ paymentMethod: 'Octopus' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Octopus')).toBeInTheDocument();
+  });
+
+  it('shows dash when no payment method', () => {
+    const transactions = [makeTransaction({ paymentMethod: undefined })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    const dashes = screen.getAllByText('\u2014');
+    expect(dashes.length).toBeGreaterThanOrEqual(2);
   });
 });
 

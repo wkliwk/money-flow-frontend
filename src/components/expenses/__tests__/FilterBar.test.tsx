@@ -5,11 +5,13 @@ import FilterBar from '../FilterBar';
 const defaultProps = {
   search: '',
   typeFilter: 'all' as const,
+  paymentMethodFilter: 'all' as const,
   sortBy: 'date' as const,
   total: 10,
   filtered: 10,
   onSearchChange: jest.fn(),
   onTypeFilterChange: jest.fn(),
+  onPaymentMethodFilterChange: jest.fn(),
   onSortChange: jest.fn(),
   onExport: jest.fn(),
 };
@@ -107,5 +109,33 @@ describe('FilterBar', () => {
   it('shows "all time" label when searchAllTime is true', () => {
     render(<FilterBar {...defaultProps} search="test" searchAllTime={true} total={10} filtered={2} />);
     expect(screen.getByText(/all time/i)).toBeInTheDocument();
+  });
+
+  it('renders payment method filter toggle button', () => {
+    render(<FilterBar {...defaultProps} />);
+    expect(document.querySelector('[data-testid="FilterListIcon"]')).toBeTruthy();
+  });
+
+  it('shows payment method chips when filter toggle is clicked', () => {
+    render(<FilterBar {...defaultProps} />);
+    const filterBtn = document.querySelector('[data-testid="FilterListIcon"]')?.parentElement;
+    if (filterBtn) fireEvent.click(filterBtn);
+    expect(screen.getByText('Cash')).toBeInTheDocument();
+    expect(screen.getByText('Octopus')).toBeInTheDocument();
+    expect(screen.getByText('PayMe')).toBeInTheDocument();
+  });
+
+  it('calls onPaymentMethodFilterChange when payment chip clicked', () => {
+    const onPaymentMethodFilterChange = jest.fn();
+    render(<FilterBar {...defaultProps} onPaymentMethodFilterChange={onPaymentMethodFilterChange} />);
+    const filterBtn = document.querySelector('[data-testid="FilterListIcon"]')?.parentElement;
+    if (filterBtn) fireEvent.click(filterBtn);
+    fireEvent.click(screen.getByText('Octopus'));
+    expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('Octopus');
+  });
+
+  it('shows filter count when paymentMethodFilter is active', () => {
+    render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" total={20} filtered={5} />);
+    expect(screen.getByText(/showing 5 of 20/i)).toBeInTheDocument();
   });
 });

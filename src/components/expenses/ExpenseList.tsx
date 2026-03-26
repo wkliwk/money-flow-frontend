@@ -19,6 +19,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import RepeatIcon from '@mui/icons-material/Repeat';
+import PaymentIcon from '@mui/icons-material/Payment';
 import { Transaction } from '../../types';
 import { ITEM_PRESETS } from './ItemPicker';
 
@@ -171,6 +172,14 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 with {t.participants.join(', ')}
                               </Typography>
                             )}
+                            {t.paymentMethod && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                                <PaymentIcon sx={{ fontSize: 11, color: 'text.disabled' }} />
+                                <Typography sx={{ fontSize: '0.62rem', color: 'text.disabled' }}>
+                                  {t.paymentMethod}
+                                </Typography>
+                              </Box>
+                            )}
                           </Box>
 
                           {/* Right: amount (tap card to edit/delete) */}
@@ -204,6 +213,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
               <TableCell>Description</TableCell>
               <TableCell>With</TableCell>
               <TableCell>Type</TableCell>
+              <TableCell>Payment</TableCell>
               <TableCell align="right">Amount</TableCell>
               <TableCell align="right">Actions</TableCell>
             </TableRow>
@@ -228,6 +238,9 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                 </TableCell>
                 <TableCell>
                   <Chip label={t.type === 'income' ? 'Income' : 'Expense'} color={t.type === 'income' ? 'success' : 'error'} size="small" />
+                </TableCell>
+                <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                  {t.paymentMethod || '\u2014'}
                 </TableCell>
                 <TableCell align="right">
                   <Typography color={t.type === 'income' ? 'success.main' : 'error.main'} fontWeight={600} sx={{ letterSpacing: '-0.01em' }}>
