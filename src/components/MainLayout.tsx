@@ -214,6 +214,18 @@ const MainLayout: React.FC = () => {
     return map;
   }, [transactions]);
 
+  // description → most recent category used for that description (for smart categorization)
+  const categoriesByDescription = useMemo(() => {
+    const map: Record<string, string> = {};
+    // Sort newest first so first hit is most recent
+    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
+      .forEach((t) => {
+        const key = (t.description?.trim() || t.item || '').toLowerCase();
+        if (key && t.category && !map[key]) map[key] = t.category;
+      });
+    return map;
+  }, [transactions]);
+
   const handlePresetChange = (p: DatePreset) => {
     setDatePreset(p);
     localStorage.setItem('mf_date_preset', p);
@@ -767,6 +779,7 @@ const MainLayout: React.FC = () => {
         knownParticipants={knownParticipants}
         recentItems={recentItems}
         amountsByDescription={amountsByDescription}
+        categoriesByDescription={categoriesByDescription}
       />
 
       <EditExpenseModal

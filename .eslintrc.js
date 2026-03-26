@@ -17,5 +17,6 @@ module.exports = {
     'import/extensions': 'off',
     '@typescript-eslint/no-use-before-define': 'off',
     '@typescript-eslint/no-explicit-any': 'off',
+    'import/no-extraneous-dependencies': ['error', { devDependencies: true }],
   },
 };

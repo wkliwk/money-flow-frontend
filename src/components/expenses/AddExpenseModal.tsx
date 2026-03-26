@@ -45,6 +45,7 @@ interface Props {
   knownParticipants?: string[];
   recentItems?: string[];
   amountsByDescription?: Record<string, number>;
+  categoriesByDescription?: Record<string, string>;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -56,7 +57,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {} }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {} }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -244,7 +245,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           const history = item ? (descriptionsByItem[item] || []) : [];
           const builtIn = item ? (ITEM_SUGGESTIONS[item] || []) : [];
           const suggestions = Array.from(new Set([...(preset ? [preset] : []), ...history, ...builtIn])).slice(0, 10);
-          return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
+          return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} categoriesByDescription={categoriesByDescription} onCategorySelect={setCategory} />;
         })()}
 
         {/* Amount suggestion from history */}

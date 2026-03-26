@@ -1,20 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Chip, TextField, IconButton } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import { compareTwoStrings } from 'string-similarity';
 
 interface Props {
   value: string;
   onChange: (v: string) => void;
   suggestions: string[]; // preset + history, deduped
+  categoriesByDescription?: Record<string, string>;
+  onCategorySelect?: (category: string) => void;
 }
 
-const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions }) => {
+const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, categoriesByDescription = {}, onCategorySelect }) => {
   const [custom, setCustom] = useState('');
+  const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
+  const debounceTimer = useRef<NodeJS.Timeout | null>(null);
+
+  // Smart categorization: find similar description and suggest its category
+  useEffect(() => {
+    if (debounceTimer.current) clearTimeout(debounceTimer.current);
+
+    const searchText = (value || custom).trim().toLowerCase();
+    if (!searchText || !onCategorySelect) {
+      setSuggestedCategory(null);
+      return;
+    }
+
+    debounceTimer.current = setTimeout(() => {
+      let bestMatch: { desc: string; category: string; score: number } | null = null;
+
+      for (const [desc, category] of Object.entries(categoriesByDescription)) {
+        const score = compareTwoStrings(searchText, desc);
+        if (score >= 0.6 && (!bestMatch || score > bestMatch.score)) {
+          bestMatch = { desc, category, score };
+        }
+      }
+
+      setSuggestedCategory(bestMatch?.category || null);
+    }, 300);
+
+    return () => {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+    };
+  }, [value, custom, categoriesByDescription, onCategorySelect]);
 
   const addCustom = () => {
     const t = custom.trim();
     if (!t) return;
     onChange(t);
+    if (suggestedCategory && onCategorySelect) {
+      onCategorySelect(suggestedCategory);
+    }
     setCustom('');
   };
 
@@ -77,6 +113,26 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions }) =>
               />
             );
           })}
+        </Box>
+      )}
+
+      {/* Category suggestion */}
+      {suggestedCategory && (
+        <Box sx={{ mb: 0.75 }}>
+          <Chip
+            label={`Category: ${suggestedCategory}`}
+            size="small"
+            onClick={() => onCategorySelect?.(suggestedCategory)}
+            sx={{
+              fontSize: '0.72rem',
+              height: 26,
+              bgcolor: 'rgba(52,211,153,0.1)',
+              color: '#34d399',
+              border: '1px solid rgba(52,211,153,0.3)',
+              cursor: 'pointer',
+              '&:hover': { bgcolor: 'rgba(52,211,153,0.15)' },
+            }}
+          />
         </Box>
       )}
 
