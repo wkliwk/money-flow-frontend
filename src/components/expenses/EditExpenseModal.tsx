@@ -14,6 +14,8 @@ import {
   Typography,
   Box,
   Chip,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -77,6 +79,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split'>('treat');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -97,6 +100,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
+      setSplitBillMode(transaction.splitBill === true ? 'split' : 'treat');
       setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
       setTxCurrency((transaction.currency as Currency) || 'HKD');
       setNotes(transaction.notes || '');
@@ -134,6 +138,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        splitBill: participants.length > 0 ? splitBillMode === 'split' : undefined,
         paymentMethod: paymentMethod || undefined,
         notes: notes.trim() || undefined,
         date: resolvedDate,
@@ -330,6 +335,25 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        {participants.length > 0 && (
+          <Box sx={{ mt: 1, mb: 0.5 }}>
+            <ToggleButtonGroup
+              value={splitBillMode}
+              exclusive
+              onChange={(_, v) => { if (v) setSplitBillMode(v); }}
+              size="small"
+              sx={{ height: 30 }}
+            >
+              <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                Split bill
+              </ToggleButton>
+              <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                My treat
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        )}
 
         <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
 

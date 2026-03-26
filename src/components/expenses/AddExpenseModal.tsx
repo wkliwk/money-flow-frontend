@@ -14,6 +14,8 @@ import {
   Typography,
   Box,
   Chip,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import TodayIcon from '@mui/icons-material/Today';
@@ -76,6 +78,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split'>('treat');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
@@ -112,6 +115,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
+    setSplitBillMode('treat');
     setPaymentMethod(null);
     setTxCurrency('HKD');
     setIsRecurring(false);
@@ -137,6 +141,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       item: item || undefined,
       category: category || undefined,
       participants: participants,
+      splitBill: participants.length > 0 ? splitBillMode === 'split' : undefined,
       paymentMethod: paymentMethod || undefined,
       notes: notes.trim() || undefined,
       date: resolvedDate,
@@ -386,6 +391,25 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        {participants.length > 0 && (
+          <Box sx={{ mt: 1, mb: 0.5 }}>
+            <ToggleButtonGroup
+              value={splitBillMode}
+              exclusive
+              onChange={(_, v) => { if (v) setSplitBillMode(v); }}
+              size="small"
+              sx={{ height: 30 }}
+            >
+              <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                Split bill
+              </ToggleButton>
+              <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                My treat
+              </ToggleButton>
+            </ToggleButtonGroup>
+          </Box>
+        )}
 
         <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
 

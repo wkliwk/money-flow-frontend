@@ -23,6 +23,7 @@ export interface Transaction {
   category?: string;
   item?: string;
   participants?: string[];
+  splitBill?: boolean;
   paymentMethod?: PaymentMethod | null;
   currency?: string;
   originalAmount?: number;
@@ -41,6 +42,7 @@ export interface TransactionRequest {
   category?: string;
   item?: string;
   participants?: string[];
+  splitBill?: boolean;
   paymentMethod?: PaymentMethod | null;
   currency?: string;
   originalAmount?: number;
