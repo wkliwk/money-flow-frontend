@@ -152,7 +152,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                     key={t._id}
                     sx={{
                       border: '1px solid rgba(148,163,184,0.08)',
-                      background: 'rgba(30,41,59,0.5)',
+                      background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
                       backdropFilter: 'blur(8px)',
                       borderLeft: `3px solid ${accentColor}44`,
                     }}
