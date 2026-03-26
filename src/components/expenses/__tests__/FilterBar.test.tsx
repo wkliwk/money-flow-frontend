@@ -14,6 +14,7 @@ const defaultProps = {
   onPaymentMethodFilterChange: jest.fn(),
   onSortChange: jest.fn(),
   onExport: jest.fn(),
+  onExportJson: jest.fn(),
 };
 
 describe('FilterBar', () => {
@@ -89,11 +90,30 @@ describe('FilterBar', () => {
     expect(downloadBtn?.disabled).toBeFalsy();
   });
 
-  it('calls onExport when export button clicked', () => {
+  it('opens export menu when download button clicked', () => {
     render(<FilterBar {...defaultProps} filtered={5} />);
     const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
     if (downloadBtn) fireEvent.click(downloadBtn);
-    expect(defaultProps.onExport).toHaveBeenCalled();
+    expect(screen.getByText('Export CSV')).toBeInTheDocument();
+    expect(screen.getByText('Export JSON')).toBeInTheDocument();
+  });
+
+  it('calls onExport when Export CSV menu item clicked', () => {
+    const onExport = jest.fn();
+    render(<FilterBar {...defaultProps} filtered={5} onExport={onExport} />);
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
+    if (downloadBtn) fireEvent.click(downloadBtn);
+    fireEvent.click(screen.getByText('Export CSV'));
+    expect(onExport).toHaveBeenCalled();
+  });
+
+  it('calls onExportJson when Export JSON menu item clicked', () => {
+    const onExportJson = jest.fn();
+    render(<FilterBar {...defaultProps} filtered={5} onExportJson={onExportJson} />);
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
+    if (downloadBtn) fireEvent.click(downloadBtn);
+    fireEvent.click(screen.getByText('Export JSON'));
+    expect(onExportJson).toHaveBeenCalled();
   });
 
   it('shows filter count when search is active', () => {
@@ -137,5 +157,14 @@ describe('FilterBar', () => {
   it('shows filter count when paymentMethodFilter is active', () => {
     render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" total={20} filtered={5} />);
     expect(screen.getByText(/showing 5 of 20/i)).toBeInTheDocument();
+  });
+
+  it('clicking All chip resets payment method filter', () => {
+    const onPaymentMethodFilterChange = jest.fn();
+    render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" onPaymentMethodFilterChange={onPaymentMethodFilterChange} />);
+    // Panel is visible since paymentMethodFilter !== 'all'; click the All chip
+    const allChip = document.querySelector('.MuiChip-root');
+    if (allChip) fireEvent.click(allChip);
+    expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('all');
   });
 });

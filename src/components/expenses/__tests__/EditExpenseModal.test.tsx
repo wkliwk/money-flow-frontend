@@ -192,4 +192,47 @@ describe('EditExpenseModal', () => {
       expect(onSaved).toHaveBeenCalled();
     });
   });
+
+  describe('notes field in EditExpenseModal', () => {
+    it('renders Notes (optional) label', () => {
+      render(<EditExpenseModal {...defaultProps} />);
+      expect(screen.getByText('Notes (optional)')).toBeInTheDocument();
+    });
+
+    it('renders notes textarea with placeholder', () => {
+      render(<EditExpenseModal {...defaultProps} />);
+      expect(screen.getByPlaceholderText('Add a note...')).toBeInTheDocument();
+    });
+
+    it('shows 0/500 counter when no notes on transaction', () => {
+      render(<EditExpenseModal {...defaultProps} />);
+      expect(screen.getByText('0/500')).toBeInTheDocument();
+    });
+
+    it('pre-fills notes from existing transaction', () => {
+      const txWithNotes = { ...transaction, notes: 'Client dinner' };
+      render(<EditExpenseModal {...defaultProps} transaction={txWithNotes} />);
+      const notesInput = screen.getByPlaceholderText('Add a note...') as HTMLTextAreaElement;
+      expect(notesInput.value).toContain('Client dinner');
+    });
+
+    it('shows character count matching existing notes length', () => {
+      const txWithNotes = { ...transaction, notes: 'Hello' };
+      render(<EditExpenseModal {...defaultProps} transaction={txWithNotes} />);
+      expect(screen.getByText('5/500')).toBeInTheDocument();
+    });
+
+    it('includes notes in updateExpense call', async () => {
+      const { updateExpense } = require('../../../services/api');
+      (updateExpense as jest.Mock).mockResolvedValueOnce({ ...transaction });
+      render(<EditExpenseModal {...defaultProps} />);
+      const notesInput = screen.getByPlaceholderText('Add a note...');
+      await act(async () => { fireEvent.change(notesInput, { target: { value: 'Reimbursement pending' } }); });
+      const saveBtn = screen.getByRole('button', { name: /^save$/i });
+      await act(async () => { fireEvent.click(saveBtn); });
+      await waitFor(() => { expect(updateExpense).toHaveBeenCalled(); }, { timeout: 10000 });
+      const payload = (updateExpense as jest.Mock).mock.calls[0][1];
+      expect(payload.notes).toBe('Reimbursement pending');
+    }, 12000);
+  });
 });

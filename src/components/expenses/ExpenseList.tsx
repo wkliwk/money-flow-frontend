@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Table,
   TableHead,
@@ -12,6 +12,8 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  Collapse,
+  Tooltip,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -20,6 +22,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import PaymentIcon from '@mui/icons-material/Payment';
+import NoteIcon from '@mui/icons-material/Notes';
 import { Transaction } from '../../types';
 import { CURRENCY_SYMBOLS, Currency } from '../../constants/currencies';
 import { ITEM_PRESETS } from './ItemPicker';
@@ -75,6 +78,7 @@ function fmtOriginal(t: Transaction): string | null {
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [expandedNote, setExpandedNote] = useState<string | null>(null);
 
   if (transactions.length === 0) {
     return (
@@ -154,7 +158,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                     }}
                   >
                     <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
-                      <CardContent sx={{ p: '14px 16px', '&:last-child': { pb: '14px' } }}>
+                      <CardContent sx={{ p: '14px 16px', '&:last-child': { pb: t.notes ? '8px' : '14px' } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                           {/* Left: title + participants */}
                           <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -167,6 +171,9 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                               </Typography>
                               {isRecurring && (
                                 <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
+                              )}
+                              {t.notes && (
+                                <NoteIcon sx={{ fontSize: 13, color: 'rgba(129,140,248,0.6)', flexShrink: 0 }} />
                               )}
                             </Box>
                             {t.item && t.description && t.description !== t.item && (
@@ -208,6 +215,23 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                             )}
                           </Box>
                         </Box>
+                        {t.notes && (
+                          <Box
+                            onClick={(e) => { e.stopPropagation(); setExpandedNote(expandedNote === t._id ? null : t._id); }}
+                            sx={{ mt: 0.75, cursor: 'pointer' }}
+                          >
+                            <Collapse in={expandedNote === t._id} collapsedSize={20}>
+                              <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', lineHeight: 1.4, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                                {t.notes}
+                              </Typography>
+                            </Collapse>
+                            {expandedNote !== t._id && (
+                              <Typography sx={{ fontSize: '0.68rem', color: 'rgba(129,140,248,0.7)', mt: 0.25 }}>
+                                tap to expand note
+                              </Typography>
+                            )}
+                          </Box>
+                        )}
                       </CardContent>
                     </CardActionArea>
                   </Card>
@@ -244,6 +268,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                     <span>{t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}</span>
                     {isRecurring && <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />}
+                    {t.notes && (
+                      <Tooltip title={t.notes} placement="top" arrow>
+                        <NoteIcon sx={{ fontSize: 14, color: 'rgba(129,140,248,0.6)', flexShrink: 0, cursor: 'default' }} />
+                      </Tooltip>
+                    )}
                   </Box>
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>

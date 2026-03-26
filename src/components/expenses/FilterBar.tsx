@@ -10,10 +10,16 @@ import {
   Tooltip,
   Chip,
   Collapse,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import DownloadIcon from '@mui/icons-material/Download';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import { TransactionType, PAYMENT_METHODS, PaymentMethod } from '../../types';
@@ -31,6 +37,7 @@ interface Props {
   onPaymentMethodFilterChange: (v: PaymentMethod | 'all') => void;
   onSortChange: (v: 'date' | 'amount') => void;
   onExport: () => void;
+  onExportJson: () => void;
 }
 
 const FilterBar: React.FC<Props> = ({
@@ -46,8 +53,10 @@ const FilterBar: React.FC<Props> = ({
   onPaymentMethodFilterChange,
   onSortChange,
   onExport,
+  onExportJson,
 }) => {
   const [showPaymentFilter, setShowPaymentFilter] = useState(paymentMethodFilter !== 'all');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const isActive = search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all';
 
   return (
@@ -112,18 +121,53 @@ const FilterBar: React.FC<Props> = ({
             <SortIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title={filtered === 0 ? 'No transactions to export' : 'Download CSV'}>
+        <Tooltip title={filtered === 0 ? 'No transactions to export' : 'Export'}>
           <span>
             <IconButton
               size="small"
-              onClick={onExport}
+              onClick={(e) => setExportMenuAnchor(e.currentTarget)}
               disabled={filtered === 0}
+              aria-label="Export options"
+              aria-haspopup="true"
+              aria-expanded={Boolean(exportMenuAnchor)}
               sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
             >
               <DownloadIcon fontSize="small" />
             </IconButton>
           </span>
         </Tooltip>
+        <Menu
+          anchorEl={exportMenuAnchor}
+          open={Boolean(exportMenuAnchor)}
+          onClose={() => setExportMenuAnchor(null)}
+          anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+          transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+        >
+          <MenuItem
+            onClick={() => {
+              setExportMenuAnchor(null);
+              onExport();
+            }}
+            dense
+          >
+            <ListItemIcon>
+              <TableChartIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export CSV</ListItemText>
+          </MenuItem>
+          <MenuItem
+            onClick={() => {
+              setExportMenuAnchor(null);
+              onExportJson();
+            }}
+            dense
+          >
+            <ListItemIcon>
+              <DataObjectIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Export JSON</ListItemText>
+          </MenuItem>
+        </Menu>
       </Box>
       <Collapse in={showPaymentFilter}>
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 1.5 }}>

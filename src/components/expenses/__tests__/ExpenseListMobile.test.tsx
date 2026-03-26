@@ -113,4 +113,36 @@ describe('ExpenseList (mobile layout)', () => {
     expect(screen.getByText('Today')).toBeInTheDocument();
     expect(screen.getByText('Yesterday')).toBeInTheDocument();
   });
+
+  it('shows formatted date label for past transactions (not today or yesterday)', () => {
+    const pastDate = dayjs().subtract(14, 'day').format('YYYY-MM-DD');
+    const transactions = [makeTransaction({ _id: 'past1', date: pastDate, description: 'Old lunch' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('Old lunch')).toBeInTheDocument();
+    // Group header should not be Today or Yesterday
+    expect(screen.queryByText('Today')).not.toBeInTheDocument();
+    expect(screen.queryByText('Yesterday')).not.toBeInTheDocument();
+  });
+
+  it('shows note icon for mobile card when transaction has notes', () => {
+    const transactions = [makeTransaction({ notes: 'Client reimbursement' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    const noteIcons = document.querySelectorAll('[data-testid="NotesIcon"]');
+    expect(noteIcons.length).toBeGreaterThan(0);
+  });
+
+  it('shows tap to expand note text on mobile card with notes', () => {
+    const transactions = [makeTransaction({ _id: 'n1', notes: 'Expense for project' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('tap to expand note')).toBeInTheDocument();
+  });
+
+  it('clicking notes section on mobile card toggles expanded state', () => {
+    const transactions = [makeTransaction({ _id: 'n2', notes: 'Reimbursable expense' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    // Click the "tap to expand note" text — event bubbles to the Box onClick handler
+    fireEvent.click(screen.getByText('tap to expand note'));
+    // After click: expandedNote === t._id, so tap-to-expand hint is hidden
+    expect(screen.queryByText('tap to expand note')).not.toBeInTheDocument();
+  });
 });

@@ -22,6 +22,8 @@ import {
   Card,
   CardActionArea,
   CardContent,
+  Menu,
+  MenuItem,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
@@ -30,6 +32,8 @@ import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
@@ -93,6 +97,7 @@ const MainLayout: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
@@ -357,7 +362,8 @@ const MainLayout: React.FC = () => {
         (t.description || '').toLowerCase().includes(searchLow) ||
         (t.item || '').toLowerCase().includes(searchLow) ||
         (t.category || '').toLowerCase().includes(searchLow) ||
-        (t.participants || []).some((p) => p.toLowerCase().includes(searchLow));
+        (t.participants || []).some((p) => p.toLowerCase().includes(searchLow)) ||
+        (t.notes || '').toLowerCase().includes(searchLow);
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
       return matchesSearch && matchesType && matchesPayment;
@@ -392,6 +398,33 @@ const MainLayout: React.FC = () => {
       : datePreset === 'custom' && customStart ? `${customStart}_${customEnd}`
       : 'all';
     a.download = search ? 'money-flow-search.csv' : `money-flow-${fileSuffix}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const handleExportJson = () => {
+    const fileSuffix = datePreset === 'month' && selectedMonth
+      ? selectedMonth.format('YYYY-MM')
+      : datePreset === 'last-month' ? dayjs().subtract(1, 'month').format('YYYY-MM')
+      : datePreset === 'week' ? `week-${dayjs().startOf('week').format('YYYY-MM-DD')}`
+      : datePreset === 'custom' && customStart ? `${customStart}_${customEnd}`
+      : 'all';
+    const payload = {
+      exportDate: new Date().toISOString(),
+      transactionCount: filteredTransactions.length,
+      filters: {
+        from: customStart || null,
+        to: customEnd || null,
+        type: typeFilter === 'all' ? null : typeFilter,
+      },
+      transactions: filteredTransactions,
+    };
+    const json = JSON.stringify(payload, null, 2);
+    const blob = new Blob([json], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = search ? 'money-flow-search.json' : `money-flow-${fileSuffix}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -433,14 +466,48 @@ const MainLayout: React.FC = () => {
           )}
           <Button
             startIcon={<FileDownloadIcon />}
-            onClick={handleExport}
+            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
             disabled={transactions.length === 0}
             sx={{ ml: 2, fontSize: '0.75rem' }}
             variant="outlined"
             size="small"
+            aria-haspopup="true"
+            aria-expanded={Boolean(exportMenuAnchor)}
           >
             Export
           </Button>
+          <Menu
+            anchorEl={exportMenuAnchor}
+            open={Boolean(exportMenuAnchor)}
+            onClose={() => setExportMenuAnchor(null)}
+            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+          >
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                handleExport();
+              }}
+              dense
+            >
+              <ListItemIcon>
+                <TableChartIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Export CSV</ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                handleExportJson();
+              }}
+              dense
+            >
+              <ListItemIcon>
+                <DataObjectIcon fontSize="small" />
+              </ListItemIcon>
+              <ListItemText>Export JSON</ListItemText>
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </AppBar>
 
@@ -758,6 +825,7 @@ const MainLayout: React.FC = () => {
                 onPaymentMethodFilterChange={setPaymentMethodFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
+                onExportJson={handleExportJson}
               />
               {filteredTransactions.length > 0 && (() => {
                 const fIncome = filteredTransactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
