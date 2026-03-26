@@ -38,6 +38,16 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
 
+// Exchange rates
+export interface ExchangeRates {
+  [currency: string]: number;
+}
+
+export const getExchangeRates = async (): Promise<ExchangeRates> => {
+  const res = await axiosInstance.get('/api/exchange-rates');
+  return res.data.rates;
+};
+
 // Budgets
 export interface Budget {
   category: string;

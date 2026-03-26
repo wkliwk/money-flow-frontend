@@ -145,5 +145,32 @@ describe('ExpenseList (desktop)', () => {
     const dashes = screen.getAllByText('\u2014');
     expect(dashes.length).toBeGreaterThanOrEqual(2);
   });
+
+  it('shows original currency amount for non-HKD transactions', () => {
+    const transactions = [makeTransaction({
+      amount: 58,
+      currency: 'JPY',
+      originalAmount: 1000,
+      exchangeRate: 0.058,
+    })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('-HK$58')).toBeInTheDocument();
+    expect(screen.getByText('\u00a51,000')).toBeInTheDocument();
+  });
+
+  it('does not show currency badge for HKD transactions', () => {
+    const transactions = [makeTransaction({ amount: 100, currency: 'HKD' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('-HK$100')).toBeInTheDocument();
+    // Should only have the main amount, no secondary currency display
+    const allTexts = screen.queryAllByText(/\u00a5/);
+    expect(allTexts.length).toBe(0);
+  });
+
+  it('does not show currency badge when currency is undefined', () => {
+    const transactions = [makeTransaction({ amount: 100 })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('-HK$100')).toBeInTheDocument();
+  });
 });
 

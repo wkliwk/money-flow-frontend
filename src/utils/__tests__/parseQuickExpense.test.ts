@@ -69,6 +69,101 @@ describe('parseQuickExpense payment method', () => {
   });
 });
 
+describe('parseQuickExpense currency', () => {
+  test('JPY currency code', () => {
+    const result = parseQuickExpense('lunch 1500 JPY');
+    expect(result?.amount).toBe(1500);
+    expect(result?.currency).toBe('JPY');
+    expect(result?.description).toBe('lunch');
+  });
+
+  test('jpy lowercase', () => {
+    const result = parseQuickExpense('sushi 2000 jpy');
+    expect(result?.amount).toBe(2000);
+    expect(result?.currency).toBe('JPY');
+  });
+
+  test('USD currency code', () => {
+    const result = parseQuickExpense('subscription 9.99 USD');
+    expect(result?.amount).toBe(9.99);
+    expect(result?.currency).toBe('USD');
+  });
+
+  test('CNY currency code', () => {
+    const result = parseQuickExpense('dinner 150 CNY');
+    expect(result?.amount).toBe(150);
+    expect(result?.currency).toBe('CNY');
+  });
+
+  test('RMB alias for CNY', () => {
+    const result = parseQuickExpense('taxi 35 RMB');
+    expect(result?.amount).toBe(35);
+    expect(result?.currency).toBe('CNY');
+  });
+
+  test('yen alias for JPY', () => {
+    const result = parseQuickExpense('ramen 800 yen');
+    expect(result?.amount).toBe(800);
+    expect(result?.currency).toBe('JPY');
+  });
+
+  test('yen symbol prefix', () => {
+    const result = parseQuickExpense('coffee \u00a535');
+    expect(result?.amount).toBe(35);
+    expect(result?.currency).toBe('CNY');
+    expect(result?.description).toBe('coffee');
+  });
+
+  test('euro symbol prefix', () => {
+    const result = parseQuickExpense('beer \u20ac8');
+    expect(result?.amount).toBe(8);
+    expect(result?.currency).toBe('EUR');
+  });
+
+  test('HKD is not included as currency (default)', () => {
+    const result = parseQuickExpense('lunch 85 HKD');
+    expect(result?.amount).toBe(85);
+    expect(result?.currency).toBeUndefined();
+  });
+
+  test('no currency by default', () => {
+    const result = parseQuickExpense('lunch 85');
+    expect(result?.currency).toBeUndefined();
+  });
+
+  test('currency with category and payment', () => {
+    const result = parseQuickExpense('sushi 1500 JPY food cash');
+    expect(result?.amount).toBe(1500);
+    expect(result?.currency).toBe('JPY');
+    expect(result?.category).toBe('Food');
+    expect(result?.paymentMethod).toBe('Cash');
+  });
+
+  test('EUR currency code', () => {
+    const result = parseQuickExpense('museum 25 EUR');
+    expect(result?.amount).toBe(25);
+    expect(result?.currency).toBe('EUR');
+  });
+
+  test('KRW currency code', () => {
+    const result = parseQuickExpense('bibimbap 12000 KRW');
+    expect(result?.amount).toBe(12000);
+    expect(result?.currency).toBe('KRW');
+  });
+
+  test('TWD currency code', () => {
+    const result = parseQuickExpense('bubble tea 65 TWD');
+    expect(result?.amount).toBe(65);
+    expect(result?.currency).toBe('TWD');
+  });
+
+  test('THB currency code', () => {
+    const result = parseQuickExpense('pad thai 120 THB');
+    expect(result?.amount).toBe(120);
+    expect(result?.currency).toBe('THB');
+  });
+});
+
 describe('suggestCategory', () => {
   test('Food for coffee', () => { expect(suggestCategory('coffee')).toBe('Food'); });
   test('Food for grocery', () => { expect(suggestCategory('grocery')).toBe('Food'); });

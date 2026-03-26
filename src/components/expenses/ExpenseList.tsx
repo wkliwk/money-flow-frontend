@@ -21,6 +21,7 @@ import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import PaymentIcon from '@mui/icons-material/Payment';
 import { Transaction } from '../../types';
+import { CURRENCY_SYMBOLS, Currency } from '../../constants/currencies';
 import { ITEM_PRESETS } from './ItemPicker';
 
 const ITEM_COLOR: Record<string, string> = {};
@@ -63,6 +64,12 @@ function formatDate(dateStr: string | undefined, fallback?: string): string {
 
 function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) {
   return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+}
+
+function fmtOriginal(t: Transaction): string | null {
+  if (!t.currency || t.currency === 'HKD' || !t.originalAmount) return null;
+  const sym = CURRENCY_SYMBOLS[t.currency as Currency] || t.currency;
+  return `${sym}${t.originalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels }) => {
@@ -183,17 +190,23 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                           </Box>
 
                           {/* Right: amount (tap card to edit/delete) */}
-                          <Typography
-                            fontWeight={700}
-                            sx={{
-                              color: t.type === 'income' ? '#34d399' : '#fb7185',
-                              fontSize: '0.95rem',
-                              letterSpacing: '-0.01em',
-                              flexShrink: 0,
-                            }}
-                          >
-                            {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
-                          </Typography>
+                          <Box sx={{ textAlign: 'right', flexShrink: 0 }}>
+                            <Typography
+                              fontWeight={700}
+                              sx={{
+                                color: t.type === 'income' ? '#34d399' : '#fb7185',
+                                fontSize: '0.95rem',
+                                letterSpacing: '-0.01em',
+                              }}
+                            >
+                              {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
+                            </Typography>
+                            {fmtOriginal(t) && (
+                              <Typography sx={{ fontSize: '0.62rem', color: 'text.disabled', lineHeight: 1.2 }}>
+                                {fmtOriginal(t)}
+                              </Typography>
+                            )}
+                          </Box>
                         </Box>
                       </CardContent>
                     </CardActionArea>
@@ -246,6 +259,11 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   <Typography color={t.type === 'income' ? 'success.main' : 'error.main'} fontWeight={600} sx={{ letterSpacing: '-0.01em' }}>
                     {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
                   </Typography>
+                  {fmtOriginal(t) && (
+                    <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled' }}>
+                      {fmtOriginal(t)}
+                    </Typography>
+                  )}
                 </TableCell>
                 <TableCell align="right">
                   <IconButton size="small" onClick={() => onEdit(t)}><EditIcon fontSize="small" /></IconButton>

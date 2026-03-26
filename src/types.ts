@@ -24,6 +24,9 @@ export interface Transaction {
   item?: string;
   participants?: string[];
   paymentMethod?: PaymentMethod | null;
+  currency?: string;
+  originalAmount?: number;
+  exchangeRate?: number;
   date: string;
   createdAt: string;
   updatedAt: string;
@@ -38,5 +41,8 @@ export interface TransactionRequest {
   item?: string;
   participants?: string[];
   paymentMethod?: PaymentMethod | null;
+  currency?: string;
+  originalAmount?: number;
+  exchangeRate?: number;
   date?: string;
 }

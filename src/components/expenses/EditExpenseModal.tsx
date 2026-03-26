@@ -66,8 +66,9 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
-  const { symbol, rates, currency, setCurrency } = useFxRates();
-  const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
+  const { rateForCurrency } = useFxRates();
+  const [txCurrency, setTxCurrency] = useState<Currency>('HKD');
+  const fxRate = txCurrency !== 'HKD' ? rateForCurrency(txCurrency) : undefined;
   const [item, setItem] = useState('');
   const [category, setCategory] = useState('');
   const [description, setDescription] = useState('');
@@ -96,6 +97,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
       setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
+      setTxCurrency((transaction.currency as Currency) || 'HKD');
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -121,6 +123,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     setLoading(true);
     setError('');
     try {
+      const isForeign = txCurrency !== 'HKD' && fxRate;
+      const foreignAmount = isForeign ? Math.round(parsedAmount / fxRate * 100) / 100 : undefined;
       const payload = {
         description: description.trim() || item,
         amount: parsedAmount,
@@ -131,6 +135,15 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         paymentMethod: paymentMethod || undefined,
         date: resolvedDate,
         owner: transaction.owner,
+        ...(isForeign ? {
+          currency: txCurrency,
+          originalAmount: foreignAmount,
+          exchangeRate: fxRate,
+        } : {
+          currency: 'HKD',
+          originalAmount: undefined,
+          exchangeRate: undefined,
+        }),
       };
       const updated = await updateExpense(transaction._id, payload);
       // Keep UI state in sync immediately even if API response is partially shaped.
@@ -152,15 +165,23 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     if (!transaction) return;
     setDuplicating(true);
     try {
+      const dupAmount = parseFloat(amount) || transaction.amount;
+      const isForeign = txCurrency !== 'HKD' && fxRate;
+      const foreignAmount = isForeign ? Math.round(dupAmount / fxRate * 100) / 100 : undefined;
       await onDuplicate({
         description: description.trim() || item,
-        amount: parseFloat(amount) || transaction.amount,
+        amount: dupAmount,
         type,
         item: item || undefined,
         category: category || undefined,
         participants: participants,
         paymentMethod: paymentMethod || undefined,
         date: todayStr(),
+        ...(isForeign ? {
+          currency: txCurrency,
+          originalAmount: foreignAmount,
+          exchangeRate: fxRate,
+        } : {}),
       });
       onClose();
     } finally {
@@ -259,27 +280,27 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
         })()}
 
-        {/* Currency selector */}
+        {/* Transaction currency selector */}
         <Box sx={{ mt: 1.5, mb: 0.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
             Currency
           </Typography>
-          <Box sx={{ display: 'flex', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => (
               <Chip
                 key={c}
                 label={`${CURRENCY_SYMBOLS[c]} ${c}`}
                 size="small"
                 clickable
-                onClick={() => setCurrency(c as Currency)}
+                onClick={() => setTxCurrency(c)}
                 sx={{
                   fontSize: '0.72rem',
                   height: 28,
-                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: currency === c ? '#818cf8' : 'text.secondary',
+                  bgcolor: txCurrency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                  color: txCurrency === c ? '#818cf8' : 'text.secondary',
                   border: '1px solid',
-                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
-                  fontWeight: currency === c ? 700 : 400,
+                  borderColor: txCurrency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  fontWeight: txCurrency === c ? 700 : 400,
                 }}
               />
             ))}
@@ -290,7 +311,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         <NumPad
           value={amount}
           onChange={setAmount}
-          fxSymbol={currency !== 'HKD' ? symbol : undefined}
+          fxSymbol={txCurrency !== 'HKD' ? CURRENCY_SYMBOLS[txCurrency] : undefined}
           fxRate={fxRate}
         />
 
