@@ -86,3 +86,34 @@ export const createRecurring = async (data: {
 export const deleteRecurringAPI = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/recurring/${id}`);
 };
+
+// Net Worth
+export interface NetWorthSnapshot {
+  _id: string;
+  date: string;
+  assets: { cash: number; investments: number; property: number; other: number };
+  liabilities: { loans: number; creditCardDebt: number; other: number };
+  netWorth: number;
+}
+
+export const getNetWorth = async (months = 12): Promise<NetWorthSnapshot[]> => {
+  const res = await axiosInstance.get(`/api/net-worth?months=${months}`);
+  return res.data.data;
+};
+
+export const getLatestNetWorth = async (): Promise<NetWorthSnapshot | null> => {
+  const res = await axiosInstance.get('/api/net-worth/latest');
+  return res.data.data || null;
+};
+
+export const createNetWorth = async (data: {
+  assets: { cash?: number; investments?: number; property?: number; other?: number };
+  liabilities: { loans?: number; creditCardDebt?: number; other?: number };
+}): Promise<NetWorthSnapshot> => {
+  const res = await axiosInstance.post('/api/net-worth', data);
+  return res.data;
+};
+
+export const deleteNetWorthSnapshot = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/net-worth/${id}`);
+};

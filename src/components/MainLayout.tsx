@@ -28,6 +28,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
+import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
@@ -50,6 +51,7 @@ import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
 import ManageItemsPage from './items/ManageItemsPage';
+import NetWorthPage from './networth/NetWorthPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
 
@@ -69,7 +71,7 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -395,6 +397,7 @@ const MainLayout: React.FC = () => {
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
     { label: 'Items', icon: <CategoryIcon /> },
+    { label: 'Net Worth', icon: <AccountBalanceIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
 
@@ -461,7 +464,7 @@ const MainLayout: React.FC = () => {
               <ListItemButton
                 key={item.label}
                 selected={activeTab === index}
-                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3)}
+                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4)}
                 sx={{
                   '&.Mui-selected': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
                   '&.Mui-selected .MuiListItemIcon-root': { color: '#818cf8' },
@@ -789,6 +792,10 @@ const MainLayout: React.FC = () => {
           {activeTab === 2 && <ManageItemsPage />}
 
           {activeTab === 3 && (
+            <NetWorthPage convert={convert} symbol={symbol} />
+          )}
+
+          {activeTab === 4 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -818,6 +825,7 @@ const MainLayout: React.FC = () => {
           <BottomNavigationAction label="Home" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
           <BottomNavigationAction label="Items" icon={<CategoryIcon />} />
+          <BottomNavigationAction label="Worth" icon={<AccountBalanceIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
       </Box>
