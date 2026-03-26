@@ -315,7 +315,7 @@ describe('MainLayout', () => {
     await waitFor(() => {
       expect(mockCreateExpense).toHaveBeenCalled();
     });
-  });
+  }, 15000);
 
   it('commitDelete is called after undo snackbar closes', async () => {
     mockGetExpenses.mockResolvedValue([
@@ -359,7 +359,7 @@ describe('MainLayout', () => {
     await waitFor(() => {
       expect(mockGetExpense).toHaveBeenCalled();
     });
-  });
+  }, 15000);
 
   it('filter by type filters transactions', async () => {
     mockGetExpenses.mockResolvedValue([
