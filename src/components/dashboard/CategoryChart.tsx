@@ -74,10 +74,10 @@ const CategoryChart: React.FC<Props> = ({ transactions, onCategoryClick }) => {
             <Tooltip
               formatter={(value) => [`HK$${Number(value).toLocaleString()}`, '']}
               contentStyle={{
-                background: '#1e293b',
-                border: '1px solid rgba(148,163,184,0.1)',
+                background: theme.palette.background.paper,
+                border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 8,
-                color: '#f1f5f9',
+                color: theme.palette.text.primary,
                 fontSize: 13,
               }}
             />
@@ -85,7 +85,7 @@ const CategoryChart: React.FC<Props> = ({ transactions, onCategoryClick }) => {
               iconType="circle"
               iconSize={8}
               formatter={(value) => (
-                <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>{value}</span>
+                <span style={{ color: theme.palette.text.secondary, fontSize: '0.8rem' }}>{value}</span>
               )}
             />
           </PieChart>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
+import { AppThemeProvider } from '../../../ThemeContext';
 
 jest.mock('../../../hooks/useFxRates', () => ({
   useFxRates: () => ({
@@ -26,97 +27,103 @@ jest.mock('../../../hooks/useBudgets', () => ({
   BUDGET_CATEGORIES: ['Food & Drink', 'Transport', 'Shopping'],
 }));
 
+const renderWithTheme = (ui: React.ReactElement) =>
+  render(<AppThemeProvider>{ui}</AppThemeProvider>);
+
 describe('SettingsPage', () => {
   const defaultProps = {
     currency: 'HKD',
     onCurrencyChange: jest.fn(),
   };
 
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    localStorage.removeItem('mf_theme');
+  });
 
   it('renders without crashing', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
   it('shows Display Currency section', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Display Currency')).toBeInTheDocument();
   });
 
   it('shows Monthly Budgets section', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Monthly Budgets')).toBeInTheDocument();
   });
 
   it('shows currency chips', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('HK$ HKD')).toBeInTheDocument();
     expect(screen.getByText('CA$ CAD')).toBeInTheDocument();
   });
 
   it('shows Sign Out button', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Sign Out')).toBeInTheDocument();
   });
 
   it('shows Add recurring button', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Add recurring')).toBeInTheDocument();
   });
 
   it('calls onCurrencyChange when currency chip is clicked', () => {
     const onCurrencyChange = jest.fn();
-    render(<SettingsPage {...defaultProps} onCurrencyChange={onCurrencyChange} />);
+    renderWithTheme(<SettingsPage {...defaultProps} onCurrencyChange={onCurrencyChange} />);
     fireEvent.click(screen.getByText('CA$ CAD'));
     expect(onCurrencyChange).toHaveBeenCalledWith('CAD');
   });
 
   it('renders budget input fields for each category', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Food & Drink')).toBeInTheDocument();
     expect(screen.getByText('Transport')).toBeInTheDocument();
     expect(screen.getByText('Shopping')).toBeInTheDocument();
   });
 
   it('shows category spend when provided', () => {
-    render(<SettingsPage {...defaultProps} categorySpend={{ 'Food & Drink': 500 }} />);
+    renderWithTheme(<SettingsPage {...defaultProps} categorySpend={{ 'Food & Drink': 500 }} />);
     expect(screen.getByText(/500/)).toBeInTheDocument();
   });
 
   it('shows the recurring form when Add recurring is clicked', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Add recurring'));
     expect(screen.getByLabelText(/Label/)).toBeInTheDocument();
   });
 
   it('hides the recurring form when Cancel is clicked', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Add recurring'));
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
     expect(screen.queryByLabelText(/Label/)).not.toBeInTheDocument();
   });
 
   it('shows Monthly Recurring section', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Monthly Recurring')).toBeInTheDocument();
   });
 
   it('has budget input fields with placeholder "No limit"', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     const inputs = screen.getAllByPlaceholderText('No limit');
     expect(inputs.length).toBeGreaterThan(0);
   });
 
   it('shows the recurring form fields after clicking Add recurring', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Add recurring'));
     expect(screen.getByLabelText(/Amount/)).toBeInTheDocument();
     expect(screen.getByLabelText(/Description/)).toBeInTheDocument();
   });
 
   it('budget input change updates the field value', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     const inputs = screen.getAllByPlaceholderText('No limit');
     fireEvent.change(inputs[0], { target: { value: '500' } });
     expect((inputs[0] as HTMLInputElement).value).toBe('500');
@@ -124,7 +131,7 @@ describe('SettingsPage', () => {
 
   it('budget input blur triggers setBudget', () => {
     // Can only verify no crash since setBudget comes from mock
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     const inputs = screen.getAllByPlaceholderText('No limit');
     fireEvent.change(inputs[0], { target: { value: '300' } });
     fireEvent.blur(inputs[0]);
@@ -132,14 +139,14 @@ describe('SettingsPage', () => {
   });
 
   it('switching type in recurring form shows Expense selected', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Add recurring'));
     // Expense is selected by default
     expect(screen.getAllByText('Expense').length).toBeGreaterThan(0);
   });
 
   it('recurring form shows item presets for expense type', () => {
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Add recurring'));
     // Just verify the form rendered
     expect(screen.getByLabelText(/Label/)).toBeInTheDocument();
@@ -152,7 +159,7 @@ describe('SettingsPage', () => {
     delete window.location;
     // @ts-ignore
     window.location = { href: '' };
-    render(<SettingsPage {...defaultProps} />);
+    renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByText('Sign Out'));
     expect(window.location.href).toBe('/login');
     // @ts-ignore
@@ -160,13 +167,30 @@ describe('SettingsPage', () => {
   });
 
   it('shows recurring item and delete button when items exist', () => {
-    render(
+    renderWithTheme(
       <SettingsPage
         {...defaultProps}
-        // Pass recurring items via hook mock — we need to re-render with items
       />
     );
     // Since items is [] from mock, verify the delete path is not shown
     expect(screen.queryByTestId('DeleteIcon')).toBeNull();
+  });
+
+  it('shows Appearance section with theme toggle', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.getByText('Appearance')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Light' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'System' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Dark' })).toBeInTheDocument();
+  });
+
+  it('persists theme preference to localStorage when toggled', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Light' }));
+    expect(localStorage.getItem('mf_theme')).toBe('light');
+    fireEvent.click(screen.getByRole('button', { name: 'Dark' }));
+    expect(localStorage.getItem('mf_theme')).toBe('dark');
+    fireEvent.click(screen.getByRole('button', { name: 'System' }));
+    expect(localStorage.getItem('mf_theme')).toBe('system');
   });
 });
