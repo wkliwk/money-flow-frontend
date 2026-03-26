@@ -3,6 +3,7 @@ import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import {
   Box, TextField, Button, Typography, Link, Alert, CircularProgress, InputAdornment, IconButton,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import EmailOutlinedIcon from '@mui/icons-material/EmailOutlined';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
@@ -11,6 +12,8 @@ import { login } from '../../services/api';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -40,22 +43,26 @@ const LoginPage: React.FC = () => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        background: 'radial-gradient(ellipse at 50% 0%, rgba(129, 140, 248, 0.15) 0%, rgba(15, 23, 42, 0) 70%), #0f172a',
+        bgcolor: 'background.default',
         px: 2,
       }}
     >
-      <Box sx={{
-        position: 'fixed', top: '-10%', left: '-5%', width: 400, height: 400,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(129,140,248,0.08) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
-      <Box sx={{
-        position: 'fixed', bottom: '-10%', right: '-5%', width: 500, height: 500,
-        borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(52,211,153,0.06) 0%, transparent 70%)',
-        pointerEvents: 'none',
-      }} />
+      {isDark && (
+        <>
+          <Box sx={{
+            position: 'fixed', top: '-10%', left: '-5%', width: 400, height: 400,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(129,140,248,0.08) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+          <Box sx={{
+            position: 'fixed', bottom: '-10%', right: '-5%', width: 500, height: 500,
+            borderRadius: '50%',
+            background: 'radial-gradient(circle, rgba(52,211,153,0.06) 0%, transparent 70%)',
+            pointerEvents: 'none',
+          }} />
+        </>
+      )}
 
       <Box
         sx={{
@@ -63,10 +70,13 @@ const LoginPage: React.FC = () => {
           width: '100%',
           p: 4,
           borderRadius: 3,
-          background: 'rgba(30, 41, 59, 0.85)',
+          bgcolor: 'background.paper',
           backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(148, 163, 184, 0.1)',
-          boxShadow: '0 24px 64px rgba(0,0,0,0.5)',
+          border: '1px solid',
+          borderColor: 'divider',
+          boxShadow: isDark
+            ? '0 24px 64px rgba(0,0,0,0.5)'
+            : '0 8px 32px rgba(0,0,0,0.1)',
           position: 'relative',
           zIndex: 1,
         }}
