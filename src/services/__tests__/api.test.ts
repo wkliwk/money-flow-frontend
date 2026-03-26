@@ -1,4 +1,4 @@
-import { getExpenses, getExpense, createExpense, updateExpense, deleteExpense, login, register } from '../api';
+import { getExpenses, getExpense, createExpense, updateExpense, deleteExpense, login, register, getRecurring, createRecurring, deleteRecurringAPI } from '../api';
 import axiosInstance from '../../axiosInstance';
 
 jest.mock('../../axiosInstance', () => ({
@@ -73,5 +73,27 @@ describe('api service', () => {
     await register('newuser@test.com', 'newpass');
     expect(mockedAxios.post).toHaveBeenCalledWith('/auth/register', { email: 'newuser@test.com', password: 'newpass' });
     expect(localStorage.getItem('mf_token')).toBe('reg456');
+  });
+
+  it('getRecurring calls GET /api/recurring and returns recurring array', async () => {
+    const recurring = [{ _id: 'r1', name: 'Netflix', amount: 15, frequency: 'MONTHLY', start_date: '2026-01-01' }];
+    (mockedAxios.get as jest.Mock).mockResolvedValue({ data: { recurring } });
+    const result = await getRecurring();
+    expect(mockedAxios.get).toHaveBeenCalledWith('/api/recurring');
+    expect(result).toEqual(recurring);
+  });
+
+  it('createRecurring calls POST /api/recurring', async () => {
+    const data = { name: 'Rent', amount: 5000, start_date: '2026-01-01', frequency: 'MONTHLY' };
+    (mockedAxios.post as jest.Mock).mockResolvedValue({ data: { _id: 'r2', ...data } });
+    const result = await createRecurring(data);
+    expect(mockedAxios.post).toHaveBeenCalledWith('/api/recurring', data);
+    expect(result._id).toBe('r2');
+  });
+
+  it('deleteRecurringAPI calls DELETE /api/recurring/:id', async () => {
+    (mockedAxios.delete as jest.Mock).mockResolvedValue({});
+    await deleteRecurringAPI('r1');
+    expect(mockedAxios.delete).toHaveBeenCalledWith('/api/recurring/r1');
   });
 });

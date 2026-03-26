@@ -53,3 +53,36 @@ export const saveBudgets = async (budgets: Budget[]): Promise<Budget[]> => {
   const res = await axiosInstance.put('/api/budgets', { budgets });
   return res.data.budgets;
 };
+
+// Recurring
+export interface RecurringExpenseAPI {
+  _id: string;
+  name: string;
+  amount: number;
+  category?: string;
+  start_date: string;
+  end_date?: string;
+  frequency: string;
+  description?: string;
+}
+
+export const getRecurring = async (): Promise<RecurringExpenseAPI[]> => {
+  const res = await axiosInstance.get('/api/recurring');
+  return res.data.recurring;
+};
+
+export const createRecurring = async (data: {
+  name: string;
+  amount: number;
+  category?: string;
+  start_date: string;
+  frequency: string;
+  description?: string;
+}): Promise<RecurringExpenseAPI> => {
+  const res = await axiosInstance.post('/api/recurring', data);
+  return res.data;
+};
+
+export const deleteRecurringAPI = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/recurring/${id}`);
+};
