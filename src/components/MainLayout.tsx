@@ -591,8 +591,8 @@ const MainLayout: React.FC = () => {
                       width: '100%',
                       p: { xs: 3, sm: 4 },
                       borderRadius: 3,
-                      bgcolor: 'rgba(30,41,59,0.5)',
-                      border: '1px solid rgba(148,163,184,0.1)',
+                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
+                      border: `1px solid ${theme.palette.divider}`,
                       backdropFilter: 'blur(12px)',
                     }}
                   >
@@ -680,7 +680,7 @@ const MainLayout: React.FC = () => {
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {monthFiltered.slice(0, 5).map((t) => (
-                        <Card key={t._id} sx={{ border: '1px solid rgba(148,163,184,0.08)', background: 'rgba(30,41,59,0.5)' }}>
+                        <Card key={t._id} sx={{ border: `1px solid ${theme.palette.divider}`, background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>
                           <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
                             <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
@@ -764,7 +764,7 @@ const MainLayout: React.FC = () => {
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {monthFiltered.slice(0, 5).map((t) => (
-                        <Card key={t._id} sx={{ border: '1px solid rgba(148,163,184,0.08)', background: 'rgba(30,41,59,0.5)' }}>
+                        <Card key={t._id} sx={{ border: `1px solid ${theme.palette.divider}`, background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>
                           <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
                             <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
                               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
@@ -1000,7 +1000,7 @@ const MainLayout: React.FC = () => {
         sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
       >
         <SnackbarContent
-          sx={{ bgcolor: 'rgba(30,41,59,0.95)', border: '1px solid rgba(148,163,184,0.15)', borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
+          sx={{ bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}`, borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
           message={<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>Transaction deleted</Typography>}
           action={
             <Button size="small" onClick={handleUndo} sx={{ color: '#818cf8', fontWeight: 700, fontSize: '0.8rem' }}>

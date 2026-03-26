@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import { Box, TextField, CircularProgress, InputAdornment } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import { parseQuickExpense } from '../../utils/parseQuickExpense';
@@ -13,6 +14,7 @@ interface Props {
 }
 
 const QuickEntryBar: React.FC<Props> = ({ onSubmit, onSuccess, onError }) => {
+  const theme = useTheme();
   const { rateForCurrency } = useFxRates();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
@@ -85,7 +87,7 @@ const QuickEntryBar: React.FC<Props> = ({ onSubmit, onSuccess, onError }) => {
             </InputAdornment>
           ),
           sx: {
-            bgcolor: 'rgba(30,41,59,0.5)',
+            bgcolor: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
             borderRadius: 2,
             border: '1px solid rgba(148,163,184,0.1)',
             '&:hover': { border: '1px solid rgba(148,163,184,0.2)' },

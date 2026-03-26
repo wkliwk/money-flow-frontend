@@ -114,7 +114,6 @@ const DateRangeControl: React.FC<Props> = ({
           sx: {
             mt: 0.5,
             p: 2,
-            bgcolor: '#1e293b',
             border: '1px solid rgba(148,163,184,0.12)',
             borderRadius: 2,
             minWidth: 260,
