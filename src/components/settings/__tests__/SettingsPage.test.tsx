@@ -3,6 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
 import { AppThemeProvider } from '../../../ThemeContext';
 
+jest.mock('../../../hooks/useCurrencyPreferences', () => ({
+  useCurrencyPreferences: () => ({
+    enabledCurrencies: ['HKD', 'USD'],
+    toggleCurrency: jest.fn(),
+    isEnabled: (code: string) => ['HKD', 'USD'].includes(code),
+  }),
+}));
+
 jest.mock('../../../hooks/useFxRates', () => ({
   useFxRates: () => ({
     symbol: 'HK$',
@@ -58,8 +66,8 @@ describe('SettingsPage', () => {
 
   it('shows currency chips', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
-    expect(screen.getByText('HK$ HKD')).toBeInTheDocument();
-    expect(screen.getByText('CA$ CAD')).toBeInTheDocument();
+    expect(screen.getAllByText('HK$ HKD').length).toBeGreaterThanOrEqual(1);
+    expect(screen.getAllByText('CA$ CAD').length).toBeGreaterThanOrEqual(1);
   });
 
   it('shows Sign Out button', () => {
@@ -75,7 +83,8 @@ describe('SettingsPage', () => {
   it('calls onCurrencyChange when currency chip is clicked', () => {
     const onCurrencyChange = jest.fn();
     renderWithTheme(<SettingsPage {...defaultProps} onCurrencyChange={onCurrencyChange} />);
-    fireEvent.click(screen.getByText('CA$ CAD'));
+    // Both Display Currency and My Currencies sections show CA$ CAD — click the first
+    fireEvent.click(screen.getAllByText('CA$ CAD')[0]);
     expect(onCurrencyChange).toHaveBeenCalledWith('CAD');
   });
 
@@ -174,6 +183,23 @@ describe('SettingsPage', () => {
     );
     // Since items is [] from mock, verify the delete path is not shown
     expect(screen.queryByTestId('DeleteIcon')).toBeNull();
+  });
+
+  it('shows My Currencies section', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.getByText('My Currencies')).toBeInTheDocument();
+  });
+
+  it('shows all currencies in My Currencies section', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    // CURRENCIES from mock: HKD, CAD, USD, CNY — each appears twice (Display Currency + My Currencies)
+    const hkdChips = screen.getAllByText('HK$ HKD');
+    expect(hkdChips.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('does not show last-currency warning when multiple currencies are enabled', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.queryByText(/At least one currency must remain enabled/)).not.toBeInTheDocument();
   });
 
   it('shows Appearance section with theme toggle', () => {

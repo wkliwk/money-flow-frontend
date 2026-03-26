@@ -24,6 +24,7 @@ import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
+import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
@@ -90,6 +91,7 @@ const ThemeToggle: React.FC = () => {
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
   const userId = getUserId();
   const { symbol, convert } = useFxRates();
+  const { enabledCurrencies, toggleCurrency, isEnabled } = useCurrencyPreferences();
   const { budgets, setBudget } = useBudgets();
   const { items: recurring, addItem: addRecurring, deleteItem: deleteRecurring } = useRecurring();
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
@@ -147,6 +149,50 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
             Account
           </Typography>
           <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', fontFamily: 'monospace' }}>{userId || '\u2014'}</Typography>
+        </Box>
+      </Box>
+
+      {/* My Currencies */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+            My Currencies
+          </Typography>
+          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
+            Choose which currencies appear in the currency picker.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+            {CURRENCIES.map((c) => {
+              const enabled = isEnabled(c);
+              const isLastEnabled = enabled && enabledCurrencies.length === 1;
+              return (
+                <Chip
+                  key={c}
+                  label={`${CURRENCY_SYMBOLS[c]} ${c}`}
+                  size="small"
+                  clickable={!isLastEnabled}
+                  onClick={() => { if (!isLastEnabled) toggleCurrency(c); }}
+                  aria-pressed={enabled}
+                  aria-disabled={isLastEnabled}
+                  sx={{
+                    fontSize: '0.72rem', height: 28,
+                    bgcolor: enabled ? 'rgba(129,140,248,0.18)' : 'action.hover',
+                    color: enabled ? 'primary.main' : 'text.secondary',
+                    border: '1px solid',
+                    borderColor: enabled ? 'rgba(129,140,248,0.4)' : 'divider',
+                    fontWeight: enabled ? 700 : 400,
+                    opacity: isLastEnabled ? 0.5 : 1,
+                    cursor: isLastEnabled ? 'default' : 'pointer',
+                  }}
+                />
+              );
+            })}
+          </Box>
+          {enabledCurrencies.length === 1 && (
+            <Typography sx={{ fontSize: '0.68rem', color: 'warning.main', mt: 1 }}>
+              At least one currency must remain enabled.
+            </Typography>
+          )}
         </Box>
       </Box>
 
