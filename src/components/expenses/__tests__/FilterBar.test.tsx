@@ -158,4 +158,13 @@ describe('FilterBar', () => {
     render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" total={20} filtered={5} />);
     expect(screen.getByText(/showing 5 of 20/i)).toBeInTheDocument();
   });
+
+  it('clicking All chip resets payment method filter', () => {
+    const onPaymentMethodFilterChange = jest.fn();
+    render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" onPaymentMethodFilterChange={onPaymentMethodFilterChange} />);
+    // Panel is visible since paymentMethodFilter !== 'all'; click the All chip
+    const allChip = document.querySelector('.MuiChip-root');
+    if (allChip) fireEvent.click(allChip);
+    expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('all');
+  });
 });

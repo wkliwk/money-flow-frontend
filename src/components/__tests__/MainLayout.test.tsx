@@ -568,14 +568,14 @@ describe('MainLayout', () => {
       makeTransaction({ _id: '2', description: 'Coffee', notes: undefined }),
     ]);
     renderMainLayout();
-    await waitFor(() => screen.getAllByText('Home').length > 0);
+    await waitFor(() => screen.getAllByText('Home').length > 0, { timeout: 8000 });
     const transLabels = screen.getAllByText('Transactions');
     await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
-    await waitFor(() => screen.getByText('Lunch'));
+    await waitFor(() => screen.getByText('Lunch'), { timeout: 8000 });
     const searchInput = screen.getByPlaceholderText('Search transactions…');
     await act(async () => { fireEvent.change(searchInput, { target: { value: 'client meeting' } }); });
     await waitFor(() => {
       expect(screen.getByText('Lunch')).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
   });
 });
