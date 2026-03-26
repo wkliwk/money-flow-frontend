@@ -29,6 +29,7 @@ const QuickExpenseInput: React.FC<Props> = ({ open, onClose, onSubmit }) => {
         description: parsed.description || `Expense ${parsed.amount}`,
         amount: parsed.amount,
         category: parsed.category,
+        paymentMethod: parsed.paymentMethod || undefined,
         type: 'expense',
         date: new Date().toISOString().split('T')[0],
       });
@@ -67,7 +68,7 @@ const QuickExpenseInput: React.FC<Props> = ({ open, onClose, onSubmit }) => {
               <strong>{parsed.description || 'Expense'}</strong> &mdash; ${parsed.amount.toFixed(2)}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
-              Category: {parsed.category}
+              Category: {parsed.category}{parsed.paymentMethod ? ` | ${parsed.paymentMethod}` : ''}
             </Typography>
           </Box>
         )}

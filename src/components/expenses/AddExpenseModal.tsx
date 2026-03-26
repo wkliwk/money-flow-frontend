@@ -22,13 +22,14 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import RepeatIcon from '@mui/icons-material/Repeat';
-import { TransactionRequest, TransactionType } from '../../types';
+import { TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
 import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
+import PaymentMethodPicker from './PaymentMethodPicker';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
@@ -74,6 +75,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
   const [loading, setLoading] = useState(false);
@@ -108,6 +110,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setQuickDate('today');
     setCustomDate(today());
     setParticipants([]);
+    setPaymentMethod(null);
     setIsRecurring(false);
     setFrequency('monthly');
     setError('');
@@ -126,6 +129,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       item: item || undefined,
       category: category || undefined,
       participants: participants,
+      paymentMethod: paymentMethod || undefined,
       date: resolvedDate,
     };
 
@@ -394,6 +398,8 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
 
         {/* Recurring toggle */}
         <Box sx={{ mt: 1.5, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>

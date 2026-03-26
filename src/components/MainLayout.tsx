@@ -31,7 +31,7 @@ import SettingsIcon from '@mui/icons-material/Settings';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs, { Dayjs } from 'dayjs';
-import { Transaction, TransactionRequest, TransactionType } from '../types';
+import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
@@ -91,6 +91,7 @@ const MainLayout: React.FC = () => {
   const [customEnd, setCustomEnd] = useState('');
   const [search, setSearch] = useState('');
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
+  const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [addOpen, setAddOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
@@ -358,16 +359,17 @@ const MainLayout: React.FC = () => {
         (t.category || '').toLowerCase().includes(searchLow) ||
         (t.participants || []).some((p) => p.toLowerCase().includes(searchLow));
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
-      return matchesSearch && matchesType;
+      const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
+      return matchesSearch && matchesType && matchesPayment;
     });
     if (sortBy === 'amount') {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, sortBy]);
+  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, sortBy]);
 
   const handleExport = () => {
-    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Participants'];
+    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
     const rows = filteredTransactions.map((t) => [
       new Date(t.date || t.createdAt).toISOString().split('T')[0],
       t.item ? `"${t.item.replace(/"/g, '""')}"` : '',
@@ -375,6 +377,7 @@ const MainLayout: React.FC = () => {
       t.type,
       t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
       t.amount,
+      t.paymentMethod || '',
       t.participants?.length ? `"${t.participants.join(', ')}"` : '',
     ]);
     const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
@@ -745,12 +748,14 @@ const MainLayout: React.FC = () => {
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
+                paymentMethodFilter={paymentMethodFilter}
                 sortBy={sortBy}
                 total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
                 searchAllTime={search !== ''}
                 onSearchChange={setSearch}
                 onTypeFilterChange={setTypeFilter}
+                onPaymentMethodFilterChange={setPaymentMethodFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
               />

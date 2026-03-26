@@ -1,7 +1,10 @@
+import { PaymentMethod } from '../types';
+
 export interface ParsedExpense {
   description: string;
   amount: number;
   category: string;
+  paymentMethod?: PaymentMethod;
 }
 
 const KNOWN_CATEGORIES = [
@@ -24,6 +27,27 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
   Health: ['health', 'doctor', 'pharmacy', 'medicine', 'gym', 'medical'],
   Education: ['education', 'school', 'course', 'book', 'tuition', 'class'],
 };
+
+const PAYMENT_METHOD_KEYWORDS: Record<string, PaymentMethod> = {
+  'cash': 'Cash',
+  'octopus': 'Octopus',
+  'payme': 'PayMe',
+  'fps': 'FPS',
+  'creditcard': 'Credit Card',
+  'credit': 'Credit Card',
+  'debitcard': 'Debit Card',
+  'debit': 'Debit Card',
+  'banktransfer': 'Bank Transfer',
+  'bank': 'Bank Transfer',
+  'alipayhk': 'AlipayHK',
+  'alipay': 'AlipayHK',
+  'wechatpay': 'WeChat Pay',
+  'wechat': 'WeChat Pay',
+};
+
+function matchPaymentMethod(word: string): PaymentMethod | null {
+  return PAYMENT_METHOD_KEYWORDS[word.toLowerCase()] || null;
+}
 
 function matchCategory(word: string): string | null {
   const lower = word.toLowerCase();
@@ -51,6 +75,7 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
 
   let amount = 0;
   let category = '';
+  let paymentMethod: PaymentMethod | undefined;
   const descParts: string[] = [];
   let foundNumber = false;
 
@@ -59,6 +84,11 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
     if (!isNaN(num) && num >= 0 && !foundNumber) {
       amount = num;
       foundNumber = true;
+      continue;
+    }
+    const pmMatch = matchPaymentMethod(part);
+    if (pmMatch && !paymentMethod) {
+      paymentMethod = pmMatch;
       continue;
     }
     const catMatch = matchCategory(part);
@@ -80,5 +110,5 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
     category = 'Other';
   }
 
-  return { description, amount, category };
+  return { description, amount, category, paymentMethod };
 }

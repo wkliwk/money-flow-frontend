@@ -23,12 +23,13 @@ import HistoryIcon from '@mui/icons-material/History';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
-import { Transaction, TransactionRequest, TransactionType } from '../../types';
+import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
 import ParticipantPicker from './ParticipantPicker';
+import PaymentMethodPicker from './PaymentMethodPicker';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
 
@@ -75,6 +76,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -93,6 +95,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
+      setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -125,6 +128,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        paymentMethod: paymentMethod || undefined,
         date: resolvedDate,
         owner: transaction.owner,
       };
@@ -155,6 +159,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
+        paymentMethod: paymentMethod || undefined,
         date: todayStr(),
       });
       onClose();
@@ -328,6 +333,8 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         </Box>
 
         <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+        <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
