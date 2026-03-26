@@ -37,6 +37,7 @@ import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import TrendsChart from './dashboard/TrendsChart';
+import BudgetProgress from './dashboard/BudgetProgress';
 import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
@@ -453,28 +454,38 @@ const MainLayout: React.FC = () => {
           },
         }}
       >
-        <List>
-          {navItems.map((item, index) => (
-            <ListItemButton
-              key={item.label}
-              selected={activeTab === index}
-              onClick={() => setActiveTab(index as 0 | 1 | 2 | 3)}
-              sx={{
-                '&.Mui-selected': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
-                '&.Mui-selected .MuiListItemIcon-root': { color: '#818cf8' },
-              }}
-            >
-              <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-              <ListItemText
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: '0.9rem',
-                  fontWeight: activeTab === index ? 700 : 400,
+        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+          <List>
+            {navItems.map((item, index) => (
+              <ListItemButton
+                key={item.label}
+                selected={activeTab === index}
+                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3)}
+                sx={{
+                  '&.Mui-selected': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
+                  '&.Mui-selected .MuiListItemIcon-root': { color: '#818cf8' },
                 }}
-              />
-            </ListItemButton>
-          ))}
-        </List>
+              >
+                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
+                <ListItemText
+                  primary={item.label}
+                  primaryTypographyProps={{
+                    fontSize: '0.9rem',
+                    fontWeight: activeTab === index ? 700 : 400,
+                  }}
+                />
+              </ListItemButton>
+            ))}
+          </List>
+          <Box sx={{ mt: 'auto', px: 2, pb: 2 }}>
+            <Typography
+              variant="caption"
+              sx={{ color: 'text.disabled', fontSize: '0.7rem', userSelect: 'none' }}
+            >
+              v{process.env.REACT_APP_VERSION ?? '1.0.0'}
+            </Typography>
+          </Box>
+        </Box>
       </Drawer>
 
       {/* Main content offset by drawer on desktop */}
@@ -583,6 +594,7 @@ const MainLayout: React.FC = () => {
                   convert={convert}
                   symbol={symbol}
                 />
+                <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
@@ -665,6 +677,7 @@ const MainLayout: React.FC = () => {
                 })()}
                 <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} convert={convert} symbol={symbol} />
                 <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
+                <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
                 <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
                 {monthFiltered.length > 0 && (
