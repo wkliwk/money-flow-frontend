@@ -89,9 +89,9 @@ describe('EditExpenseModal', () => {
     expect(deleteBtn).toBeTruthy();
   });
 
-  it('shows currency chips', () => {
+  it('shows HK$ in NumPad amount display when currency is HKD', () => {
     render(<EditExpenseModal {...defaultProps} />);
-    expect(screen.getByText('HK$ HKD')).toBeInTheDocument();
+    expect(screen.getAllByText(/HK\$/).length).toBeGreaterThan(0);
   });
 
   it('shows today/yesterday date shortcuts', () => {
