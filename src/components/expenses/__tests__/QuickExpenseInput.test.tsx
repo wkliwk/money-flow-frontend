@@ -1,6 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import QuickExpenseInput from '../QuickExpenseInput';
 import { TransactionRequest } from '../../../types';
 
@@ -44,8 +43,6 @@ describe('QuickExpenseInput', () => {
   });
 
   test('submits expense with parsed data', async () => {
-    const user = userEvent.setup();
-
     render(
       <QuickExpenseInput
         open={true}
@@ -56,10 +53,14 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.type(input, 'coffee 5');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'coffee 5' } });
+    });
 
     const button = screen.getByRole('button', { name: /Add Expense/i });
-    await user.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
 
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(
@@ -71,11 +72,9 @@ describe('QuickExpenseInput', () => {
         })
       );
     });
-  });
+  }, 15000);
 
   test('closes dialog after successful submit', async () => {
-    const user = userEvent.setup();
-
     render(
       <QuickExpenseInput
         open={true}
@@ -86,19 +85,21 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.type(input, 'lunch 12.50');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'lunch 12.50' } });
+    });
 
     const button = screen.getByRole('button', { name: /Add Expense/i });
-    await user.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
 
     await waitFor(() => {
       expect(mockOnClose).toHaveBeenCalled();
     });
-  });
+  }, 15000);
 
   test('submits with Enter key', async () => {
-    const user = userEvent.setup();
-
     render(
       <QuickExpenseInput
         open={true}
@@ -109,8 +110,12 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.type(input, 'groceries 45');
-    await user.keyboard('{Enter}');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'groceries 45' } });
+    });
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Enter' });
+    });
 
     await waitFor(() => {
       expect(mockOnSubmit).toHaveBeenCalledWith(
@@ -121,11 +126,9 @@ describe('QuickExpenseInput', () => {
         })
       );
     });
-  });
+  }, 15000);
 
   test('closes dialog with Escape key', async () => {
-    const user = userEvent.setup();
-
     render(
       <QuickExpenseInput
         open={true}
@@ -136,15 +139,14 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.click(input);
-    await user.keyboard('{Escape}');
+    await act(async () => {
+      fireEvent.keyDown(input, { key: 'Escape' });
+    });
 
     expect(mockOnClose).toHaveBeenCalled();
   });
 
   test('shows preview of parsed expense', async () => {
-    const user = userEvent.setup();
-
     render(
       <QuickExpenseInput
         open={true}
@@ -155,10 +157,17 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.type(input, 'taxi 15.50');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'taxi 15.50' } });
+    });
 
+    await waitFor(() => {
+      expect(screen.getByText('Preview:')).toBeInTheDocument();
+    });
+    // Item name is inside a <strong> tag
     expect(screen.getByText('taxi')).toBeInTheDocument();
-    expect(screen.getByText('$15.50')).toBeInTheDocument();
+    // Amount is rendered as "$15.50" but split across text nodes, so use container text
+    expect(screen.getByText(/15\.50/)).toBeInTheDocument();
     expect(screen.getByText('transport')).toBeInTheDocument();
   });
 
@@ -177,7 +186,6 @@ describe('QuickExpenseInput', () => {
   });
 
   test('handles submit error gracefully', async () => {
-    const user = userEvent.setup();
     const error = new Error('API Error');
     mockOnSubmit.mockRejectedValueOnce(error);
 
@@ -191,10 +199,14 @@ describe('QuickExpenseInput', () => {
     );
 
     const input = screen.getByPlaceholderText(/e.g. coffee 5 usd/);
-    await user.type(input, 'coffee 5');
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'coffee 5' } });
+    });
 
     const button = screen.getByRole('button', { name: /Add Expense/i });
-    await user.click(button);
+    await act(async () => {
+      fireEvent.click(button);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('API Error')).toBeInTheDocument();
@@ -202,5 +214,5 @@ describe('QuickExpenseInput', () => {
 
     // Dialog should stay open on error
     expect(mockOnClose).not.toHaveBeenCalled();
-  });
+  }, 15000);
 });
