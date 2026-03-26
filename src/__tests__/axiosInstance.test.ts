@@ -1,14 +1,42 @@
-// axiosInstance uses axios which in v1+ is ESM. We test behaviour indirectly
-// by testing the auth service functions that axiosInstance depends on.
-
 import { getToken, clearToken, setToken, isAuthenticated } from '../services/auth';
 
-describe('auth service (used by axiosInstance)', () => {
+let requestFn: (config: any) => any;
+let responseSuccessFn: (res: any) => any;
+let responseErrorFn: (err: any) => any;
+
+jest.mock('axios', () => {
+  const instance = {
+    interceptors: {
+      request: {
+        use: jest.fn((fn: any) => {
+          requestFn = fn;
+        }),
+      },
+      response: {
+        use: jest.fn((success: any, error: any) => {
+          responseSuccessFn = success;
+          responseErrorFn = error;
+        }),
+      },
+    },
+    get: jest.fn(),
+    post: jest.fn(),
+    put: jest.fn(),
+    delete: jest.fn(),
+  };
+  return {
+    __esModule: true,
+    default: { create: jest.fn(() => instance) },
+  };
+});
+
+// Force axiosInstance module to load after mock is in place
+require('../axiosInstance');
+
+describe('auth service', () => {
   const KEY = 'mf_token';
 
-  beforeEach(() => {
-    localStorage.clear();
-  });
+  beforeEach(() => localStorage.clear());
 
   it('getToken returns null when no token stored', () => {
     expect(getToken()).toBeNull();
@@ -40,15 +68,38 @@ describe('auth service (used by axiosInstance)', () => {
   });
 });
 
-describe('axiosInstance environment', () => {
-  it('REACT_APP_API_URL env var is used as baseURL fallback', () => {
-    // axiosInstance reads REACT_APP_API_URL at module load time
-    // We verify the environment variable mechanism works
-    expect(process.env.REACT_APP_API_URL || 'http://localhost:3001').toBeTruthy();
+describe('axiosInstance interceptors', () => {
+  beforeEach(() => localStorage.clear());
+
+  it('request interceptor attaches Bearer token when present', () => {
+    localStorage.setItem('mf_token', 'my-jwt');
+    const config = { headers: {} as Record<string, string> };
+    const result = requestFn(config);
+    expect(result.headers.Authorization).toBe('Bearer my-jwt');
   });
 
-  it('defaults to localhost:3001 when no env var set', () => {
-    const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
-    expect(baseURL).toContain('localhost:3001');
+  it('request interceptor skips token when absent', () => {
+    const config = { headers: {} as Record<string, string> };
+    const result = requestFn(config);
+    expect(result.headers.Authorization).toBeUndefined();
+  });
+
+  it('response interceptor passes through successful responses', () => {
+    const res = { data: 'ok', status: 200 };
+    expect(responseSuccessFn(res)).toBe(res);
+  });
+
+  it('response interceptor clears token on 401', async () => {
+    localStorage.setItem('mf_token', 'token');
+    const err = { response: { status: 401 } };
+    await expect(responseErrorFn(err)).rejects.toEqual(err);
+    expect(localStorage.getItem('mf_token')).toBeNull();
+  });
+
+  it('response interceptor rejects non-401 errors without clearing token', async () => {
+    localStorage.setItem('mf_token', 'token');
+    const err = { response: { status: 500 } };
+    await expect(responseErrorFn(err)).rejects.toEqual(err);
+    expect(localStorage.getItem('mf_token')).toBe('token');
   });
 });

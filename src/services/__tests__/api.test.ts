@@ -29,7 +29,7 @@ beforeEach(() => {
 
 describe('api service', () => {
   it('getExpenses calls GET /api/expenses and returns data', async () => {
-    (mockedAxios.get as jest.Mock).mockResolvedValue({ data: [sampleExpense] });
+    (mockedAxios.get as jest.Mock).mockResolvedValue({ data: { data: [sampleExpense] } });
     const result = await getExpenses();
     expect(mockedAxios.get).toHaveBeenCalledWith('/api/expenses');
     expect(result).toEqual([sampleExpense]);
