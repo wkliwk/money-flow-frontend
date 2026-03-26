@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useCallback } from 'react';
 import {
   Table,
   TableHead,
@@ -75,10 +75,59 @@ function fmtOriginal(t: Transaction): string | null {
   return `${sym}${t.originalAmount.toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
 
+const SWIPE_REVEAL_PX = 80;
+const SWIPE_THRESHOLD_PX = 60;
+
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
+  const [swipedId, setSwipedId] = useState<string | null>(null);
+  const [swipeOffset, setSwipeOffset] = useState<Record<string, number>>({});
+  const touchStartX = useRef<Record<string, number>>({});
+  const isSwiping = useRef<Record<string, boolean>>({});
+
+  const handleTouchStart = useCallback((id: string, e: React.TouchEvent) => {
+    if (!('ontouchstart' in window)) return;
+    touchStartX.current[id] = e.touches[0].clientX;
+    isSwiping.current[id] = false;
+  }, []);
+
+  const handleTouchMove = useCallback((id: string, e: React.TouchEvent) => {
+    if (!('ontouchstart' in window)) return;
+    const startX = touchStartX.current[id];
+    if (startX === undefined) return;
+    const deltaX = e.touches[0].clientX - startX;
+    if (deltaX > 0) {
+      // Swiping right — reset
+      setSwipeOffset((prev) => ({ ...prev, [id]: 0 }));
+      setSwipedId(null);
+      isSwiping.current[id] = false;
+      return;
+    }
+    isSwiping.current[id] = true;
+    const clamped = Math.max(deltaX, -SWIPE_REVEAL_PX);
+    setSwipeOffset((prev) => ({ ...prev, [id]: clamped }));
+  }, []);
+
+  const handleTouchEnd = useCallback((id: string) => {
+    if (!('ontouchstart' in window)) return;
+    const offset = swipeOffset[id] ?? 0;
+    if (Math.abs(offset) >= SWIPE_THRESHOLD_PX) {
+      setSwipeOffset((prev) => ({ ...prev, [id]: -SWIPE_REVEAL_PX }));
+      setSwipedId(id);
+    } else {
+      setSwipeOffset((prev) => ({ ...prev, [id]: 0 }));
+      setSwipedId(null);
+    }
+    isSwiping.current[id] = false;
+  }, [swipeOffset]);
+
+  const handleDeleteTap = useCallback((id: string) => {
+    setSwipeOffset((prev) => ({ ...prev, [id]: 0 }));
+    setSwipedId(null);
+    onDelete(id);
+  }, [onDelete]);
 
   if (transactions.length === 0) {
     return (
@@ -147,17 +196,64 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                     (t.item && recurringLabels.has(t.item)) ||
                     recurringLabels.has(t.description)
                   );
+                  const offset = swipeOffset[t._id] ?? 0;
                   return (
-                  <Card
+                  <Box
                     key={t._id}
-                    sx={{
-                      border: '1px solid rgba(148,163,184,0.08)',
-                      background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
-                      backdropFilter: 'blur(8px)',
-                      borderLeft: `3px solid ${accentColor}44`,
-                    }}
+                    data-testid="swipeable-row"
+                    sx={{ position: 'relative', overflow: 'hidden', borderRadius: 1 }}
+                    onTouchStart={(e) => handleTouchStart(t._id, e)}
+                    onTouchMove={(e) => handleTouchMove(t._id, e)}
+                    onTouchEnd={() => handleTouchEnd(t._id)}
                   >
-                    <CardActionArea onClick={() => onEdit(t)} sx={{ p: 0 }}>
+                    {/* Red delete background revealed on swipe */}
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        right: 0,
+                        top: 0,
+                        bottom: 0,
+                        width: SWIPE_REVEAL_PX,
+                        bgcolor: 'error.main',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '0 4px 4px 0',
+                      }}
+                    >
+                      <IconButton
+                        aria-label={`Delete ${t.item || t.description}`}
+                        data-testid={`delete-btn-${t._id}`}
+                        onClick={() => handleDeleteTap(t._id)}
+                        sx={{ color: '#fff', p: 1 }}
+                        size="small"
+                      >
+                        <DeleteIcon />
+                      </IconButton>
+                    </Box>
+                    <Card
+                      sx={{
+                        border: '1px solid rgba(148,163,184,0.08)',
+                        background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
+                        backdropFilter: 'blur(8px)',
+                        borderLeft: `3px solid ${accentColor}44`,
+                        transform: `translateX(${offset}px)`,
+                        transition: isSwiping.current[t._id] ? 'none' : 'transform 0.2s ease',
+                        position: 'relative',
+                        zIndex: 1,
+                      }}
+                    >
+                    <CardActionArea
+                      onClick={() => {
+                        if (swipedId === t._id) {
+                          setSwipedId(null);
+                          setSwipeOffset((prev) => ({ ...prev, [t._id]: 0 }));
+                          return;
+                        }
+                        onEdit(t);
+                      }}
+                      sx={{ p: 0 }}
+                    >
                       <CardContent sx={{ p: '14px 16px', '&:last-child': { pb: t.notes ? '8px' : '14px' } }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                           {/* Left: title + participants */}
@@ -235,6 +331,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                       </CardContent>
                     </CardActionArea>
                   </Card>
+                  </Box>
                   );
                 })}
               </Box>
