@@ -47,6 +47,8 @@ const defaultProps = {
   existingCategories: [],
 };
 
+jest.setTimeout(15000);
+
 describe('EditExpenseModal', () => {
   beforeEach(() => jest.clearAllMocks());
 

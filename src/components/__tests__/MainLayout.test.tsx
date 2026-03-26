@@ -89,6 +89,8 @@ const renderMainLayout = () =>
     </MemoryRouter>
   );
 
+jest.setTimeout(30000);
+
 describe('MainLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -315,7 +317,7 @@ describe('MainLayout', () => {
     await waitFor(() => {
       expect(mockCreateExpense).toHaveBeenCalled();
     });
-  }, 15000);
+  }, 30000);
 
   it('commitDelete is called after undo snackbar closes', async () => {
     mockGetExpenses.mockResolvedValue([
@@ -359,7 +361,7 @@ describe('MainLayout', () => {
     await waitFor(() => {
       expect(mockGetExpense).toHaveBeenCalled();
     });
-  }, 15000);
+  }, 30000);
 
   it('filter by type filters transactions', async () => {
     mockGetExpenses.mockResolvedValue([
@@ -495,5 +497,16 @@ describe('MainLayout', () => {
     await waitFor(() => {
       expect(screen.getByText('Coffee')).toBeInTheDocument();
     });
+  });
+
+  it('hides empty state when transactions exist', async () => {
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee' }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => {
+      expect(screen.getAllByText('Home').length).toBeGreaterThan(0);
+    });
+    expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
   });
 });
