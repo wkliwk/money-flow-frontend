@@ -146,3 +146,62 @@ describe('ExpenseList (mobile layout)', () => {
     expect(screen.queryByText('tap to expand note')).not.toBeInTheDocument();
   });
 });
+
+describe('ExpenseList (mobile swipe-to-delete)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    // Simulate touch device
+    Object.defineProperty(window, 'ontouchstart', { value: () => {}, writable: true, configurable: true });
+  });
+
+  afterEach(() => {
+    // Clean up touch simulation
+    // @ts-expect-error resetting touch simulation
+    delete window.ontouchstart;
+  });
+
+  it('calls onDelete after swiping left past threshold', () => {
+    const onDelete = jest.fn();
+    const t = makeTransaction({ _id: 'swipe1', description: 'Swipe me' });
+    const { container } = render(<ExpenseList {...defaultProps} transactions={[t]} onDelete={onDelete} />);
+    const swipeEl = container.querySelector('[data-testid="swipeable-row"]') as HTMLElement;
+    expect(swipeEl).not.toBeNull();
+
+    fireEvent.touchStart(swipeEl, { touches: [{ clientX: 200 }] });
+    fireEvent.touchMove(swipeEl, { touches: [{ clientX: 130 }] }); // -70px, past 60px threshold
+    fireEvent.touchEnd(swipeEl);
+
+    // Reveal state set — now click the delete button
+    const deleteBtn = container.querySelector('[data-testid="delete-btn-swipe1"]') as HTMLElement;
+    expect(deleteBtn).not.toBeNull();
+    fireEvent.click(deleteBtn);
+    expect(onDelete).toHaveBeenCalledWith('swipe1');
+  });
+
+  it('does not call onDelete after partial swipe below threshold', () => {
+    const onDelete = jest.fn();
+    const t = makeTransaction({ _id: 'partial1', description: 'Partial swipe' });
+    const { container } = render(<ExpenseList {...defaultProps} transactions={[t]} onDelete={onDelete} />);
+    const swipeEl = container.querySelector('[data-testid="swipeable-row"]') as HTMLElement;
+
+    fireEvent.touchStart(swipeEl, { touches: [{ clientX: 200 }] });
+    fireEvent.touchMove(swipeEl, { touches: [{ clientX: 160 }] }); // -40px, below 60px threshold
+    fireEvent.touchEnd(swipeEl);
+
+    // onDelete should not have been called — delete button is not activated
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+
+  it('swiping right resets position without calling onDelete', () => {
+    const onDelete = jest.fn();
+    const t = makeTransaction({ _id: 'right1', description: 'Right swipe' });
+    const { container } = render(<ExpenseList {...defaultProps} transactions={[t]} onDelete={onDelete} />);
+    const swipeEl = container.querySelector('[data-testid="swipeable-row"]') as HTMLElement;
+
+    fireEvent.touchStart(swipeEl, { touches: [{ clientX: 100 }] });
+    fireEvent.touchMove(swipeEl, { touches: [{ clientX: 150 }] }); // positive delta → right swipe
+    fireEvent.touchEnd(swipeEl);
+
+    expect(onDelete).not.toHaveBeenCalled();
+  });
+});
