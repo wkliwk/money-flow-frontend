@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Typography, Card, CardContent } from '@mui/material';
+import { Box, Typography, Card, CardContent, useTheme } from '@mui/material';
 import {
   ComposedChart,
   Bar,
@@ -22,6 +22,7 @@ interface Props {
 }
 
 const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, symbol }) => {
+  const theme = useTheme();
   const [showYtd, setShowYtd] = useState(false);
 
   const data = useMemo(() => {
@@ -60,6 +61,12 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
     if (idx !== -1) onMonthSelect(data[idx].month);
   };
 
+  const incomeColor = theme.palette.success.main;
+  const expenseColor = theme.palette.error.main;
+  const netColor = theme.palette.primary.main;
+  const tickColor = theme.palette.text.secondary;
+  const bgPaper = theme.palette.background.paper;
+
   return (
     <Card sx={{ mb: 3 }}>
       <CardContent sx={{ p: 3 }}>
@@ -79,7 +86,7 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
           <Typography
             variant="caption"
             onClick={() => setShowYtd((v) => !v)}
-            sx={{ fontSize: '0.68rem', color: showYtd ? '#818cf8' : 'text.disabled', fontWeight: 600, cursor: 'pointer', userSelect: 'none', letterSpacing: '0.03em' }}
+            sx={{ fontSize: '0.68rem', color: showYtd ? 'primary.main' : 'text.disabled', fontWeight: 600, cursor: 'pointer', userSelect: 'none', letterSpacing: '0.03em' }}
           >
             {showYtd ? '6M' : 'YTD'}
           </Typography>
@@ -88,15 +95,15 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
         {/* Legend */}
         <Box sx={{ display: 'flex', gap: 2, mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#34d399' }} />
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'success.main' }} />
             <Typography variant="caption" color="text.secondary">Income</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: '#fb7185' }} />
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
             <Typography variant="caption" color="text.secondary">Expense</Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 16, height: 2, bgcolor: '#818cf8', borderRadius: 1 }} />
+            <Box sx={{ width: 16, height: 2, bgcolor: 'primary.main', borderRadius: 1 }} />
             <Typography variant="caption" color="text.secondary">Net</Typography>
           </Box>
         </Box>
@@ -111,13 +118,13 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
           >
             <XAxis
               dataKey="label"
-              tick={{ fill: '#64748b', fontSize: 11 }}
+              tick={{ fill: tickColor, fontSize: 11 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
               tickFormatter={formatValue}
-              tick={{ fill: '#64748b', fontSize: 10 }}
+              tick={{ fill: tickColor, fontSize: 10 }}
               axisLine={false}
               tickLine={false}
               width={48}
@@ -132,46 +139,46 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
                 return [`${symbol}${n.toLocaleString(undefined, { maximumFractionDigits: 0 })}`, name as string];
               }}
               contentStyle={{
-                background: '#1e293b',
-                border: '1px solid rgba(148,163,184,0.1)',
+                background: bgPaper,
+                border: `1px solid ${theme.palette.divider}`,
                 borderRadius: 8,
-                color: '#f1f5f9',
+                color: theme.palette.text.primary,
                 fontSize: 12,
               }}
-              cursor={{ fill: 'rgba(148,163,184,0.05)' }}
+              cursor={{ fill: theme.palette.action.hover }}
             />
-            <ReferenceLine y={0} stroke="rgba(148,163,184,0.15)" strokeDasharray="3 3" />
+            <ReferenceLine y={0} stroke={theme.palette.divider} strokeDasharray="3 3" />
             <Bar dataKey="income" name="Income" radius={[4, 4, 0, 0]}>
               {data.map((_, i) => (
-                <Cell key={i} fill="#34d399" fillOpacity={0.85} />
+                <Cell key={i} fill={incomeColor} fillOpacity={0.85} />
               ))}
             </Bar>
             <Bar dataKey="expense" name="Expense" radius={[4, 4, 0, 0]}>
               {data.map((_, i) => (
-                <Cell key={i} fill="#fb7185" fillOpacity={0.85} />
+                <Cell key={i} fill={expenseColor} fillOpacity={0.85} />
               ))}
             </Bar>
             <Line
               type="monotone"
               dataKey="net"
               name="Net"
-              stroke="#818cf8"
+              stroke={netColor}
               strokeWidth={2}
-              dot={(props: any) => {
-                const { cx, cy, payload } = props;
+              dot={(props: Record<string, unknown>) => {
+                const { cx, cy, payload } = props as { cx: number; cy: number; payload: { label: string; net: number } };
                 return (
                   <circle
                     key={payload.label}
                     cx={cx}
                     cy={cy}
                     r={4}
-                    fill={payload.net >= 0 ? '#34d399' : '#fb7185'}
-                    stroke="#1e293b"
+                    fill={payload.net >= 0 ? incomeColor : expenseColor}
+                    stroke={bgPaper}
                     strokeWidth={1.5}
                   />
                 );
               }}
-              activeDot={{ r: 5, strokeWidth: 1.5, stroke: '#1e293b' }}
+              activeDot={{ r: 5, strokeWidth: 1.5, stroke: bgPaper }}
             />
           </ComposedChart>
         </ResponsiveContainer>

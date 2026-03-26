@@ -11,18 +11,25 @@ import {
   List,
   ListItem,
   ListItemText,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AddIcon from '@mui/icons-material/Add';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { TransactionType } from '../../types';
+import { useThemePreference } from '../../ThemeContext';
+import { ThemePreference } from '../../theme';
 
 interface Props {
   currency: string;
@@ -46,6 +53,39 @@ const emptyRecurring = (): Omit<RecurringItem, 'id'> => ({
   type: 'expense' as TransactionType,
   category: '',
 });
+
+const THEME_OPTIONS: { value: ThemePreference; label: string; icon: React.ReactNode }[] = [
+  { value: 'light', label: 'Light', icon: <LightModeIcon sx={{ fontSize: 16 }} /> },
+  { value: 'system', label: 'System', icon: <SettingsBrightnessIcon sx={{ fontSize: 16 }} /> },
+  { value: 'dark', label: 'Dark', icon: <DarkModeIcon sx={{ fontSize: 16 }} /> },
+];
+
+const ThemeToggle: React.FC = () => {
+  const { preference, setPreference } = useThemePreference();
+  return (
+    <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <Box sx={{ px: 2, py: 1.5 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+          Appearance
+        </Typography>
+        <ToggleButtonGroup
+          value={preference}
+          exclusive
+          onChange={(_, val: ThemePreference | null) => { if (val) setPreference(val); }}
+          fullWidth
+          aria-label="Theme preference"
+        >
+          {THEME_OPTIONS.map((opt) => (
+            <ToggleButton key={opt.value} value={opt.value} aria-label={opt.label} sx={{ gap: 0.5 }}>
+              {opt.icon}
+              {opt.label}
+            </ToggleButton>
+          ))}
+        </ToggleButtonGroup>
+      </Box>
+    </Box>
+  );
+};
 
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
   const userId = getUserId();
@@ -72,8 +112,11 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
     <Box sx={{ maxWidth: 500, mx: 'auto' }}>
       <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>Settings</Typography>
 
+      {/* Theme */}
+      <ThemeToggle />
+
       {/* Display Currency */}
-      <Box sx={{ borderRadius: 2, border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden', mb: 2 }}>
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
             Display Currency
@@ -88,27 +131,27 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                 onClick={() => onCurrencyChange(c as Currency)}
                 sx={{
                   fontSize: '0.72rem', height: 28,
-                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: currency === c ? '#818cf8' : 'text.secondary',
+                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'action.hover',
+                  color: currency === c ? 'primary.main' : 'text.secondary',
                   border: '1px solid',
-                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'divider',
                   fontWeight: currency === c ? 700 : 400,
                 }}
               />
             ))}
           </Box>
         </Box>
-        <Divider sx={{ borderColor: 'rgba(148,163,184,0.08)' }} />
+        <Divider />
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
             Account
           </Typography>
-          <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', fontFamily: 'monospace' }}>{userId || '—'}</Typography>
+          <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', fontFamily: 'monospace' }}>{userId || '\u2014'}</Typography>
         </Box>
       </Box>
 
       {/* Monthly Budgets */}
-      <Box sx={{ borderRadius: 2, border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden', mb: 2 }}>
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
             Monthly Budgets
@@ -126,8 +169,8 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                 <Box sx={{ flex: 1 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{cat}</Typography>
                   {spent > 0 && (
-                    <Typography sx={{ fontSize: '0.65rem', color: over ? '#fb7185' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
-                      {symbol}{Math.round(convert(spent)).toLocaleString()} this month{over ? ' — over!' : ''}
+                    <Typography sx={{ fontSize: '0.65rem', color: over ? 'error.main' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
+                      {symbol}{Math.round(convert(spent)).toLocaleString()} this month{over ? ' \u2014 over!' : ''}
                     </Typography>
                   )}
                 </Box>
@@ -150,7 +193,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
       </Box>
 
       {/* Recurring transactions */}
-      <Box sx={{ borderRadius: 2, border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden', mb: 2 }}>
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
         <Box sx={{ px: 2, py: 1.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
             Monthly Recurring
@@ -167,7 +210,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                     primary={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{r.label || r.description}</Typography>}
                     secondary={<Typography variant="caption" color="text.disabled">{symbol}{convert(r.amount)} · {r.type}{r.item ? ` · ${r.item}` : ''}</Typography>}
                   />
-                  <IconButton size="small" onClick={() => deleteRecurring(r.id)} sx={{ color: 'rgba(251,113,133,0.4)', '&:hover': { color: '#fb7185' } }}>
+                  <IconButton size="small" onClick={() => deleteRecurring(r.id)} sx={{ color: 'error.light', '&:hover': { color: 'error.main' } }}>
                     <DeleteIcon sx={{ fontSize: 16 }} />
                   </IconButton>
                 </ListItem>
@@ -176,24 +219,24 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
           )}
 
           {!showRecurringForm ? (
-            <Button size="small" startIcon={<AddIcon />} onClick={() => setShowRecurringForm(true)} sx={{ color: 'text.secondary', fontSize: '0.78rem', borderStyle: 'dashed', border: '1px dashed rgba(148,163,184,0.2)', borderRadius: 1.5, px: 1.5, py: 0.5 }}>
+            <Button size="small" startIcon={<AddIcon />} onClick={() => setShowRecurringForm(true)} sx={{ color: 'text.secondary', fontSize: '0.78rem', borderStyle: 'dashed', border: '1px dashed', borderColor: 'divider', borderRadius: 1.5, px: 1.5, py: 0.5 }}>
               Add recurring
             </Button>
           ) : (
-            <Box sx={{ bgcolor: 'rgba(148,163,184,0.04)', borderRadius: 2, p: 1.5, border: '1px solid rgba(148,163,184,0.1)', mt: 1 }}>
+            <Box sx={{ bgcolor: 'action.hover', borderRadius: 2, p: 1.5, border: '1px solid', borderColor: 'divider', mt: 1 }}>
               <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 {(['expense', 'income'] as TransactionType[]).map((t) => (
                   <Box key={t} onClick={() => setRecurringDraft((d) => ({ ...d, type: t, item: '' }))}
-                    sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer', border: '1.5px solid', borderColor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.4)' : 'rgba(52,211,153,0.4)') : 'rgba(148,163,184,0.1)', bgcolor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.12)' : 'rgba(52,211,153,0.12)') : 'transparent' }}>
-                    {t === 'expense' ? <TrendingDownIcon sx={{ fontSize: 14, color: '#fb7185' }} /> : <TrendingUpIcon sx={{ fontSize: 14, color: '#34d399' }} />}
-                    <Typography variant="caption" fontWeight={700} sx={{ fontSize: '0.72rem', color: recurringDraft.type === t ? (t === 'expense' ? '#fb7185' : '#34d399') : 'text.secondary' }}>{t === 'expense' ? 'Expense' : 'Income'}</Typography>
+                    sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer', border: '1.5px solid', borderColor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.4)' : 'rgba(52,211,153,0.4)') : 'divider', bgcolor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.12)' : 'rgba(52,211,153,0.12)') : 'transparent' }}>
+                    {t === 'expense' ? <TrendingDownIcon sx={{ fontSize: 14, color: 'error.main' }} /> : <TrendingUpIcon sx={{ fontSize: 14, color: 'success.main' }} />}
+                    <Typography variant="caption" fontWeight={700} sx={{ fontSize: '0.72rem', color: recurringDraft.type === t ? (t === 'expense' ? 'error.main' : 'success.main') : 'text.secondary' }}>{t === 'expense' ? 'Expense' : 'Income'}</Typography>
                   </Box>
                 ))}
               </Box>
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                 {ITEM_PRESETS.filter((p) => p.type === recurringDraft.type).map((p) => (
                   <Chip key={p.label} label={p.label} size="small" clickable onClick={() => setRecurringDraft((d) => ({ ...d, item: d.item === p.label ? '' : p.label, category: p.category }))}
-                    sx={{ fontSize: '0.68rem', height: 22, bgcolor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)', color: recurringDraft.item === p.label ? '#818cf8' : 'text.disabled', border: '1px solid', borderColor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)' }}
+                    sx={{ fontSize: '0.68rem', height: 22, bgcolor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.18)' : 'action.hover', color: recurringDraft.item === p.label ? 'primary.main' : 'text.disabled', border: '1px solid', borderColor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.35)' : 'divider' }}
                   />
                 ))}
               </Box>
@@ -224,7 +267,6 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         startIcon={<LogoutIcon />}
         onClick={handleLogout}
         fullWidth
-        sx={{ borderColor: 'rgba(251,113,133,0.3)', color: '#fb7185', '&:hover': { borderColor: '#fb7185', bgcolor: 'rgba(251,113,133,0.08)' } }}
       >
         Sign Out
       </Button>

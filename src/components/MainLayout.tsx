@@ -812,7 +812,8 @@ const MainLayout: React.FC = () => {
             pb: 'env(safe-area-inset-bottom)',
             height: 'calc(56px + env(safe-area-inset-bottom))',
             bgcolor: 'background.paper',
-            borderTop: '1px solid rgba(148,163,184,0.1)',
+            borderTop: '1px solid',
+            borderColor: 'divider',
           }}
         >
           <BottomNavigationAction label="Home" icon={<DashboardIcon />} />

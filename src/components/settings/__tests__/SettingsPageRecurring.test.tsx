@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
+import { AppThemeProvider } from '../../../ThemeContext';
 
 jest.mock('../../../hooks/useFxRates', () => ({
   useFxRates: () => ({
@@ -39,12 +40,12 @@ describe('SettingsPage (with recurring items)', () => {
   beforeEach(() => jest.clearAllMocks());
 
   it('renders Netflix recurring item', () => {
-    render(<SettingsPage currency="HKD" onCurrencyChange={jest.fn()} />);
+    render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} /></AppThemeProvider>);
     expect(screen.getByText('Netflix')).toBeInTheDocument();
   });
 
   it('calls deleteItem when delete button is clicked', () => {
-    render(<SettingsPage currency="HKD" onCurrencyChange={jest.fn()} />);
+    render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} /></AppThemeProvider>);
     const deleteIcon = document.querySelector('[data-testid="DeleteIcon"]');
     if (deleteIcon?.parentElement) {
       fireEvent.click(deleteIcon.parentElement);
@@ -53,12 +54,12 @@ describe('SettingsPage (with recurring items)', () => {
   });
 
   it('shows over-budget warning when spend exceeds limit', () => {
-    render(<SettingsPage currency="HKD" onCurrencyChange={jest.fn()} categorySpend={{ 'Food & Drink': 200 }} />);
+    render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} categorySpend={{ 'Food & Drink': 200 }} /></AppThemeProvider>);
     expect(screen.getByText(/over!/i)).toBeInTheDocument();
   });
 
   it('saves recurring form with valid data', () => {
-    render(<SettingsPage currency="HKD" onCurrencyChange={jest.fn()} />);
+    render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} /></AppThemeProvider>);
     fireEvent.click(screen.getByText('Add recurring'));
     const amountInput = screen.getByLabelText(/Amount/);
     fireEvent.change(amountInput, { target: { value: '120' } });
@@ -70,7 +71,7 @@ describe('SettingsPage (with recurring items)', () => {
   });
 
   it('switching recurring type to income shows income items', () => {
-    render(<SettingsPage currency="HKD" onCurrencyChange={jest.fn()} />);
+    render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} /></AppThemeProvider>);
     fireEvent.click(screen.getByText('Add recurring'));
     // Click Income type in the recurring form
     const incomeBoxes = screen.getAllByText('Income');

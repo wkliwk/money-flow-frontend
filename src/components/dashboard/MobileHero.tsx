@@ -153,7 +153,7 @@ const MobileHero: React.FC<Props> = ({
           variant="h3"
           fontWeight={700}
           sx={{
-            color: isPositive ? '#818cf8' : '#fb7185',
+            color: isPositive ? 'primary.main' : 'error.main',
             letterSpacing: '-0.03em',
             lineHeight: 1,
           }}
@@ -161,7 +161,7 @@ const MobileHero: React.FC<Props> = ({
           {isPositive ? '+' : '-'}{symbol}{fmt(convert(Math.abs(net)))}
         </Typography>
         {showDelta && (
-          <Typography sx={{ fontSize: '0.65rem', mt: 0.75, color: delta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+          <Typography sx={{ fontSize: '0.65rem', mt: 0.75, color: delta > 0 ? 'error.main' : 'success.main', fontWeight: 600 }}>
             {delta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(delta)))} spending vs last month
           </Typography>
         )}
@@ -177,7 +177,7 @@ const MobileHero: React.FC<Props> = ({
           >
             Income
           </Typography>
-          <Typography fontWeight={700} sx={{ color: '#34d399', fontSize: '1rem', letterSpacing: '-0.01em' }}>
+          <Typography fontWeight={700} sx={{ color: 'success.main', fontSize: '1rem', letterSpacing: '-0.01em' }}>
             +{symbol}{fmt(convert(income))}
           </Typography>
         </Box>
@@ -189,7 +189,7 @@ const MobileHero: React.FC<Props> = ({
           >
             Expenses
           </Typography>
-          <Typography fontWeight={700} sx={{ color: '#fb7185', fontSize: '1rem', letterSpacing: '-0.01em' }}>
+          <Typography fontWeight={700} sx={{ color: 'error.main', fontSize: '1rem', letterSpacing: '-0.01em' }}>
             -{symbol}{fmt(convert(expenses))}
           </Typography>
           {avgPerDay !== null && (
