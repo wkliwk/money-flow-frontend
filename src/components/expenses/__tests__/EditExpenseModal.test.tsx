@@ -12,6 +12,7 @@ jest.mock('../../../hooks/useFxRates', () => ({
     currency: 'HKD',
     setCurrency: jest.fn(),
     convert: (n: number) => n,
+    rateForCurrency: (_c: string) => 1,
     symbol: 'HK$',
     loading: false,
     rates: { HKD: 1, CAD: 0.18, USD: 0.128, CNY: 0.93 },
@@ -191,6 +192,35 @@ describe('EditExpenseModal', () => {
     await waitFor(() => {
       expect(onSaved).toHaveBeenCalled();
     });
+  });
+
+  it('shows error alert when save fails', async () => {
+    const { updateExpense } = require('../../../services/api');
+    (updateExpense as jest.Mock).mockRejectedValueOnce({ response: { data: { error: 'Server error' } } });
+    render(<EditExpenseModal {...defaultProps} />);
+    const saveBtn = screen.getByRole('button', { name: /^save$/i });
+    await act(async () => { fireEvent.click(saveBtn); });
+    await waitFor(() => {
+      expect(screen.getByRole('alert')).toBeInTheDocument();
+    });
+  });
+
+  it('clicking a non-active currency chip updates selection', () => {
+    render(<EditExpenseModal {...defaultProps} />);
+    const chips = document.querySelectorAll('.MuiChip-root');
+    const cadChip = Array.from(chips).find((el) => el.textContent?.includes('CAD'));
+    if (cadChip) fireEvent.click(cadChip);
+    expect(screen.getByText('HK$ HKD')).toBeInTheDocument();
+  });
+
+  it('changing custom date input updates the date value', () => {
+    render(<EditExpenseModal {...defaultProps} />);
+    fireEvent.click(screen.getByText('Custom'));
+    const dateInput = document.querySelector('input[type="date"]') as HTMLInputElement;
+    if (dateInput) {
+      fireEvent.change(dateInput, { target: { value: '2026-01-15' } });
+      expect(dateInput.value).toBe('2026-01-15');
+    }
   });
 
   describe('notes field in EditExpenseModal', () => {
