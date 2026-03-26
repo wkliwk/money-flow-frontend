@@ -561,4 +561,21 @@ describe('MainLayout', () => {
       expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
     });
   });
+
+  it('search by notes content filters transactions', async () => {
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Lunch', notes: 'client meeting' }),
+      makeTransaction({ _id: '2', description: 'Coffee', notes: undefined }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByText('Lunch'));
+    const searchInput = screen.getByPlaceholderText('Search transactions…');
+    await act(async () => { fireEvent.change(searchInput, { target: { value: 'client meeting' } }); });
+    await waitFor(() => {
+      expect(screen.getByText('Lunch')).toBeInTheDocument();
+    });
+  });
 });
