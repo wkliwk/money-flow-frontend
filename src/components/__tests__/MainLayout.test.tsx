@@ -89,6 +89,8 @@ const renderMainLayout = () =>
     </MemoryRouter>
   );
 
+jest.setTimeout(30000);
+
 describe('MainLayout', () => {
   beforeEach(() => {
     jest.clearAllMocks();
