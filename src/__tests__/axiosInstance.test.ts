@@ -85,7 +85,7 @@ describe('axiosInstance interceptors', () => {
   });
 
   it('response interceptor passes through successful responses', () => {
-    const res = { data: 'ok', status: 200 };
+    const res = { data: 'ok', status: 200, config: { url: '/test' } };
     expect(responseSuccessFn(res)).toBe(res);
   });
 
