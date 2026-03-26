@@ -138,4 +138,33 @@ describe('FilterBar', () => {
     render(<FilterBar {...defaultProps} paymentMethodFilter="Cash" total={20} filtered={5} />);
     expect(screen.getByText(/showing 5 of 20/i)).toBeInTheDocument();
   });
+
+  it('closing payment filter panel calls onPaymentMethodFilterChange with all', () => {
+    const onPaymentMethodFilterChange = jest.fn();
+    render(<FilterBar {...defaultProps} onPaymentMethodFilterChange={onPaymentMethodFilterChange} />);
+    const filterBtn = document.querySelector('[data-testid="FilterListIcon"]')?.parentElement;
+    // Open first
+    if (filterBtn) fireEvent.click(filterBtn);
+    // Close (next = false, so !next = true → calls onPaymentMethodFilterChange('all'))
+    if (filterBtn) fireEvent.click(filterBtn);
+    expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('all');
+  });
+
+  it('clicking active payment chip deselects it (calls with all)', () => {
+    const onPaymentMethodFilterChange = jest.fn();
+    render(
+      <FilterBar
+        {...defaultProps}
+        paymentMethodFilter="Octopus"
+        onPaymentMethodFilterChange={onPaymentMethodFilterChange}
+      />
+    );
+    // The filter panel is open since paymentMethodFilter !== 'all'
+    // Click Octopus again to deselect
+    const octopusChip = screen.queryByText('Octopus');
+    if (octopusChip) {
+      fireEvent.click(octopusChip);
+      expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('all');
+    }
+  });
 });

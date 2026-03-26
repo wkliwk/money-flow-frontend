@@ -27,17 +27,25 @@ jobs:
           try:
             with open('coverage/coverage-summary.json') as f:
               d = json.load(f)
-            pct = d['total']['lines']['pct']
-            print(int(pct))
+            lines = d['total']['lines']['pct']
+            branches = d['total']['branches']['pct']
+            print(f'{int(lines)},{int(branches)}')
           except Exception as e:
-            print(0)
+            print('0,0')
           ")
-          echo "Line coverage: ${COVERAGE}%"
-          if [ "${COVERAGE}" -lt 90 ]; then
-            echo "❌ Coverage ${COVERAGE}% is below the 90% baseline. Add tests before merging."
+          LINE_COV=$(echo $COVERAGE | cut -d',' -f1)
+          BRANCH_COV=$(echo $COVERAGE | cut -d',' -f2)
+          echo "Line coverage: ${LINE_COV}%"
+          echo "Branch coverage: ${BRANCH_COV}%"
+          if [ "${LINE_COV}" -lt 90 ]; then
+            echo "❌ Line coverage ${LINE_COV}% is below 90% baseline."
             exit 1
           fi
-          echo "✅ Coverage ${COVERAGE}% meets 90% baseline."
+          if [ "${BRANCH_COV}" -lt 90 ]; then
+            echo "❌ Branch coverage ${BRANCH_COV}% is below 90% baseline."
+            exit 1
+          fi
+          echo "✅ Coverage: lines ${LINE_COV}%, branches ${BRANCH_COV}% — both meet 90% baseline."
       - name: Build
         run: yarn build
         env:

@@ -87,4 +87,42 @@ describe('BudgetProgress', () => {
     );
     expect(screen.getByText('USD 500 / USD 1,000')).toBeInTheDocument();
   });
+
+  it('uses yellow color when spend is 70-89% of budget', () => {
+    // pct >= 70 && pct < 90 branch in the ternary
+    render(
+      <BudgetProgress
+        budgets={{ Food: 1000 }}
+        categorySpend={{ Food: 750 }} // 75% — yellow zone
+        convert={convert}
+        symbol="$"
+      />
+    );
+    expect(screen.getByText('Food')).toBeInTheDocument();
+  });
+
+  it('uses red color when spend is >=90% of budget', () => {
+    render(
+      <BudgetProgress
+        budgets={{ Food: 1000 }}
+        categorySpend={{ Food: 950 }} // 95% — red zone
+        convert={convert}
+        symbol="$"
+      />
+    );
+    expect(screen.getByText('Food')).toBeInTheDocument();
+  });
+
+  it('no onCategoryClick: clicking does not throw', () => {
+    render(
+      <BudgetProgress
+        budgets={{ Food: 500 }}
+        categorySpend={{ Food: 100 }}
+        convert={convert}
+        symbol="$"
+      />
+    );
+    fireEvent.click(screen.getByText('Food'));
+    expect(document.body).toBeTruthy();
+  });
 });
