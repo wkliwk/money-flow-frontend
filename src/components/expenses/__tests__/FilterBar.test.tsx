@@ -14,6 +14,7 @@ const defaultProps = {
   onPaymentMethodFilterChange: jest.fn(),
   onSortChange: jest.fn(),
   onExport: jest.fn(),
+  onExportJson: jest.fn(),
 };
 
 describe('FilterBar', () => {
@@ -89,11 +90,30 @@ describe('FilterBar', () => {
     expect(downloadBtn?.disabled).toBeFalsy();
   });
 
-  it('calls onExport when export button clicked', () => {
+  it('opens export menu when download button clicked', () => {
     render(<FilterBar {...defaultProps} filtered={5} />);
     const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
     if (downloadBtn) fireEvent.click(downloadBtn);
-    expect(defaultProps.onExport).toHaveBeenCalled();
+    expect(screen.getByText('Export CSV')).toBeInTheDocument();
+    expect(screen.getByText('Export JSON')).toBeInTheDocument();
+  });
+
+  it('calls onExport when Export CSV menu item clicked', () => {
+    const onExport = jest.fn();
+    render(<FilterBar {...defaultProps} filtered={5} onExport={onExport} />);
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
+    if (downloadBtn) fireEvent.click(downloadBtn);
+    fireEvent.click(screen.getByText('Export CSV'));
+    expect(onExport).toHaveBeenCalled();
+  });
+
+  it('calls onExportJson when Export JSON menu item clicked', () => {
+    const onExportJson = jest.fn();
+    render(<FilterBar {...defaultProps} filtered={5} onExportJson={onExportJson} />);
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement;
+    if (downloadBtn) fireEvent.click(downloadBtn);
+    fireEvent.click(screen.getByText('Export JSON'));
+    expect(onExportJson).toHaveBeenCalled();
   });
 
   it('shows filter count when search is active', () => {

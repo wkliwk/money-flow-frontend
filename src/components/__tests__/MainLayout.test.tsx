@@ -460,8 +460,7 @@ describe('MainLayout', () => {
     });
   });
 
-  it('clicking export button triggers CSV download', async () => {
-    // Mock URL.createObjectURL and revokeObjectURL
+  it('clicking export button opens menu with CSV and JSON options', async () => {
     global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
     global.URL.revokeObjectURL = jest.fn();
     jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(jest.fn());
@@ -477,8 +476,59 @@ describe('MainLayout', () => {
     const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement as HTMLButtonElement | null;
     if (downloadBtn && !downloadBtn.disabled) {
       await act(async () => { fireEvent.click(downloadBtn); });
+      expect(screen.getByText('Export CSV')).toBeInTheDocument();
+      expect(screen.getByText('Export JSON')).toBeInTheDocument();
     }
-    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    jest.restoreAllMocks();
+  });
+
+  it('clicking Export CSV triggers CSV download', async () => {
+    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+    global.URL.revokeObjectURL = jest.fn();
+    const anchorClick = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(jest.fn());
+
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', amount: 100 }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByText('Coffee'));
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement as HTMLButtonElement | null;
+    if (downloadBtn && !downloadBtn.disabled) {
+      await act(async () => { fireEvent.click(downloadBtn); });
+      const csvItem = screen.getByText('Export CSV');
+      await act(async () => { fireEvent.click(csvItem); });
+      expect(anchorClick).toHaveBeenCalled();
+    }
+    jest.restoreAllMocks();
+  });
+
+  it('clicking Export JSON triggers JSON download', async () => {
+    global.URL.createObjectURL = jest.fn().mockReturnValue('blob:url');
+    global.URL.revokeObjectURL = jest.fn();
+    const anchorClick = jest.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(jest.fn());
+
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', amount: 100 }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByText('Coffee'));
+    const downloadBtn = document.querySelector('[data-testid="DownloadIcon"]')?.parentElement as HTMLButtonElement | null;
+    if (downloadBtn && !downloadBtn.disabled) {
+      await act(async () => { fireEvent.click(downloadBtn); });
+      const jsonItem = screen.getByText('Export JSON');
+      await act(async () => { fireEvent.click(jsonItem); });
+      expect(anchorClick).toHaveBeenCalled();
+      // Verify JSON blob was created with application/json type
+      const blobCalls = (global.URL.createObjectURL as jest.Mock).mock.calls;
+      const lastBlob = blobCalls[blobCalls.length - 1][0] as Blob;
+      expect(lastBlob.type).toBe('application/json');
+    }
     jest.restoreAllMocks();
   });
 
