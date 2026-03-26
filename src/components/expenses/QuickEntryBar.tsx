@@ -4,6 +4,7 @@ import SendIcon from '@mui/icons-material/Send';
 import IconButton from '@mui/material/IconButton';
 import { parseQuickExpense } from '../../utils/parseQuickExpense';
 import { TransactionRequest } from '../../types';
+import { useFxRates, Currency } from '../../hooks/useFxRates';
 
 interface Props {
   onSubmit: (data: Omit<TransactionRequest, 'owner'>) => Promise<void>;
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const QuickEntryBar: React.FC<Props> = ({ onSubmit, onSuccess, onError }) => {
+  const { rateForCurrency } = useFxRates();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -20,23 +22,31 @@ const QuickEntryBar: React.FC<Props> = ({ onSubmit, onSuccess, onError }) => {
     if (!parsed || parsed.amount === 0) return;
     try {
       setLoading(true);
+      const isForeign = parsed.currency && parsed.currency !== 'HKD';
+      const rate = isForeign ? rateForCurrency(parsed.currency as Currency) : 1;
+      const hkdAmount = isForeign ? Math.round(parsed.amount * rate * 100) / 100 : parsed.amount;
       const data: Omit<TransactionRequest, 'owner'> = {
         description: parsed.description || `Expense ${parsed.amount}`,
-        amount: parsed.amount,
+        amount: hkdAmount,
         category: parsed.category,
         type: 'expense',
         date: new Date().toISOString().split('T')[0],
+        ...(isForeign ? {
+          currency: parsed.currency,
+          originalAmount: parsed.amount,
+          exchangeRate: rate,
+        } : {}),
       };
       await onSubmit(data);
       setInput('');
       const label = parsed.description || 'Expense';
-      onSuccess(`Added: ${label} $${parsed.amount}`);
+      onSuccess(`Added: ${label} $${hkdAmount}`);
     } catch {
       onError('Failed to add expense');
     } finally {
       setLoading(false);
     }
-  }, [input, onSubmit, onSuccess, onError]);
+  }, [input, onSubmit, onSuccess, onError, rateForCurrency]);
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter' && !loading) { handleSubmit(); }
@@ -86,7 +96,7 @@ const QuickEntryBar: React.FC<Props> = ({ onSubmit, onSuccess, onError }) => {
       {parsed && parsed.amount > 0 && (
         <Box sx={{ mt: 0.5, px: 1, display: 'flex', gap: 1, alignItems: 'center' }}>
           <Box component="span" sx={{ fontSize: '0.7rem', color: 'text.disabled' }}>
-            {parsed.description || 'Expense'} &mdash; ${parsed.amount} &middot; {parsed.category}
+            {parsed.description || 'Expense'} &mdash; {parsed.currency ? `${parsed.currency} ` : '$'}{parsed.amount} &middot; {parsed.category}
           </Box>
         </Box>
       )}

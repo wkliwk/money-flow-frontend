@@ -62,10 +62,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
-  const { symbol, rates, currency, setCurrency, convert } = useFxRates();
+  const { symbol: displaySymbol, convert, rateForCurrency } = useFxRates();
   const { presets: itemPresets } = useItemPresets();
   const { addItem: addRecurringItem } = useRecurring();
-  const fxRate = currency !== 'HKD' ? 1 / rates[currency] : undefined;
+  const [txCurrency, setTxCurrency] = useState<Currency>('HKD');
+  const fxRate = txCurrency !== 'HKD' ? rateForCurrency(txCurrency) : undefined;
   const [manageOpen, setManageOpen] = useState(false);
   const [item, setItem] = useState('');
   const [category, setCategory] = useState('');
@@ -111,6 +112,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setCustomDate(today());
     setParticipants([]);
     setPaymentMethod(null);
+    setTxCurrency('HKD');
     setIsRecurring(false);
     setFrequency('monthly');
     setError('');
@@ -122,6 +124,10 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     const parsedAmount = parseFloat(amount);
     if (!amount || isNaN(parsedAmount) || parsedAmount <= 0) { setError('Please enter a valid amount'); return; }
 
+    // amount state is always HKD (NumPad converts FX to HKD)
+    const isForeign = txCurrency !== 'HKD' && fxRate;
+    const foreignAmount = isForeign ? Math.round(parsedAmount / fxRate * 100) / 100 : undefined;
+
     const data: Omit<TransactionRequest, 'owner'> = {
       description: description.trim() || item,
       amount: parsedAmount,
@@ -131,6 +137,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       participants: participants,
       paymentMethod: paymentMethod || undefined,
       date: resolvedDate,
+      ...(isForeign ? {
+        currency: txCurrency,
+        originalAmount: foreignAmount,
+        exchangeRate: fxRate,
+      } : {}),
     };
 
     setLoading(true);
@@ -315,7 +326,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           return (
             <Box sx={{ mt: 0.75, mb: 0.5 }}>
               <Chip
-                label={`Last time: ${symbol}${convert(suggested).toLocaleString(undefined, { maximumFractionDigits: 0 })} — use this?`}
+                label={`Last time: ${displaySymbol}${convert(suggested).toLocaleString(undefined, { maximumFractionDigits: 0 })} — use this?`}
                 size="small"
                 onClick={() => setAmount(String(suggested))}
                 sx={{ fontSize: '0.72rem', height: 26, bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.25)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(129,140,248,0.18)' } }}
@@ -324,27 +335,27 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           );
         })()}
 
-        {/* Currency selector */}
+        {/* Transaction currency selector */}
         <Box sx={{ mt: 1.5, mb: 0.5 }}>
           <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
             Currency
           </Typography>
-          <Box sx={{ display: 'flex', gap: 0.75 }}>
+          <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => (
               <Chip
                 key={c}
                 label={`${CURRENCY_SYMBOLS[c]} ${c}`}
                 size="small"
                 clickable
-                onClick={() => setCurrency(c as Currency)}
+                onClick={() => setTxCurrency(c)}
                 sx={{
                   fontSize: '0.72rem',
                   height: 28,
-                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: currency === c ? '#818cf8' : 'text.secondary',
+                  bgcolor: txCurrency === c ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
+                  color: txCurrency === c ? '#818cf8' : 'text.secondary',
                   border: '1px solid',
-                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
-                  fontWeight: currency === c ? 700 : 400,
+                  borderColor: txCurrency === c ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  fontWeight: txCurrency === c ? 700 : 400,
                 }}
               />
             ))}
@@ -355,7 +366,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         <NumPad
           value={amount}
           onChange={setAmount}
-          fxSymbol={currency !== 'HKD' ? symbol : undefined}
+          fxSymbol={txCurrency !== 'HKD' ? CURRENCY_SYMBOLS[txCurrency] : undefined}
           fxRate={fxRate}
         />
 

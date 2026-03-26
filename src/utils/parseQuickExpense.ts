@@ -5,6 +5,7 @@ export interface ParsedExpense {
   amount: number;
   category: string;
   paymentMethod?: PaymentMethod;
+  currency?: string;
 }
 
 const KNOWN_CATEGORIES = [
@@ -45,6 +46,33 @@ const PAYMENT_METHOD_KEYWORDS: Record<string, PaymentMethod> = {
   'wechat': 'WeChat Pay',
 };
 
+const CURRENCY_CODES: Record<string, string> = {
+  'cny': 'CNY',
+  'rmb': 'CNY',
+  'jpy': 'JPY',
+  'yen': 'JPY',
+  'usd': 'USD',
+  'eur': 'EUR',
+  'gbp': 'GBP',
+  'twd': 'TWD',
+  'thb': 'THB',
+  'krw': 'KRW',
+  'cad': 'CAD',
+  'hkd': 'HKD',
+};
+
+const CURRENCY_SYMBOL_PREFIXES: Record<string, string> = {
+  '\u00a5': 'CNY',
+  '\uffe5': 'CNY',
+  '\u20ac': 'EUR',
+  '\u00a3': 'GBP',
+  '\u20a9': 'KRW',
+};
+
+function matchCurrency(word: string): string | null {
+  return CURRENCY_CODES[word.toLowerCase()] || null;
+}
+
 function matchPaymentMethod(word: string): PaymentMethod | null {
   return PAYMENT_METHOD_KEYWORDS[word.toLowerCase()] || null;
 }
@@ -71,10 +99,24 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
   const trimmed = input.trim();
   if (!trimmed) return null;
 
-  const parts = trimmed.split(/\s+/);
+  // Check for symbol-prefixed amounts like "¥1500" or "€50"
+  let symbolCurrency: string | undefined;
+  let processed = trimmed;
+  for (const [sym, cur] of Object.entries(CURRENCY_SYMBOL_PREFIXES)) {
+    const regex = new RegExp(`${sym.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(\\d+\\.?\\d*)`);
+    const match = processed.match(regex);
+    if (match) {
+      symbolCurrency = cur;
+      processed = processed.replace(regex, match[1]);
+      break;
+    }
+  }
+
+  const parts = processed.split(/\s+/);
 
   let amount = 0;
   let category = '';
+  let currency: string | undefined = symbolCurrency;
   let paymentMethod: PaymentMethod | undefined;
   const descParts: string[] = [];
   let foundNumber = false;
@@ -85,6 +127,13 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
       amount = num;
       foundNumber = true;
       continue;
+    }
+    if (!currency) {
+      const curMatch = matchCurrency(part);
+      if (curMatch) {
+        currency = curMatch;
+        continue;
+      }
     }
     const pmMatch = matchPaymentMethod(part);
     if (pmMatch && !paymentMethod) {
@@ -110,5 +159,8 @@ export function parseQuickExpense(input: string): ParsedExpense | null {
     category = 'Other';
   }
 
-  return { description, amount, category, paymentMethod };
+  // Don't include HKD as it's the default
+  const resultCurrency = currency && currency !== 'HKD' ? currency : undefined;
+
+  return { description, amount, category, paymentMethod, currency: resultCurrency };
 }

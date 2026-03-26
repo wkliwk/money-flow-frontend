@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Dialog, DialogContent, TextField, Box, Typography, Button, CircularProgress, Alert } from '@mui/material';
 import { parseQuickExpense } from '../../utils/parseQuickExpense';
 import { TransactionRequest } from '../../types';
+import { useFxRates, Currency, CURRENCY_SYMBOLS } from '../../hooks/useFxRates';
 
 interface Props {
   open: boolean;
@@ -11,6 +12,7 @@ interface Props {
 }
 
 const QuickExpenseInput: React.FC<Props> = ({ open, onClose, onSubmit }) => {
+  const { rateForCurrency } = useFxRates();
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -25,13 +27,21 @@ const QuickExpenseInput: React.FC<Props> = ({ open, onClose, onSubmit }) => {
     if (!parsed || parsed.amount === 0) { setError('Please enter a valid amount'); return; }
     try {
       setLoading(true);
+      const isForeign = parsed.currency && parsed.currency !== 'HKD';
+      const rate = isForeign ? rateForCurrency(parsed.currency as Currency) : 1;
+      const hkdAmount = isForeign ? Math.round(parsed.amount * rate * 100) / 100 : parsed.amount;
       await onSubmit({
         description: parsed.description || `Expense ${parsed.amount}`,
-        amount: parsed.amount,
+        amount: hkdAmount,
         category: parsed.category,
         paymentMethod: parsed.paymentMethod || undefined,
         type: 'expense',
         date: new Date().toISOString().split('T')[0],
+        ...(isForeign ? {
+          currency: parsed.currency,
+          originalAmount: parsed.amount,
+          exchangeRate: rate,
+        } : {}),
       });
       setInput('');
       onClose();
@@ -57,18 +67,18 @@ const QuickExpenseInput: React.FC<Props> = ({ open, onClose, onSubmit }) => {
           Quick Expense
         </Typography>
         {error && <Alert severity="error">{error}</Alert>}
-        <TextField inputRef={inputRef} fullWidth placeholder='e.g. "lunch 85" or "MTR 500 transport"'
+        <TextField inputRef={inputRef} fullWidth placeholder='e.g. "lunch 85" or "sushi 1500 JPY" or "coffee ¥35"'
           value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown}
           disabled={loading} autoFocus size="small"
-          helperText="Type description + amount. Add category name at the end to categorise."
+          helperText="Type description + amount. Add currency code (JPY, USD, CNY) or symbol for foreign currencies."
           inputProps={{ 'aria-label': 'Quick expense input' }} />
         {parsed && parsed.amount > 0 && (
           <Box sx={{ p: 1.5, bgcolor: 'rgba(30,41,59,0.5)', borderRadius: 2, border: '1px solid rgba(148,163,184,0.08)' }}>
             <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '0.78rem' }}>
-              <strong>{parsed.description || 'Expense'}</strong> &mdash; ${parsed.amount.toFixed(2)}
+              <strong>{parsed.description || 'Expense'}</strong> &mdash; {parsed.currency ? `${CURRENCY_SYMBOLS[parsed.currency as Currency] || parsed.currency}${parsed.amount.toFixed(2)}` : `$${parsed.amount.toFixed(2)}`}
             </Typography>
             <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>
-              Category: {parsed.category}{parsed.paymentMethod ? ` | ${parsed.paymentMethod}` : ''}
+              Category: {parsed.category}{parsed.paymentMethod ? ` | ${parsed.paymentMethod}` : ''}{parsed.currency ? ` | ${parsed.currency}` : ''}
             </Typography>
           </Box>
         )}
