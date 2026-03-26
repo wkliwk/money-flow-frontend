@@ -12,7 +12,11 @@ jest.mock('recharts', () => ({
     <div>
       <div data-testid="chart-no-label" onClick={() => onClick && onClick({ activeLabel: undefined })} />
       <div data-testid="chart-unknown-label" onClick={() => onClick && onClick({ activeLabel: 'UnknownMonth999' })} />
-      <div data-testid="chart-valid-click" onClick={() => onClick && onClick({ activeLabel: dayjs().format('MMM') })} />
+      <div data-testid="chart-valid-click" onClick={() => {
+        // Use the current month abbreviation so it matches data — Date is allowed in mock factory
+        const monthAbbr = new Date().toLocaleString('en-US', { month: 'short' });
+        if (onClick) onClick({ activeLabel: monthAbbr });
+      }} />
       {children}
     </div>
   ),

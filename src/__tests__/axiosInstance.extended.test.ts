@@ -24,7 +24,7 @@ describe('axiosInstance request interceptor — debug logging branches', () => {
       create: jest.fn(),
     };
     jest.doMock('axios', () => ({ ...axiosMock, create: () => axiosMock, default: { create: () => axiosMock } }));
-    require('../../axiosInstance');
+    require('../axiosInstance');
     const [onFulfilled] = axiosMock.interceptors.request.use.mock.calls[0] || [];
     requestFn = onFulfilled || ((c: any) => c);
   });
@@ -92,7 +92,7 @@ describe('axiosInstance response interceptor — logging branches', () => {
       create: jest.fn(),
     };
     jest.doMock('axios', () => ({ ...axiosMock, create: () => axiosMock, default: { create: () => axiosMock } }));
-    require('../../axiosInstance');
+    require('../axiosInstance');
     const [onFulfilled, onRejected] = axiosMock.interceptors.response.use.mock.calls[0] || [];
     responseFn = onFulfilled || ((r: any) => r);
     errorFn = onRejected || ((e: any) => Promise.reject(e));

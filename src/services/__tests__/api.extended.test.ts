@@ -14,10 +14,10 @@ describe('api — extended endpoint coverage', () => {
 
   describe('getExchangeRates', () => {
     it('returns rates from backend', async () => {
-      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { USD: 0.128, CAD: 0.18 } });
+      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { rates: { USD: 0.128, CAD: 0.18 } } });
       const result = await api.getExchangeRates();
       expect(result).toEqual({ USD: 0.128, CAD: 0.18 });
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/exchange-rates/HKD');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/exchange-rates');
     });
 
     it('throws on network error', async () => {
@@ -29,7 +29,7 @@ describe('api — extended endpoint coverage', () => {
   describe('getBudgets', () => {
     it('returns budget array', async () => {
       const budgets = [{ category: 'Food & Drink', limit: 3000 }];
-      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: budgets });
+      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { budgets } });
       const result = await api.getBudgets();
       expect(result).toEqual(budgets);
       expect(mockedAxios.get).toHaveBeenCalledWith('/api/budgets');
@@ -42,16 +42,16 @@ describe('api — extended endpoint coverage', () => {
   });
 
   describe('saveBudgets', () => {
-    it('posts budget array and returns response', async () => {
+    it('puts budget array and returns response', async () => {
       const budgets = [{ category: 'Food & Drink', limit: 3000 }];
-      (mockedAxios.post as jest.Mock).mockResolvedValueOnce({ data: budgets });
+      (mockedAxios.put as jest.Mock).mockResolvedValueOnce({ data: { budgets } });
       const result = await api.saveBudgets(budgets);
       expect(result).toEqual(budgets);
-      expect(mockedAxios.post).toHaveBeenCalledWith('/api/budgets', budgets);
+      expect(mockedAxios.put).toHaveBeenCalledWith('/api/budgets', { budgets });
     });
 
-    it('posts empty array', async () => {
-      (mockedAxios.post as jest.Mock).mockResolvedValueOnce({ data: [] });
+    it('puts empty array', async () => {
+      (mockedAxios.put as jest.Mock).mockResolvedValueOnce({ data: { budgets: [] } });
       const result = await api.saveBudgets([]);
       expect(result).toEqual([]);
     });
@@ -60,21 +60,21 @@ describe('api — extended endpoint coverage', () => {
   describe('getNetWorth', () => {
     it('returns net worth snapshots', async () => {
       const snapshots = [{ _id: 's1', date: '2026-01-01', netWorth: 50000 }];
-      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: snapshots });
+      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { data: snapshots } });
       const result = await api.getNetWorth();
       expect(result).toEqual(snapshots);
     });
 
     it('accepts months parameter', async () => {
-      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: [] });
-      await api.getNetWorth(12);
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/net-worth?months=12');
+      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { data: [] } });
+      await api.getNetWorth(6);
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/net-worth?months=6');
     });
 
-    it('defaults to 6 months', async () => {
-      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: [] });
+    it('defaults to 12 months', async () => {
+      (mockedAxios.get as jest.Mock).mockResolvedValueOnce({ data: { data: [] } });
       await api.getNetWorth();
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/net-worth?months=6');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/net-worth?months=12');
     });
   });
 
