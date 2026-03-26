@@ -24,6 +24,10 @@ jest.mock('../../../hooks/useItemPresets', () => ({
   useItemPresets: () => ({ presets: {}, setPreset: jest.fn(), deletePreset: jest.fn() }),
 }));
 
+jest.mock('../../../hooks/useRecurring', () => ({
+  useRecurring: () => ({ items: [], addItem: jest.fn(), markApplied: jest.fn() }),
+}));
+
 const defaultProps = {
   open: true,
   onClose: jest.fn(),

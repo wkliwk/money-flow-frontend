@@ -28,6 +28,7 @@ import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
 import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
@@ -422,6 +423,16 @@ const MainLayout: React.FC = () => {
               Offline
             </Typography>
           )}
+          <Button
+            startIcon={<FileDownloadIcon />}
+            onClick={handleExport}
+            disabled={transactions.length === 0}
+            sx={{ ml: 2, fontSize: '0.75rem' }}
+            variant="outlined"
+            size="small"
+          >
+            Export
+          </Button>
         </Toolbar>
       </AppBar>
 
