@@ -37,6 +37,10 @@ jest.mock('../../../hooks/useBudgets', () => ({
   BUDGET_CATEGORIES: ['Food & Drink', 'Transport', 'Shopping'],
 }));
 
+jest.mock('../../../hooks/useItemPresets', () => ({
+  useItemPresets: () => ({ presets: {}, setPreset: jest.fn(), deletePreset: jest.fn() }),
+}));
+
 const renderWithTheme = (ui: React.ReactElement) =>
   render(<AppThemeProvider>{ui}</AppThemeProvider>);
 

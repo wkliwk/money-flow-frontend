@@ -152,18 +152,6 @@ describe('MainLayout', () => {
     });
   });
 
-  it('navigates to Items tab when clicked', async () => {
-    renderMainLayout();
-    await waitFor(() => screen.getAllByText('Home').length > 0);
-    const itemsLabels = screen.getAllByText('Items');
-    await act(async () => {
-      fireEvent.click(itemsLabels[itemsLabels.length - 1]);
-    });
-    await waitFor(() => {
-      expect(screen.getByText('Item Presets')).toBeInTheDocument();
-    });
-  });
-
   it('shows FAB + button', async () => {
     renderMainLayout();
     await waitFor(() => {
