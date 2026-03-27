@@ -152,12 +152,12 @@ describe('MainLayout', () => {
     });
   });
 
-  it('navigates to Items tab when clicked', async () => {
+  it('shows Item Presets in Settings tab', async () => {
     renderMainLayout();
     await waitFor(() => screen.getAllByText('Home').length > 0);
-    const itemsLabels = screen.getAllByText('Items');
+    const settingsLabels = screen.getAllByText('Settings');
     await act(async () => {
-      fireEvent.click(itemsLabels[itemsLabels.length - 1]);
+      fireEvent.click(settingsLabels[settingsLabels.length - 1]);
     });
     await waitFor(() => {
       expect(screen.getByText('Item Presets')).toBeInTheDocument();

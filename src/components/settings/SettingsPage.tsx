@@ -29,7 +29,9 @@ import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
+import { useItemPresets } from '../../hooks/useItemPresets';
 import { TransactionType } from '../../types';
+import ManageItemsPage from '../items/ManageItemsPage';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
 
@@ -306,6 +308,13 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               </Box>
             </Box>
           )}
+        </Box>
+      </Box>
+
+      {/* Item Presets */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <ManageItemsPage />
         </Box>
       </Box>
 

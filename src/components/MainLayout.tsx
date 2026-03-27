@@ -28,7 +28,6 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
@@ -56,7 +55,6 @@ import QuickExpenseInput from './expenses/QuickExpenseInput';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
-import ManageItemsPage from './items/ManageItemsPage';
 import NetWorthPage from './networth/NetWorthPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
@@ -485,7 +483,6 @@ const MainLayout: React.FC = () => {
   const navItems = [
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
-    { label: 'Items', icon: <CategoryIcon /> },
     { label: 'Net Worth', icon: <AccountBalanceIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
@@ -895,13 +892,11 @@ const MainLayout: React.FC = () => {
             </>
           )}
 
-          {activeTab === 2 && <ManageItemsPage />}
-
-          {activeTab === 3 && (
+          {activeTab === 2 && (
             <NetWorthPage convert={convert} symbol={symbol} />
           )}
 
-          {activeTab === 4 && (
+          {activeTab === 3 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -931,7 +926,6 @@ const MainLayout: React.FC = () => {
         >
           <BottomNavigationAction label="Home" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
-          <BottomNavigationAction label="Items" icon={<CategoryIcon />} />
           <BottomNavigationAction label="Worth" icon={<AccountBalanceIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
