@@ -37,7 +37,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, ReceiptScanResult } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
@@ -282,17 +282,11 @@ const MainLayout: React.FC = () => {
     return map;
   }, [transactions]);
 
-  // description → most recent amount used for that description (for autocomplete)
-  const amountsByDescription = useMemo(() => {
-    const map: Record<string, number> = {};
-    // Sort newest first so first hit is most recent
-    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
-      .forEach((t) => {
-        const key = (t.description?.trim() || t.item || '').toLowerCase();
-        if (key && !map[key]) map[key] = t.amount;
-      });
-    return map;
-  }, [transactions]);
+  // description/item → most recent amount (fetched from API for full history coverage)
+  const [amountsByDescription, setAmountsByDescription] = useState<Record<string, number>>({});
+  useEffect(() => {
+    getLastAmounts().then(setAmountsByDescription).catch(() => {});
+  }, [transactions.length]);
 
   // description → most recent category used for that description (for smart categorization)
   const categoriesByDescription = useMemo(() => {

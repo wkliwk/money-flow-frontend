@@ -78,6 +78,12 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
 
+// Price hints
+export const getLastAmounts = async (): Promise<Record<string, number>> => {
+  const res = await axiosInstance.get('/api/expenses/last-amounts');
+  return res.data;
+};
+
 // Exchange rates
 export interface ExchangeRates {
   [currency: string]: number;
