@@ -221,6 +221,32 @@ export interface ReceiptScanResult {
   confidence: ReceiptConfidence;
 }
 
+// Templates
+export interface APITemplate {
+  _id: string;
+  name: string;
+  amount: number;
+  category?: string;
+  description?: string;
+  type?: string;
+  item?: string;
+  frequency?: string;
+}
+
+export const getTemplates = async (): Promise<APITemplate[]> => {
+  const res = await axiosInstance.get('/api/templates');
+  return res.data.templates;
+};
+
+export const createTemplate = async (data: Omit<APITemplate, '_id'>): Promise<APITemplate> => {
+  const res = await axiosInstance.post('/api/templates', data);
+  return res.data;
+};
+
+export const deleteTemplate = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/templates/${id}`);
+};
+
 // Friends
 export interface Friend {
   id: string;
