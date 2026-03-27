@@ -36,7 +36,9 @@
     "build": "REACT_APP_VERSION=$npm_package_version react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "lint": "eslint --fix . && prettier --write ."
+    "lint": "eslint --fix . && prettier --write .",
+    "test:e2e": "playwright test",
+    "test:e2e:headed": "playwright test --headed"
   },
   "browserslist": {
     "production": [
@@ -51,6 +53,7 @@
     ]
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@typescript-eslint/eslint-plugin": "^5.13.0",
     "@typescript-eslint/parser": "^5.0.0",
     "eslint": "8",
@@ -66,7 +69,9 @@
     "eslint-plugin-promise": "4",
     "eslint-plugin-react": "^7.33.2",
     "eslint-plugin-react-hooks": "^4.6.0",
-    "prettier": "^3.0.3"
+    "prettier": "^3.0.3",
+    "serve": "^14.2.6",
+    "wait-on": "^9.0.4"
   },
   "jest": {
     "coveragePathIgnorePatterns": [
