@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import ExpenseList from '../ExpenseList';
 import { Transaction } from '../../../types';
 import dayjs from 'dayjs';
@@ -144,6 +144,99 @@ describe('ExpenseList (mobile layout)', () => {
     fireEvent.click(screen.getByText('tap to expand note'));
     // After click: expandedNote === t._id, so tap-to-expand hint is hidden
     expect(screen.queryByText('tap to expand note')).not.toBeInTheDocument();
+  });
+});
+
+describe('ExpenseList (mobile pull-to-refresh)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    Object.defineProperty(window, 'ontouchstart', { value: () => {}, writable: true, configurable: true });
+    Object.defineProperty(window, 'scrollY', { value: 0, writable: true, configurable: true });
+  });
+
+  afterEach(() => {
+    // @ts-expect-error resetting touch simulation
+    delete window.ontouchstart;
+  });
+
+  it('calls onRefresh after pull past threshold', async () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} onRefresh={onRefresh} />);
+    const container = screen.getByTestId('pull-refresh-container');
+
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 140 }] }); // 140 * 0.5 = 70 >= 65 threshold
+    await act(async () => { fireEvent.touchEnd(container); });
+
+    await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
+  });
+
+  it('does not call onRefresh for pull below threshold', async () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} onRefresh={onRefresh} />);
+    const container = screen.getByTestId('pull-refresh-container');
+
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 100 }] }); // 100 * 0.5 = 50 < 65 threshold
+    await act(async () => { fireEvent.touchEnd(container); });
+
+    expect(onRefresh).not.toHaveBeenCalled();
+  });
+
+  it('shows determinate spinner while pulling', () => {
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} onRefresh={onRefresh} />);
+    const container = screen.getByTestId('pull-refresh-container');
+
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 80 }] }); // pulling but not released
+
+    expect(screen.getByTestId('pull-refresh-indicator')).toBeInTheDocument();
+  });
+
+  it('shows indeterminate spinner while refreshing after pull', async () => {
+    let resolveRefresh!: () => void;
+    const onRefresh = jest.fn().mockImplementation(
+      () => new Promise<void>((r) => { resolveRefresh = r; }),
+    );
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} onRefresh={onRefresh} />);
+    const container = screen.getByTestId('pull-refresh-container');
+
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 140 }] });
+    fireEvent.touchEnd(container);
+
+    await waitFor(() => expect(screen.getByTestId('pull-refresh-indicator')).toBeInTheDocument());
+
+    await act(async () => { resolveRefresh(); });
+    await waitFor(() => expect(screen.queryByTestId('pull-refresh-indicator')).not.toBeInTheDocument());
+  });
+
+  it('debounces rapid successive pulls', async () => {
+    const mockNow = jest.spyOn(Date, 'now');
+    mockNow.mockReturnValueOnce(1000).mockReturnValueOnce(1500); // 500ms apart < 2000ms debounce
+    const onRefresh = jest.fn().mockResolvedValue(undefined);
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} onRefresh={onRefresh} />);
+    const container = screen.getByTestId('pull-refresh-container');
+
+    // First pull — succeeds
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 140 }] });
+    await act(async () => { fireEvent.touchEnd(container); });
+    await waitFor(() => expect(onRefresh).toHaveBeenCalledTimes(1));
+
+    // Second pull within debounce window — should be ignored
+    fireEvent.touchStart(container, { touches: [{ clientY: 0 }] });
+    fireEvent.touchMove(container, { touches: [{ clientY: 140 }] });
+    await act(async () => { fireEvent.touchEnd(container); });
+
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+    mockNow.mockRestore();
+  });
+
+  it('does not show pull indicator on desktop (no onRefresh)', () => {
+    render(<ExpenseList {...defaultProps} transactions={[makeTransaction()]} />);
+    expect(screen.queryByTestId('pull-refresh-indicator')).not.toBeInTheDocument();
   });
 });
 
