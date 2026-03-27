@@ -16,6 +16,7 @@ import {
   Chip,
   ToggleButtonGroup,
   ToggleButton,
+  Collapse,
 } from '@mui/material';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -25,6 +26,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import { updateExpense } from '../../services/api';
 import NumPad from './NumPad';
@@ -86,6 +88,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
+  const [showMore, setShowMore] = useState(false);
 
   useLayoutEffect(() => {
     if (transaction) {
@@ -109,6 +112,11 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setCustomDate(raw);
       setError('');
       setDeleteConfirm(false);
+      setShowMore(
+        !!(transaction.participants?.length) ||
+        !!(transaction.paymentMethod) ||
+        !!(transaction.notes)
+      );
     }
   }, [transaction]);
 
@@ -334,52 +342,79 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           )}
         </Box>
 
-        <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
-
-        {participants.length > 0 && (
-          <Box sx={{ mt: 1, mb: 0.5 }}>
-            <ToggleButtonGroup
-              value={splitBillMode}
-              exclusive
-              onChange={(_, v) => { if (v) setSplitBillMode(v); }}
-              size="small"
-              sx={{ height: 30 }}
-            >
-              <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
-                Split bill
-              </ToggleButton>
-              <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
-                My treat
-              </ToggleButton>
-            </ToggleButtonGroup>
-          </Box>
-        )}
-
-        <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
-
-        {/* Notes */}
-        <Box sx={{ mt: 1.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
-            <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
-              Notes (optional)
-            </Typography>
-            <Typography variant="caption" sx={{ fontSize: '0.68rem', color: notes.length > 450 ? (notes.length >= 500 ? 'error.main' : 'warning.main') : 'text.disabled' }}>
-              {notes.length}/500
-            </Typography>
-          </Box>
-          <TextField
-            multiline
-            minRows={2}
-            maxRows={4}
-            fullWidth
-            size="small"
-            placeholder="Add a note..."
-            value={notes}
-            onChange={(e) => setNotes(e.target.value.slice(0, 500))}
-            inputProps={{ maxLength: 500 }}
-            sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem' } }}
-          />
+        {/* Collapsible secondary fields */}
+        <Box
+          onClick={() => setShowMore((v) => !v)}
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 0.5,
+            mt: 1.5,
+            py: 0.75,
+            cursor: 'pointer',
+            borderRadius: 2,
+            bgcolor: 'rgba(148,163,184,0.04)',
+            border: '1px solid rgba(148,163,184,0.1)',
+            userSelect: 'none',
+            '&:hover': { bgcolor: 'rgba(148,163,184,0.08)' },
+          }}
+        >
+          <Typography variant="caption" sx={{ fontSize: '0.72rem', color: 'text.secondary', letterSpacing: '0.04em' }}>
+            {showMore ? 'Less options' : 'More options'}
+            {!showMore && (participants.length > 0 || paymentMethod || notes) && ' •'}
+          </Typography>
+          <ExpandMoreIcon sx={{ fontSize: 18, color: 'text.secondary', transition: 'transform 0.2s', transform: showMore ? 'rotate(180deg)' : 'rotate(0)' }} />
         </Box>
+
+        <Collapse in={showMore}>
+          <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+
+          {participants.length > 0 && (
+            <Box sx={{ mt: 1, mb: 0.5 }}>
+              <ToggleButtonGroup
+                value={splitBillMode}
+                exclusive
+                onChange={(_, v) => { if (v) setSplitBillMode(v); }}
+                size="small"
+                sx={{ height: 30 }}
+              >
+                <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  Split bill
+                </ToggleButton>
+                <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  My treat
+                </ToggleButton>
+              </ToggleButtonGroup>
+            </Box>
+          )}
+
+          <PaymentMethodPicker value={paymentMethod} onChange={setPaymentMethod} />
+
+          {/* Notes */}
+          <Box sx={{ mt: 1.5 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.75 }}>
+              <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Notes (optional)
+              </Typography>
+              <Typography variant="caption" sx={{ fontSize: '0.68rem', color: notes.length > 450 ? (notes.length >= 500 ? 'error.main' : 'warning.main') : 'text.disabled' }}>
+                {notes.length}/500
+              </Typography>
+            </Box>
+            <TextField
+              multiline
+              minRows={2}
+              maxRows={4}
+              fullWidth
+              size="small"
+              placeholder="Add a note..."
+              value={notes}
+              onChange={(e) => setNotes(e.target.value.slice(0, 500))}
+              inputProps={{ maxLength: 500 }}
+              sx={{ '& .MuiInputBase-root': { fontSize: '0.85rem' } }}
+            />
+          </Box>
+        </Collapse>
       </DialogContent>
 
       <DialogActions sx={{ p: 2, pt: 1, pb: isMobile ? 'calc(16px + env(safe-area-inset-bottom))' : 2, gap: 1 }}>
