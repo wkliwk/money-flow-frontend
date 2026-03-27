@@ -19,8 +19,8 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import RepeatIcon from '@mui/icons-material/Repeat';
+import EmptyState from '../EmptyState';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NoteIcon from '@mui/icons-material/Notes';
 import { Transaction } from '../../types';
@@ -37,6 +37,8 @@ interface Props {
   convert: (hkd: number) => number;
   symbol: string;
   recurringLabels?: Set<string>;
+  filtersActive?: boolean;
+  onAddClick?: () => void;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -78,7 +80,7 @@ function fmtOriginal(t: Transaction): string | null {
 const SWIPE_REVEAL_PX = 80;
 const SWIPE_THRESHOLD_PX = 60;
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels }) => {
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, onAddClick }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
@@ -130,16 +132,21 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
   }, [onDelete]);
 
   if (transactions.length === 0) {
+    if (filtersActive) {
+      return (
+        <EmptyState
+          heading="No results"
+          subtext="Try adjusting your filters"
+        />
+      );
+    }
     return (
-      <Box sx={{ textAlign: 'center', py: 10 }}>
-        <AccountBalanceWalletIcon sx={{ fontSize: 56, color: 'text.disabled', opacity: 0.4 }} />
-        <Typography variant="h6" color="text.secondary" mt={2} fontWeight={600}>
-          No transactions yet
-        </Typography>
-        <Typography variant="body2" color="text.secondary" mt={0.5}>
-          Tap the + button to record your first one
-        </Typography>
-      </Box>
+      <EmptyState
+        heading="No transactions yet"
+        subtext="Tap + to record your first expense"
+        ctaLabel="Add expense"
+        onCta={onAddClick}
+      />
     );
   }
 

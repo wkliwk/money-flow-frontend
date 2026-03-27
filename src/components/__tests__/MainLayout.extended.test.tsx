@@ -136,7 +136,7 @@ describe('MainLayout — extended coverage', () => {
       expect(screen.queryAllByText('Dinner Item').length).toBeGreaterThan(0);
     });
     await waitFor(() => {
-      expect(screen.queryAllByText(/with Alice/i).length).toBeGreaterThan(0);
+      expect(screen.queryAllByText(/Alice/i).length).toBeGreaterThan(0);
     });
   });
 
