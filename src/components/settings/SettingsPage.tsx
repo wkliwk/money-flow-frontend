@@ -8,18 +8,12 @@ import {
   TextField,
   InputAdornment,
   IconButton,
-  List,
-  ListItem,
-  ListItemText,
   ToggleButtonGroup,
   ToggleButton,
   SvgIcon,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';
-import AddIcon from '@mui/icons-material/Add';
-import TrendingDownIcon from '@mui/icons-material/TrendingDown';
-import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
@@ -31,11 +25,9 @@ import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
-import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
 import FriendsSection from './FriendsSection';
 import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
-import { TransactionType } from '../../types';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
 
@@ -52,15 +44,6 @@ function getUserId(): string {
     return JSON.parse(atob(token.split('.')[1])).userId || '';
   } catch { return ''; }
 }
-
-const emptyRecurring = (): Omit<RecurringItem, 'id'> => ({
-  label: '',
-  item: '',
-  description: '',
-  amount: 0,
-  type: 'expense' as TransactionType,
-  category: '',
-});
 
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: React.ReactNode }[] = [
   { value: 'light', label: 'Light', icon: <LightModeIcon sx={{ fontSize: 16 }} /> },
@@ -101,13 +84,10 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const { symbol, convert } = useFxRates();
   const { enabledCurrencies, toggleCurrency, isEnabled } = useCurrencyPreferences();
   const { budgets, setBudget } = useBudgets();
-  const { items: recurring, addItem: addRecurring, deleteItem: deleteRecurring } = useRecurring();
   const { presets, setPreset, deletePreset } = useItemPresets();
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => [c, budgets[c] ? String(budgets[c]) : '']))
   );
-  const [showRecurringForm, setShowRecurringForm] = useState(false);
-  const [recurringDraft, setRecurringDraft] = useState(emptyRecurring());
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState('');
 
@@ -357,75 +337,6 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Typography>
         {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
         {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
-      </Box>
-
-      {/* Recurring transactions */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            Monthly Recurring
-          </Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1 }}>
-            Auto-prompted at the start of each month.
-          </Typography>
-
-          {recurring.length > 0 && (
-            <List disablePadding sx={{ mb: 1 }}>
-              {recurring.map((r) => (
-                <ListItem key={r.id} disableGutters sx={{ py: 0.75 }}>
-                  <ListItemText
-                    primary={<Typography sx={{ fontSize: '0.85rem', fontWeight: 600 }}>{r.label || r.description}</Typography>}
-                    secondary={<Typography variant="caption" color="text.disabled">{symbol}{convert(r.amount)} · {r.type}{r.item ? ` · ${r.item}` : ''}</Typography>}
-                  />
-                  <IconButton size="small" onClick={() => deleteRecurring(r.id)} sx={{ color: 'error.light', '&:hover': { color: 'error.main' } }}>
-                    <DeleteIcon sx={{ fontSize: 16 }} />
-                  </IconButton>
-                </ListItem>
-              ))}
-            </List>
-          )}
-
-          {!showRecurringForm ? (
-            <Button size="small" startIcon={<AddIcon />} onClick={() => setShowRecurringForm(true)} sx={{ color: 'text.secondary', fontSize: '0.78rem', borderStyle: 'dashed', border: '1px dashed', borderColor: 'divider', borderRadius: 1.5, px: 1.5, py: 0.5 }}>
-              Add recurring
-            </Button>
-          ) : (
-            <Box sx={{ bgcolor: 'action.hover', borderRadius: 2, p: 1.5, border: '1px solid', borderColor: 'divider', mt: 1 }}>
-              <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
-                {(['expense', 'income'] as TransactionType[]).map((t) => (
-                  <Box key={t} onClick={() => setRecurringDraft((d) => ({ ...d, type: t, item: '' }))}
-                    sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer', border: '1.5px solid', borderColor: recurringDraft.type === t ? (t === 'expense' ? (theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.4)' : 'rgba(244,63,94,0.5)') : (theme.palette.mode === 'dark' ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.5)')) : 'divider', bgcolor: recurringDraft.type === t ? (t === 'expense' ? (theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.12)' : 'rgba(244,63,94,0.08)') : (theme.palette.mode === 'dark' ? 'rgba(52,211,153,0.12)' : 'rgba(16,185,129,0.08)')) : 'transparent' }}>
-                    {t === 'expense' ? <TrendingDownIcon sx={{ fontSize: 14, color: 'error.main' }} /> : <TrendingUpIcon sx={{ fontSize: 14, color: 'success.main' }} />}
-                    <Typography variant="caption" fontWeight={700} sx={{ fontSize: '0.72rem', color: recurringDraft.type === t ? (t === 'expense' ? 'error.main' : 'success.main') : 'text.secondary' }}>{t === 'expense' ? 'Expense' : 'Income'}</Typography>
-                  </Box>
-                ))}
-              </Box>
-              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
-                {ITEM_PRESETS.filter((p) => p.type === recurringDraft.type).map((p) => (
-                  <Chip key={p.label} label={p.label} size="small" clickable onClick={() => setRecurringDraft((d) => ({ ...d, item: d.item === p.label ? '' : p.label, category: p.category }))}
-                    sx={{ fontSize: '0.68rem', height: 22, bgcolor: recurringDraft.item === p.label ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.12)') : 'action.hover', color: recurringDraft.item === p.label ? 'primary.main' : 'text.disabled', border: '1px solid', borderColor: recurringDraft.item === p.label ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.35)' : 'rgba(99,102,241,0.3)') : 'divider' }}
-                  />
-                ))}
-              </Box>
-              <TextField label="Label" placeholder='e.g. "Netflix"' size="small" fullWidth value={recurringDraft.label} onChange={(e) => setRecurringDraft((d) => ({ ...d, label: e.target.value }))} sx={{ mb: 1 }} />
-              <TextField label="Description" size="small" fullWidth value={recurringDraft.description} onChange={(e) => setRecurringDraft((d) => ({ ...d, description: e.target.value }))} sx={{ mb: 1 }} />
-              <TextField label="Amount (HKD)" type="number" size="small" fullWidth value={recurringDraft.amount || ''} onChange={(e) => setRecurringDraft((d) => ({ ...d, amount: parseFloat(e.target.value) || 0 }))} sx={{ mb: 1.5 }} inputProps={{ min: 0 }} />
-              <Box sx={{ display: 'flex', gap: 1 }}>
-                <Button size="small" onClick={() => { setShowRecurringForm(false); setRecurringDraft(emptyRecurring()); }} sx={{ color: 'text.secondary' }}>Cancel</Button>
-                <Button size="small" variant="contained" disabled={!recurringDraft.amount || (!recurringDraft.label && !recurringDraft.description)}
-                  onClick={() => {
-                    addRecurring({ ...recurringDraft, label: recurringDraft.label || recurringDraft.description, item: recurringDraft.item || undefined, category: recurringDraft.category || undefined });
-                    setShowRecurringForm(false);
-                    setRecurringDraft(emptyRecurring());
-                  }}
-                  sx={{ flex: 1 }}
-                >
-                  Save
-                </Button>
-              </Box>
-            </Box>
-          )}
-        </Box>
       </Box>
 
       <Button
