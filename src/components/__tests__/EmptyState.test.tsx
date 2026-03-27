@@ -87,6 +87,14 @@ const renderMainLayout = () =>
 
 jest.setTimeout(15000);
 
+const navigateToTransactionsTab = async () => {
+  await waitFor(() => screen.getAllByText('Home').length > 0);
+  const txnLabels = screen.getAllByText('Transactions');
+  await act(async () => {
+    fireEvent.click(txnLabels[txnLabels.length - 1]);
+  });
+};
+
 describe('Empty state on Home tab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -124,5 +132,64 @@ describe('Empty state on Home tab', () => {
       expect(screen.getAllByText(/See all/).length).toBeGreaterThan(0);
     });
     expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+  });
+});
+
+describe('Empty state on Transactions tab', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('shows onboarding empty state when no transactions exist', async () => {
+    mockGetExpenses.mockResolvedValue([]);
+    renderMainLayout();
+    await navigateToTransactionsTab();
+    await waitFor(() => {
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Tap + to record your first expense')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
+  });
+
+  it('onboarding CTA button opens AddExpenseModal', async () => {
+    mockGetExpenses.mockResolvedValue([]);
+    renderMainLayout();
+    await navigateToTransactionsTab();
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
+    });
+    await act(async () => {
+      fireEvent.click(screen.getByRole('button', { name: /add expense/i }));
+    });
+    await waitFor(() => {
+      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+    });
+  });
+
+  it('shows filtered empty state when transactions exist but none match filters', async () => {
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', type: 'expense', date: dayjs().subtract(2, 'year').format('YYYY-MM-DD') }),
+    ]);
+    renderMainLayout();
+    await navigateToTransactionsTab();
+    // The transaction is from 2 years ago, default 'month' preset means it won't appear in filteredTransactions
+    await waitFor(() => {
+      expect(screen.getByText('No results')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /add expense/i })).not.toBeInTheDocument();
+  });
+
+  it('shows transaction list when transactions exist and match filters', async () => {
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', type: 'expense' }),
+    ]);
+    renderMainLayout();
+    await navigateToTransactionsTab();
+    await waitFor(() => {
+      expect(screen.getByText('Coffee')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
+    expect(screen.queryByText('No results')).not.toBeInTheDocument();
   });
 });
