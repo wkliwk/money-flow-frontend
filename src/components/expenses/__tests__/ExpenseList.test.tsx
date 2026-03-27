@@ -35,7 +35,7 @@ describe('ExpenseList (desktop)', () => {
 
   it('shows empty state helper text', () => {
     render(<ExpenseList {...defaultProps} />);
-    expect(screen.getByText(/tap the \+ button/i)).toBeInTheDocument();
+    expect(screen.getByText(/tap \+ to record/i)).toBeInTheDocument();
   });
 
   it('renders transaction descriptions in desktop table', () => {

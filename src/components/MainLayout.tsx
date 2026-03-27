@@ -47,6 +47,7 @@ import SpendingInsights from './dashboard/SpendingInsights';
 import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
+import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal from './expenses/AddExpenseModal';
 import EditExpenseModal from './expenses/EditExpenseModal';
@@ -577,46 +578,12 @@ const MainLayout: React.FC = () => {
           {activeTab === 0 && (
             <>
               {transactions.length === 0 ? (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minHeight: { xs: 'calc(100vh - 200px)', sm: 'auto' },
-                    py: { xs: 0, sm: 8 },
-                  }}
-                >
-                  <Box
-                    sx={{
-                      textAlign: 'center',
-                      maxWidth: 400,
-                      width: '100%',
-                      p: { xs: 3, sm: 4 },
-                      borderRadius: 3,
-                      bgcolor: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
-                      border: `1px solid ${theme.palette.divider}`,
-                      backdropFilter: 'blur(12px)',
-                    }}
-                  >
-                    <Typography sx={{ fontSize: '2.5rem', mb: 1, lineHeight: 1 }}>
-                      {'\uD83D\uDCB8'}
-                    </Typography>
-                    <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5, fontSize: '1.1rem' }}>
-                      Track your first expense
-                    </Typography>
-                    <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mb: 3, lineHeight: 1.5 }}>
-                      Track your first expense to see insights
-                    </Typography>
-                    <Button
-                      variant="contained"
-                      startIcon={<AddIcon />}
-                      onClick={() => setAddOpen(true)}
-                      sx={{ px: 3, py: 1, fontWeight: 700, fontSize: '0.9rem', borderRadius: 2 }}
-                    >
-                      Add first expense
-                    </Button>
-                  </Box>
-                </Box>
+                <EmptyState
+                  heading="Track your first expense"
+                  subtext="Track your first expense to see insights"
+                  ctaLabel="Add first expense"
+                  onCta={() => setAddOpen(true)}
+                />
               ) : (<>
               {/* Recurring prompt banner */}
               {pendingRecurring.length > 0 && (
@@ -871,6 +838,8 @@ const MainLayout: React.FC = () => {
                 convert={convert}
                 symbol={symbol}
                 recurringLabels={recurringLabels}
+                filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all'}
+                onAddClick={() => setAddOpen(true)}
               />
             </>
           )}
