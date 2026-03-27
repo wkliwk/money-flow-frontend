@@ -221,19 +221,47 @@ describe('EditExpenseModal', () => {
     }
   });
 
-  describe('notes field in EditExpenseModal', () => {
-    it('renders Notes (optional) label', () => {
+  describe('collapsible more options', () => {
+    it('shows "More options" toggle button', () => {
       render(<EditExpenseModal {...defaultProps} />);
-      expect(screen.getByText('Notes (optional)')).toBeInTheDocument();
+      expect(screen.getByText('More options')).toBeInTheDocument();
     });
 
-    it('renders notes textarea with placeholder', () => {
-      render(<EditExpenseModal {...defaultProps} />);
+    it('auto-expands when transaction has notes', () => {
+      const txWithNotes = { ...transaction, notes: 'Client dinner' };
+      render(<EditExpenseModal {...defaultProps} transaction={txWithNotes} />);
+      expect(screen.getByText('Less options')).toBeInTheDocument();
       expect(screen.getByPlaceholderText('Add a note...')).toBeInTheDocument();
     });
 
-    it('shows 0/500 counter when no notes on transaction', () => {
+    it('auto-expands when transaction has payment method', () => {
+      const txWithPM = { ...transaction, paymentMethod: 'Cash' as const };
+      render(<EditExpenseModal {...defaultProps} transaction={txWithPM} />);
+      expect(screen.getByText('Less options')).toBeInTheDocument();
+    });
+  });
+
+  describe('notes field in EditExpenseModal', () => {
+    const expandMore = () => {
+      const toggle = screen.getByText('More options');
+      fireEvent.click(toggle);
+    };
+
+    it('renders Notes (optional) label after expanding', () => {
       render(<EditExpenseModal {...defaultProps} />);
+      expandMore();
+      expect(screen.getByText('Notes (optional)')).toBeInTheDocument();
+    });
+
+    it('renders notes textarea with placeholder after expanding', () => {
+      render(<EditExpenseModal {...defaultProps} />);
+      expandMore();
+      expect(screen.getByPlaceholderText('Add a note...')).toBeInTheDocument();
+    });
+
+    it('shows 0/500 counter after expanding', () => {
+      render(<EditExpenseModal {...defaultProps} />);
+      expandMore();
       expect(screen.getByText('0/500')).toBeInTheDocument();
     });
 
@@ -254,6 +282,7 @@ describe('EditExpenseModal', () => {
       const { updateExpense } = require('../../../services/api');
       (updateExpense as jest.Mock).mockResolvedValueOnce({ ...transaction });
       render(<EditExpenseModal {...defaultProps} />);
+      expandMore();
       const notesInput = screen.getByPlaceholderText('Add a note...');
       await act(async () => { fireEvent.change(notesInput, { target: { value: 'Reimbursement pending' } }); });
       const saveBtn = screen.getByRole('button', { name: /^save$/i });
