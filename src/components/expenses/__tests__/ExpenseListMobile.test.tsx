@@ -74,10 +74,16 @@ describe('ExpenseList (mobile layout)', () => {
     expect(screen.getAllByText('+HK$200').length).toBeGreaterThan(0);
   });
 
-  it('shows participants in mobile card', () => {
+  it('shows participants with treat icon in mobile card', () => {
     const transactions = [makeTransaction({ participants: ['Alice', 'Bob'] })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    expect(screen.getByText(/with Alice, Bob/)).toBeInTheDocument();
+    expect(screen.getByText(/treat · Alice, Bob/)).toBeInTheDocument();
+  });
+
+  it('shows participants with split icon in mobile card', () => {
+    const transactions = [makeTransaction({ participants: ['Alice', 'Bob'], splitBill: true })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText(/split · Alice, Bob/)).toBeInTheDocument();
   });
 
   it('shows daily expense total in group header', () => {
