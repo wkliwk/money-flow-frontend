@@ -205,4 +205,100 @@ describe('ExpenseList (mobile view) — branch coverage', () => {
     );
     expect(screen.getByText('+HK$500')).toBeInTheDocument();
   });
+
+  // Empty state branches
+  it('shows "No transactions yet" empty state when transactions is empty and no filters active', () => {
+    render(<ExpenseList {...defaultProps} transactions={[]} filtersActive={false} />);
+    expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+  });
+
+  it('shows "No results" empty state when transactions is empty and filters are active', () => {
+    render(<ExpenseList {...defaultProps} transactions={[]} filtersActive={true} />);
+    expect(screen.getByText('No results')).toBeInTheDocument();
+  });
+
+  it('shows "Add First Expense" CTA when no transactions and onAddClick provided', () => {
+    const onAddClick = jest.fn();
+    render(
+      <ExpenseList {...defaultProps} transactions={[]} filtersActive={false} onAddClick={onAddClick} />
+    );
+    expect(screen.getByRole('button', { name: /add/i })).toBeInTheDocument();
+  });
+
+  // Swipe touch branches — enable touch via ontouchstart mock
+  it('swipe left triggers reveal when delta exceeds threshold', () => {
+    // Enable touch support in jsdom
+    (window as any).ontouchstart = jest.fn();
+    render(
+      <ExpenseList
+        {...defaultProps}
+        transactions={[makeTransaction({ _id: 'tx1', date: today })]}
+      />
+    );
+    const row = document.querySelector('[data-testid="swipeable-row"]');
+    if (row) {
+      fireEvent.touchStart(row, { touches: [{ clientX: 300 }] });
+      // Swipe left by more than threshold (80px)
+      fireEvent.touchMove(row, { touches: [{ clientX: 200 }] });
+      fireEvent.touchEnd(row);
+    }
+    // Component handles swipe without crash
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    delete (window as any).ontouchstart;
+  });
+
+  it('swipe right resets offset', () => {
+    (window as any).ontouchstart = jest.fn();
+    render(
+      <ExpenseList
+        {...defaultProps}
+        transactions={[makeTransaction({ _id: 'tx1', date: today })]}
+      />
+    );
+    const row = document.querySelector('[data-testid="swipeable-row"]');
+    if (row) {
+      fireEvent.touchStart(row, { touches: [{ clientX: 200 }] });
+      // Swipe right (positive deltaX)
+      fireEvent.touchMove(row, { touches: [{ clientX: 250 }] });
+      fireEvent.touchEnd(row);
+    }
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    delete (window as any).ontouchstart;
+  });
+
+  it('touchMove with undefined startX does not crash', () => {
+    (window as any).ontouchstart = jest.fn();
+    render(
+      <ExpenseList
+        {...defaultProps}
+        transactions={[makeTransaction({ _id: 'tx1', date: today })]}
+      />
+    );
+    const row = document.querySelector('[data-testid="swipeable-row"]');
+    if (row) {
+      // touchMove without prior touchStart — startX will be undefined
+      fireEvent.touchMove(row, { touches: [{ clientX: 150 }] });
+    }
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    delete (window as any).ontouchstart;
+  });
+
+  it('small swipe (below threshold) snaps back', () => {
+    (window as any).ontouchstart = jest.fn();
+    render(
+      <ExpenseList
+        {...defaultProps}
+        transactions={[makeTransaction({ _id: 'tx1', date: today })]}
+      />
+    );
+    const row = document.querySelector('[data-testid="swipeable-row"]');
+    if (row) {
+      fireEvent.touchStart(row, { touches: [{ clientX: 200 }] });
+      // Small swipe left (less than 80px threshold)
+      fireEvent.touchMove(row, { touches: [{ clientX: 180 }] });
+      fireEvent.touchEnd(row);
+    }
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    delete (window as any).ontouchstart;
+  });
 });

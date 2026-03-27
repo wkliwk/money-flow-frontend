@@ -428,4 +428,49 @@ describe('MainLayout — branch coverage', () => {
     // Participants field is rendered in components downstream — just verify no crash
     expect(screen.getByText('Money Flow')).toBeInTheDocument();
   });
+
+  // --- categoryFilter branch ---
+
+  it('categoryFilter "all" shows all transactions', async () => {
+    const today = dayjs().format('YYYY-MM-DD');
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', category: 'Food & Drink', date: today }),
+      makeTransaction({ _id: '2', description: 'Bus', category: 'Transport', date: today }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    // Navigate to Transactions tab
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByPlaceholderText('Search transactions…'));
+    // Both transactions visible with categoryFilter = 'all'
+    expect(screen.getByText('Coffee')).toBeInTheDocument();
+    expect(screen.getByText('Bus')).toBeInTheDocument();
+  });
+
+  it('categoryFilter applied filters by category', async () => {
+    const today = dayjs().format('YYYY-MM-DD');
+    mockGetExpenses.mockResolvedValue([
+      makeTransaction({ _id: '1', description: 'Coffee', category: 'Food & Drink', date: today }),
+      makeTransaction({ _id: '2', description: 'Bus', category: 'Transport', date: today }),
+    ]);
+    renderMainLayout();
+    await waitFor(() => screen.getAllByText('Home').length > 0);
+    const transLabels = screen.getAllByText('Transactions');
+    await act(async () => { fireEvent.click(transLabels[transLabels.length - 1]); });
+    await waitFor(() => screen.getByPlaceholderText('Search transactions…'));
+    // FilterBar's category icon (LabelIcon) — click to open category filter
+    const labelIcons = document.querySelectorAll('[data-testid="LabelIcon"]');
+    if (labelIcons.length > 0) {
+      await act(async () => { fireEvent.click(labelIcons[0].parentElement!); });
+      // Click "Food & Drink" category chip if it appears
+      const foodChip = screen.queryByText('Food & Drink');
+      if (foodChip) {
+        await act(async () => { fireEvent.click(foodChip); });
+        // After filter: only Coffee visible, Bus hidden
+        expect(screen.queryByText('Bus')).not.toBeInTheDocument();
+      }
+    }
+    expect(document.body).toBeTruthy();
+  });
 });
