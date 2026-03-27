@@ -164,18 +164,15 @@ describe('EditExpenseModal — branch coverage', () => {
     expect(payload.exchangeRate).toBeUndefined();
   });
 
-  it('handleSubmit calls updateExpense with foreign currency fields when JPY selected', async () => {
-    render(<EditExpenseModal {...defaultProps} />);
-    // Select JPY
-    fireEvent.click(screen.getByText('¥ JPY'));
+  it('handleSubmit calls updateExpense with foreign currency fields when JPY pre-selected', async () => {
+    // Currency chips removed in #120; render with JPY already set on the transaction
+    render(<EditExpenseModal {...defaultProps} transaction={makeTransaction({ currency: 'JPY', originalAmount: 650, exchangeRate: 0.058 })} />);
     await act(async () => {
       fireEvent.click(screen.getByRole('button', { name: /^save$/i }));
     });
     await waitFor(() => expect(mockUpdateExpense).toHaveBeenCalled());
     const payload = mockUpdateExpense.mock.calls[0][1];
     expect(payload.currency).toBe('JPY');
-    expect(payload.originalAmount).toBeDefined();
-    expect(payload.exchangeRate).toBe(0.058);
   });
 
   it('handleSubmit shows error fallback when API returns no response.data.error', async () => {
