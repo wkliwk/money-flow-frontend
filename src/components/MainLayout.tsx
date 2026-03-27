@@ -60,6 +60,7 @@ import ManageItemsPage from './items/ManageItemsPage';
 import NetWorthPage from './networth/NetWorthPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
+import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
 
 function getOwnerFromToken(): string {
   try {
@@ -114,6 +115,18 @@ const MainLayout: React.FC = () => {
   const [scanLoading, setScanLoading] = useState(false);
   const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
   const receiptImageUrlRef = useRef<string | null>(null);
+  const [onboardingOpen, setOnboardingOpen] = useState(() => !isOnboardingComplete());
+
+  const handleOnboardingDismiss = useCallback(() => {
+    markOnboardingComplete();
+    setOnboardingOpen(false);
+  }, []);
+
+  const handleOnboardingFab = useCallback(() => {
+    markOnboardingComplete();
+    setOnboardingOpen(false);
+    setAddOpen(true);
+  }, []);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -940,7 +953,13 @@ const MainLayout: React.FC = () => {
         <ReceiptScanButton onFileSelected={handleScanReceipt} loading={scanLoading} />
         <Fab
           color="primary"
-          onClick={() => setAddOpen(true)}
+          onClick={() => {
+            if (onboardingOpen) {
+              handleOnboardingFab();
+            } else {
+              setAddOpen(true);
+            }
+          }}
           variant={isDesktop ? 'extended' : 'circular'}
           sx={{
             px: isDesktop ? 3 : undefined,
@@ -1024,6 +1043,12 @@ const MainLayout: React.FC = () => {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+      <OnboardingFlow
+        open={onboardingOpen}
+        onDismiss={handleOnboardingDismiss}
+        onFabClick={handleOnboardingFab}
+      />
 
       <Snackbar
         open={undoSnackbar}
