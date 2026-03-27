@@ -28,11 +28,25 @@ beforeEach(() => {
 });
 
 describe('api service', () => {
-  it('getExpenses calls GET /api/expenses and returns data', async () => {
-    (mockedAxios.get as jest.Mock).mockResolvedValue({ data: { data: [sampleExpense] } });
+  it('getExpenses calls GET /api/expenses with pagination and returns all data', async () => {
+    (mockedAxios.get as jest.Mock).mockResolvedValue({ data: { data: [sampleExpense], page: 1, pages: 1 } });
     const result = await getExpenses();
-    expect(mockedAxios.get).toHaveBeenCalledWith('/api/expenses');
+    expect(mockedAxios.get).toHaveBeenCalledWith('/api/expenses', { params: { limit: 100, page: 1 } });
     expect(result).toEqual([sampleExpense]);
+  });
+
+  it('getExpenses fetches all pages when pages > 1', async () => {
+    const expense1 = { ...sampleExpense, _id: '1' };
+    const expense2 = { ...sampleExpense, _id: '2' };
+    const expense3 = { ...sampleExpense, _id: '3' };
+    (mockedAxios.get as jest.Mock)
+      .mockResolvedValueOnce({ data: { data: [expense1, expense2], page: 1, pages: 2 } })
+      .mockResolvedValueOnce({ data: { data: [expense3], page: 2, pages: 2 } });
+    const result = await getExpenses();
+    expect(mockedAxios.get).toHaveBeenCalledTimes(2);
+    expect(mockedAxios.get).toHaveBeenNthCalledWith(1, '/api/expenses', { params: { limit: 100, page: 1 } });
+    expect(mockedAxios.get).toHaveBeenNthCalledWith(2, '/api/expenses', { params: { limit: 100, page: 2 } });
+    expect(result).toEqual([expense1, expense2, expense3]);
   });
 
   it('getExpense calls GET /api/expenses/:id', async () => {

@@ -1,5 +1,5 @@
 import axiosInstance from '../axiosInstance';
-import { TransactionRequest } from '../types';
+import { Transaction, TransactionRequest } from '../types';
 import { setToken } from './auth';
 import { ThemePreference } from '../theme';
 
@@ -42,8 +42,21 @@ export const patchUserPreferences = async (prefs: { themePreference: ThemePrefer
 
 // Expenses
 export const getExpenses = async () => {
-  const res = await axiosInstance.get('/api/expenses');
-  return res.data.data; // API returns { data, total, page, pages }
+  const allExpenses: Transaction[] = [];
+  let page = 1;
+  let hasMorePages = true;
+
+  while (hasMorePages) {
+    const res = await axiosInstance.get('/api/expenses', {
+      params: { limit: 100, page },
+    });
+    allExpenses.push(...res.data.data);
+    const { pages } = res.data;
+    hasMorePages = page < pages;
+    page++;
+  }
+
+  return allExpenses;
 };
 
 export const getExpense = async (id: string) => {
