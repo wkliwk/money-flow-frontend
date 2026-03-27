@@ -380,7 +380,7 @@ describe('AddExpenseModal', () => {
     });
   });
 
-  describe.skip('duplicate detection (409 response)', () => {
+  describe('duplicate detection (409 response)', () => {
     const fillAndSubmit = async (onSubmit: jest.Mock, saveButton = /^save$/i) => {
       render(<AddExpenseModal {...defaultProps} onSubmit={onSubmit} />);
       const descInput = screen.getByPlaceholderText(/McDonald/i) as HTMLInputElement;
