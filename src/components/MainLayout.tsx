@@ -64,6 +64,7 @@ import RecurringPage from './recurring/RecurringPage';
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
 import SpendingInsightsPage from './insights/SpendingInsightsPage';
+import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 
 function getOwnerFromToken(): string {
   try {
@@ -308,6 +309,8 @@ const MainLayout: React.FC = () => {
       });
     return map;
   }, [transactions]);
+
+  const smartSuggestions = useSmartSuggestions(transactions);
 
   const handlePresetChange = (p: DatePreset) => {
     setDatePreset(p);
@@ -1016,11 +1019,13 @@ const MainLayout: React.FC = () => {
         onSubmit={handleAdd}
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
-        knownParticipants={knownParticipants}
+        knownParticipants={smartSuggestions.rankedParticipants}
         recentItems={recentItems}
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
         receiptPrefill={receiptPrefill}
+        participantsForItem={smartSuggestions.participantsForItem}
+        timeRelevantItems={smartSuggestions.timeRelevantItems}
       />
 
       <QuickExpenseInput
