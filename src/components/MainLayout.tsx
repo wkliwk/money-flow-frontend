@@ -285,7 +285,14 @@ const MainLayout: React.FC = () => {
   // description/item → most recent amount (fetched from API for full history coverage)
   const [amountsByDescription, setAmountsByDescription] = useState<Record<string, number>>({});
   useEffect(() => {
-    getLastAmounts().then(setAmountsByDescription).catch(() => {});
+    try {
+      const result = getLastAmounts();
+      if (result && typeof result.then === 'function') {
+        result.then(setAmountsByDescription).catch(() => {});
+      }
+    } catch {
+      // Silently handle mock/test environments
+    }
   }, [transactions.length]);
 
   // description → most recent category used for that description (for smart categorization)

@@ -25,13 +25,49 @@ const mockCreateExpense = jest.fn().mockResolvedValue(
 const mockDeleteExpense = jest.fn().mockResolvedValue({});
 const mockGetExpense = jest.fn().mockResolvedValue(makeTransaction({ _id: '1' }));
 
-jest.mock('../../services/api', () => ({
-  getExpenses: (...args: unknown[]) => mockGetExpenses(...args),
-  getExpense: (...args: unknown[]) => mockGetExpense(...args),
-  createExpense: (...args: unknown[]) => mockCreateExpense(...args),
-  deleteExpense: (...args: unknown[]) => mockDeleteExpense(...args),
-  updateExpense: jest.fn().mockResolvedValue({}),
-}));
+const mockApiModule: Record<string, jest.Mock> = {};
+jest.mock('../../services/api', () => {
+  const resolvedEmpty = () => Promise.resolve({});
+  const resolvedArray = () => Promise.resolve([]);
+  const resolvedUndef = () => Promise.resolve(undefined);
+  return {
+    __esModule: true,
+    getExpenses: (...args: unknown[]) => mockGetExpenses(...args),
+    getExpense: (...args: unknown[]) => mockGetExpense(...args),
+    createExpense: (...args: unknown[]) => mockCreateExpense(...args),
+    deleteExpense: (...args: unknown[]) => mockDeleteExpense(...args),
+    updateExpense: jest.fn(resolvedEmpty),
+    getLastAmounts: jest.fn(resolvedEmpty),
+    scanReceipt: jest.fn(resolvedEmpty),
+    getMonthlyReport: jest.fn(resolvedArray),
+    getPriceHistory: jest.fn(() => Promise.resolve({ history: [], stats: null })),
+    sendFriendRequest: jest.fn(resolvedEmpty),
+    getFriends: jest.fn(resolvedArray),
+    getPendingRequests: jest.fn(() => Promise.resolve([])),
+    acceptFriend: jest.fn(resolvedUndef),
+    rejectFriend: jest.fn(resolvedUndef),
+    removeFriend: jest.fn(resolvedUndef),
+    getNetWorth: jest.fn(resolvedArray),
+    getLatestNetWorth: jest.fn(() => Promise.resolve(null)),
+    createNetWorth: jest.fn(resolvedEmpty),
+    deleteNetWorthSnapshot: jest.fn(resolvedUndef),
+    getBudgets: jest.fn(() => Promise.resolve([])),
+    saveBudgets: jest.fn(resolvedArray),
+    getRecurring: jest.fn(() => Promise.resolve([])),
+    createRecurring: jest.fn(resolvedEmpty),
+    deleteRecurringAPI: jest.fn(resolvedUndef),
+    getUserMe: jest.fn(() => Promise.resolve({ _id: '1', email: 'test@test.com', themePreference: 'system' })),
+    patchUserPreferences: jest.fn(resolvedUndef),
+    getExchangeRates: jest.fn(() => Promise.resolve({ HKD: 1 })),
+    register: jest.fn(resolvedUndef),
+    login: jest.fn(resolvedUndef),
+    loginWithGoogle: jest.fn(resolvedUndef),
+    loginWithApple: jest.fn(resolvedUndef),
+  };
+});
+
+// Mock FriendsSection to avoid API dependency
+jest.mock('../../components/settings/FriendsSection', () => () => <div data-testid="friends-section">Friends</div>);
 
 // Mock recharts
 jest.mock('recharts', () => ({

@@ -31,6 +31,32 @@ jest.mock('../../services/api', () => ({
   createExpense: (...args: unknown[]) => mockCreateExpense(...args),
   deleteExpense: (...args: unknown[]) => mockDeleteExpense(...args),
   updateExpense: jest.fn().mockResolvedValue({}),
+  getLastAmounts: jest.fn().mockResolvedValue({}),
+  scanReceipt: jest.fn().mockResolvedValue({}),
+  getMonthlyReport: jest.fn().mockResolvedValue([]),
+  getPriceHistory: jest.fn().mockResolvedValue({ history: [], stats: null }),
+  sendFriendRequest: jest.fn().mockResolvedValue({}),
+  getFriends: jest.fn().mockResolvedValue([]),
+  getPendingRequests: jest.fn().mockResolvedValue([]),
+  acceptFriend: jest.fn().mockResolvedValue(undefined),
+  rejectFriend: jest.fn().mockResolvedValue(undefined),
+  removeFriend: jest.fn().mockResolvedValue(undefined),
+  getNetWorth: jest.fn().mockResolvedValue([]),
+  getLatestNetWorth: jest.fn().mockResolvedValue(null),
+  createNetWorth: jest.fn().mockResolvedValue({}),
+  deleteNetWorthSnapshot: jest.fn().mockResolvedValue(undefined),
+  getBudgets: jest.fn().mockResolvedValue([]),
+  saveBudgets: jest.fn().mockResolvedValue([]),
+  getRecurring: jest.fn().mockResolvedValue([]),
+  createRecurring: jest.fn().mockResolvedValue({}),
+  deleteRecurringAPI: jest.fn().mockResolvedValue(undefined),
+  getUserMe: jest.fn().mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system' }),
+  patchUserPreferences: jest.fn().mockResolvedValue(undefined),
+  getExchangeRates: jest.fn().mockResolvedValue({ HKD: 1 }),
+  register: jest.fn().mockResolvedValue(undefined),
+  login: jest.fn().mockResolvedValue(undefined),
+  loginWithGoogle: jest.fn().mockResolvedValue(undefined),
+  loginWithApple: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('recharts', () => ({
@@ -64,6 +90,8 @@ jest.mock('../../hooks/useItemPresets', () => ({
 jest.mock('../../hooks/useTemplates', () => ({
   useTemplates: () => ({ templates: [], addTemplate: jest.fn(), deleteTemplate: jest.fn() }),
 }));
+jest.mock('../../components/settings/FriendsSection', () => () => null);
+
 
 const renderMainLayout = () => render(<MemoryRouter><MainLayout /></MemoryRouter>);
 
