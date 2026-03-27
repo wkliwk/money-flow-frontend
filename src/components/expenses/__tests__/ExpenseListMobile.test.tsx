@@ -137,6 +137,22 @@ describe('ExpenseList (mobile layout)', () => {
     expect(screen.getByText('tap to expand note')).toBeInTheDocument();
   });
 
+  it('shows transaction date in user-friendly format on mobile card (current year)', () => {
+    const currentYear = new Date().getFullYear();
+    const currentYearDate = `${currentYear}-03-15`;
+    const transactions = [makeTransaction({ date: currentYearDate })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    // Should show "15 Mar" format (day month, no year)
+    expect(screen.getByText('15 Mar')).toBeInTheDocument();
+  });
+
+  it('shows transaction date in user-friendly format on mobile card (past year)', () => {
+    const transactions = [makeTransaction({ date: '2025-03-15' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    // Should show "15 Mar, 2025" format
+    expect(screen.getByText('15 Mar, 2025')).toBeInTheDocument();
+  });
+
   it('clicking notes section on mobile card toggles expanded state', () => {
     const transactions = [makeTransaction({ _id: 'n2', notes: 'Reimbursable expense' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
