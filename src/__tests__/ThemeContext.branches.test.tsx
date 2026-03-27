@@ -16,17 +16,22 @@ jest.mock('../services/api', () => ({
   patchUserPreferences: (...args: unknown[]) => mockPatchUserPreferences(...args),
 }));
 
-jest.mock('../theme', () => ({
-  getStoredThemePreference: () => 'system',
-  storeThemePreference: jest.fn(),
-  resolveTheme: () => ({
-    palette: { mode: 'dark' },
-    components: {},
-  }),
-  ThemePreference: {},
-  darkTheme: { palette: { mode: 'dark' }, components: {} },
-  lightTheme: { palette: { mode: 'light' }, components: {} },
-}));
+// Use a minimal theme-like object that has enough for MUI's CssBaseline
+// The real theme is tested in theme.branches.test.ts — here we just need rendering to work
+jest.mock('../theme', () => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
+  const { createTheme } = require('@mui/material/styles');
+  const dark = createTheme({ palette: { mode: 'dark' } });
+  const light = createTheme({ palette: { mode: 'light' } });
+  return {
+    getStoredThemePreference: () => 'system',
+    storeThemePreference: jest.fn(),
+    resolveTheme: (_pref: string, _systemDark: boolean) => dark,
+    ThemePreference: {},
+    darkTheme: dark,
+    lightTheme: light,
+  };
+});
 
 jest.setTimeout(10000);
 
@@ -88,7 +93,6 @@ describe('ThemeContext — branch coverage', () => {
       </AppThemeProvider>
     );
     await act(async () => { jest.advanceTimersByTime(100); });
-    // Should not crash — the if (!user.themePreference) branch falls through silently
     expect(mockGetUserMe).toHaveBeenCalled();
   });
 
@@ -101,7 +105,6 @@ describe('ThemeContext — branch coverage', () => {
       </AppThemeProvider>
     );
     await act(async () => { jest.advanceTimersByTime(200); });
-    // Should not crash
     expect(mockGetUserMe).toHaveBeenCalled();
   });
 
