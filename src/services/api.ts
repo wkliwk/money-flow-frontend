@@ -84,6 +84,26 @@ export const getLastAmounts = async (): Promise<Record<string, number>> => {
   return res.data;
 };
 
+// Price history
+export interface PriceHistoryStats {
+  count: number;
+  latest: number;
+  min: number;
+  max: number;
+  avg: number;
+}
+
+export interface PriceHistoryResponse {
+  item: string;
+  history: Array<{ amount: number; date: string; description?: string; item?: string; category?: string }>;
+  stats: PriceHistoryStats | null;
+}
+
+export const getPriceHistory = async (item: string): Promise<PriceHistoryResponse> => {
+  const res = await axiosInstance.get(`/api/expenses/price-history/${encodeURIComponent(item)}`);
+  return res.data;
+};
+
 // Exchange rates
 export interface ExchangeRates {
   [currency: string]: number;

@@ -40,6 +40,7 @@ import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
 import { useRecurring } from '../../hooks/useRecurring';
+import { usePriceAlert } from '../../hooks/usePriceAlert';
 
 type RecurringFrequency = 'monthly' | 'weekly' | 'daily';
 
@@ -261,6 +262,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     }
   };
 
+  const priceAlert = usePriceAlert(item, amount);
   const isDark = theme.palette.mode === 'dark';
   const typeCards = [
     {
@@ -417,6 +419,16 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           fxRate={fxRate}
           compact
         />
+
+        {/* Price anomaly warning */}
+        {priceAlert.show && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1, py: 0.75, px: 1.5, borderRadius: 1.5, bgcolor: isDark ? 'rgba(251,191,36,0.08)' : 'rgba(245,158,11,0.1)', border: `1px solid ${isDark ? 'rgba(251,191,36,0.25)' : 'rgba(245,158,11,0.3)'}` }}>
+            <WarningAmberIcon sx={{ fontSize: 16, color: 'warning.main', flexShrink: 0 }} />
+            <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', flex: 1 }}>
+              {priceAlert.message}
+            </Typography>
+          </Box>
+        )}
 
         {/* Date — quick chips */}
         <Box sx={{ mt: 1.5 }}>

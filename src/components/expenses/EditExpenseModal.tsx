@@ -26,6 +26,7 @@ import HistoryIcon from '@mui/icons-material/History';
 import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import { updateExpense } from '../../services/api';
@@ -36,6 +37,7 @@ import ParticipantPicker from './ParticipantPicker';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
+import { usePriceAlert } from '../../hooks/usePriceAlert';
 
 interface Props {
   open: boolean;
@@ -69,6 +71,7 @@ function classifyDate(dateStr: string): QuickDate {
 const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { rateForCurrency } = useFxRates();
   const [txCurrency, setTxCurrency] = useState<Currency>('HKD');
@@ -89,6 +92,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [duplicating, setDuplicating] = useState(false);
   const [showMore, setShowMore] = useState(false);
+  const priceAlert = usePriceAlert(item, amount);
 
   useLayoutEffect(() => {
     if (transaction) {
@@ -205,7 +209,6 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     }
   };
 
-  const isDark = theme.palette.mode === 'dark';
   const typeCards = [
     {
       value: 'expense' as TransactionType,
@@ -305,6 +308,16 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           fxRate={fxRate}
           compact
         />
+
+        {/* Price anomaly warning */}
+        {priceAlert.show && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mt: 1, py: 0.75, px: 1.5, borderRadius: 1.5, bgcolor: isDark ? 'rgba(251,191,36,0.08)' : 'rgba(245,158,11,0.1)', border: `1px solid ${isDark ? 'rgba(251,191,36,0.25)' : 'rgba(245,158,11,0.3)'}` }}>
+            <WarningAmberIcon sx={{ fontSize: 16, color: 'warning.main', flexShrink: 0 }} />
+            <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', flex: 1 }}>
+              {priceAlert.message}
+            </Typography>
+          </Box>
+        )}
 
         {/* Date — quick chips */}
         <Box sx={{ mt: 1.5 }}>
