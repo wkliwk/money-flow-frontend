@@ -128,4 +128,25 @@ describe('axiosInstance response interceptor — logging branches', () => {
     // Token should NOT be cleared for non-401 errors
     expect(localStorage.getItem('mf_token')).toBe(null);
   });
+
+  it('clears token and redirects to /login on 401 response', async () => {
+    localStorage.setItem('mf_token', 'some-token');
+    // jsdom doesn't support location assignment — replace with writable mock
+    delete (window as any).location;
+    (window as any).location = { href: '' };
+
+    const error = { response: { status: 401 }, config: { url: '/api/expenses' } };
+    await expect(errorFn(error)).rejects.toEqual(error);
+
+    expect(localStorage.getItem('mf_token')).toBeNull();
+    expect((window as any).location.href).toBe('/login');
+  });
+
+  it('rejects without clearing token when error has no response', async () => {
+    localStorage.setItem('mf_token', 'some-token');
+    const error = new Error('Network Error');
+    await expect(errorFn(error)).rejects.toEqual(error);
+    expect(localStorage.getItem('mf_token')).toBe('some-token');
+    localStorage.removeItem('mf_token');
+  });
 });
