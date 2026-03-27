@@ -23,6 +23,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
+import GroupIcon from '@mui/icons-material/Group';
 import EmptyState from '../EmptyState';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NoteIcon from '@mui/icons-material/Notes';
@@ -387,17 +388,19 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 {t.description}
                               </Typography>
                             )}
-                            {t.participants && t.participants.length > 0 && (
+                            {t.participants && t.participants.length > 0 && (() => {
+                              const mode = typeof t.splitBill === 'string' ? t.splitBill : t.splitBill === true ? 'split' : 'treat';
+                              return (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.375, mt: 0.25 }}>
-                                {t.splitBill
-                                  ? <CallSplitIcon sx={{ fontSize: 12, color: '#818cf8' }} />
-                                  : <CardGiftcardIcon sx={{ fontSize: 12, color: '#f472b6' }} />
-                                }
+                                {mode === 'split' ? <CallSplitIcon sx={{ fontSize: 12, color: '#818cf8' }} />
+                                  : mode === 'participate' ? <GroupIcon sx={{ fontSize: 12, color: '#94a3b8' }} />
+                                  : <CardGiftcardIcon sx={{ fontSize: 12, color: '#f472b6' }} />}
                                 <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>
-                                  {t.splitBill ? 'split' : 'treat'} · {t.participants.join(', ')}
+                                  {mode} · {t.participants.join(', ')}
                                 </Typography>
                               </Box>
-                            )}
+                              );
+                            })()}
                             {t.paymentMethod && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
                                 <PaymentIcon sx={{ fontSize: 11, color: 'text.disabled' }} />
@@ -519,15 +522,17 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   </Box>
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
-                  {t.participants && t.participants.length > 0 ? (
+                  {t.participants && t.participants.length > 0 ? (() => {
+                    const mode = typeof t.splitBill === 'string' ? t.splitBill : t.splitBill === true ? 'split' : 'treat';
+                    return (
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {t.splitBill
-                        ? <CallSplitIcon sx={{ fontSize: 14, color: '#818cf8', flexShrink: 0 }} />
-                        : <CardGiftcardIcon sx={{ fontSize: 14, color: '#f472b6', flexShrink: 0 }} />
-                      }
+                      {mode === 'split' ? <CallSplitIcon sx={{ fontSize: 14, color: '#818cf8', flexShrink: 0 }} />
+                        : mode === 'participate' ? <GroupIcon sx={{ fontSize: 14, color: '#94a3b8', flexShrink: 0 }} />
+                        : <CardGiftcardIcon sx={{ fontSize: 14, color: '#f472b6', flexShrink: 0 }} />}
                       {t.participants.join(', ')}
                     </Box>
-                  ) : '—'}
+                    );
+                  })() : '—'}
                 </TableCell>
                 <TableCell>
                   <Chip label={t.type === 'income' ? 'Income' : 'Expense'} color={t.type === 'income' ? 'success' : 'error'} size="small" />
