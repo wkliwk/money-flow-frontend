@@ -14,6 +14,7 @@ import {
   CardContent,
   Collapse,
   Tooltip,
+  CircularProgress,
   useMediaQuery,
   useTheme,
 } from '@mui/material';
@@ -39,6 +40,7 @@ interface Props {
   recurringLabels?: Set<string>;
   filtersActive?: boolean;
   onAddClick?: () => void;
+  onRefresh?: () => Promise<void>;
 }
 
 function getDateKey(dateStr: string | undefined, fallback?: string): string {
@@ -80,7 +82,11 @@ function fmtOriginal(t: Transaction): string | null {
 const SWIPE_REVEAL_PX = 80;
 const SWIPE_THRESHOLD_PX = 60;
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, onAddClick }) => {
+const PULL_THRESHOLD_PX = 65;
+const PULL_MAX_PX = 80;
+const PULL_DEBOUNCE_MS = 2000;
+
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, onAddClick, onRefresh }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
@@ -88,6 +94,62 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
   const [swipeOffset, setSwipeOffset] = useState<Record<string, number>>({});
   const touchStartX = useRef<Record<string, number>>({});
   const isSwiping = useRef<Record<string, boolean>>({});
+
+  // Pull-to-refresh state
+  const [pullY, setPullY] = useState(0);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const pullStartY = useRef(0);
+  const isPullingRef = useRef(false);
+  const pullYRef = useRef(0);
+  const lastRefreshAt = useRef(0);
+
+  const handlePullStart = useCallback((e: React.TouchEvent) => {
+    if (!onRefresh || isRefreshing) return;
+    pullStartY.current = e.touches[0].clientY;
+    isPullingRef.current = false;
+  }, [onRefresh, isRefreshing]);
+
+  const handlePullMove = useCallback((e: React.TouchEvent) => {
+    if (!onRefresh || isRefreshing) return;
+    const scrollTop = window.scrollY || document.documentElement.scrollTop;
+    if (scrollTop > 4) { isPullingRef.current = false; return; }
+    const deltaY = e.touches[0].clientY - pullStartY.current;
+    if (deltaY <= 0) {
+      if (isPullingRef.current) {
+        isPullingRef.current = false;
+        setPullY(0);
+        pullYRef.current = 0;
+      }
+      return;
+    }
+    isPullingRef.current = true;
+    const clamped = Math.min(deltaY * 0.5, PULL_MAX_PX);
+    pullYRef.current = clamped;
+    setPullY(clamped);
+  }, [onRefresh, isRefreshing]);
+
+  const handlePullEnd = useCallback(async () => {
+    if (!onRefresh || !isPullingRef.current) {
+      setPullY(0);
+      pullYRef.current = 0;
+      return;
+    }
+    isPullingRef.current = false;
+    const dist = pullYRef.current;
+    setPullY(0);
+    pullYRef.current = 0;
+    if (dist >= PULL_THRESHOLD_PX) {
+      const now = Date.now();
+      if (now - lastRefreshAt.current < PULL_DEBOUNCE_MS) return;
+      lastRefreshAt.current = now;
+      setIsRefreshing(true);
+      try {
+        await onRefresh();
+      } finally {
+        setIsRefreshing(false);
+      }
+    }
+  }, [onRefresh]);
 
   const handleTouchStart = useCallback((id: string, e: React.TouchEvent) => {
     if (!('ontouchstart' in window)) return;
@@ -168,8 +230,37 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
   return (
     <>
       {isMobile ? (
-        /* ── Mobile: date-grouped card list ── */
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}>
+        /* ── Mobile: date-grouped card list with pull-to-refresh ── */
+        <Box
+          data-testid="pull-refresh-container"
+          onTouchStart={handlePullStart}
+          onTouchMove={handlePullMove}
+          onTouchEnd={handlePullEnd}
+          sx={{ display: 'flex', flexDirection: 'column', gap: 0 }}
+        >
+          {(pullY > 0 || isRefreshing) && (
+            <Box
+              data-testid="pull-refresh-indicator"
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: isRefreshing ? 48 : pullY,
+                opacity: isRefreshing ? 1 : Math.min(pullY / PULL_THRESHOLD_PX, 1),
+                transition: pullY > 0 ? 'none' : 'height 0.2s ease, opacity 0.2s ease',
+              }}
+            >
+              {isRefreshing ? (
+                <CircularProgress size={22} />
+              ) : (
+                <CircularProgress
+                  size={22}
+                  variant="determinate"
+                  value={Math.min((pullY / PULL_THRESHOLD_PX) * 100, 100)}
+                />
+              )}
+            </Box>
+          )}
           {grouped.map((group) => (
             <Box key={group.key} sx={{ mb: 2 }}>
               <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 0.5 }}>

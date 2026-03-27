@@ -877,6 +877,7 @@ const MainLayout: React.FC = () => {
                 recurringLabels={recurringLabels}
                 filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all'}
                 onAddClick={() => setAddOpen(true)}
+                onRefresh={fetchTransactions}
               />
             </>
           )}
