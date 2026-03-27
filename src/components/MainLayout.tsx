@@ -35,6 +35,7 @@ import BarChartIcon from '@mui/icons-material/BarChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
+import RepeatIcon from '@mui/icons-material/Repeat';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
@@ -59,6 +60,7 @@ import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
 import NetWorthPage from './networth/NetWorthPage';
 import SettingsPage from './settings/SettingsPage';
+import RecurringPage from './recurring/RecurringPage';
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
 import SpendingInsightsPage from './insights/SpendingInsightsPage';
@@ -79,7 +81,7 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -492,6 +494,7 @@ const MainLayout: React.FC = () => {
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
     { label: 'Net Worth', icon: <AccountBalanceIcon /> },
     { label: 'Insights', icon: <BarChartIcon /> },
+    { label: 'Recurring', icon: <RepeatIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
 
@@ -592,7 +595,7 @@ const MainLayout: React.FC = () => {
               <ListItemButton
                 key={item.label}
                 selected={activeTab === index}
-                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4)}
+                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5)}
                 sx={{
                   '&.Mui-selected': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: 'primary.main' },
                   '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
@@ -913,6 +916,10 @@ const MainLayout: React.FC = () => {
           )}
 
           {activeTab === 4 && (
+            <RecurringPage />
+          )}
+
+          {activeTab === 5 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -944,6 +951,7 @@ const MainLayout: React.FC = () => {
           <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
           <BottomNavigationAction label="Worth" icon={<AccountBalanceIcon />} />
           <BottomNavigationAction label="Insights" icon={<BarChartIcon />} />
+          <BottomNavigationAction label="Repeat" icon={<RepeatIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
       </Box>

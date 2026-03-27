@@ -12,6 +12,7 @@ export interface RecurringItem {
   category?: string;
   participants?: string[];
   frequency?: 'monthly' | 'weekly' | 'daily';
+  startDate?: string; // ISO date — when recurring begins
   lastApplied?: string; // 'YYYY-MM'
 }
 
@@ -60,6 +61,7 @@ function apiToItem(api: RecurringExpenseAPI, meta: Partial<RecurringItem> = {}):
     item: meta.item,
     participants: meta.participants,
     frequency: FREQ_FROM_API[api.frequency] || 'monthly',
+    startDate: api.start_date || meta.startDate,
     lastApplied: meta.lastApplied,
   };
 }
@@ -116,12 +118,12 @@ export function useRecurring() {
         name: item.label || item.description,
         amount: item.amount,
         category: item.category,
-        start_date: new Date().toISOString(),
+        start_date: item.startDate || new Date().toISOString(),
         frequency: FREQ_TO_API[item.frequency || 'monthly'] || 'MONTHLY',
         description: item.description,
       });
       const meta = loadMeta();
-      meta[created._id] = { type: item.type, item: item.item, participants: item.participants };
+      meta[created._id] = { type: item.type, item: item.item, participants: item.participants, startDate: item.startDate };
       persistMeta(meta);
       metaRef.current = meta;
       const newItem = apiToItem(created, meta[created._id]);
