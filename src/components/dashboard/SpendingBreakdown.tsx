@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { Transaction } from '../../types';
 import { useBudgets } from '../../hooks/useBudgets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
@@ -19,6 +20,7 @@ ITEM_PRESETS.forEach((p) => { ITEM_TO_CATEGORY[p.label] = p.category; });
 const COLORS = ['#818cf8', '#34d399', '#fb7185', '#fbbf24', '#38bdf8', '#a78bfa'];
 
 const SpendingBreakdown: React.FC<Props> = ({ transactions, prevMonthTransactions, convert, symbol, onItemClick }) => {
+  const theme = useTheme();
   const { budgets } = useBudgets();
 
   const prevCategoryTotals = useMemo(() => {
@@ -74,7 +76,7 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, prevMonthTransaction
           const budget = budgets[cat] || budgets[name];
           const catTotal = budget ? (categoryTotals[cat] ?? 0) : null;
           const budgetPct = budget && catTotal ? Math.min((catTotal / budget) * 100, 100) : null;
-          const budgetColor = budgetPct === null ? color : budgetPct >= 100 ? '#fb7185' : budgetPct >= 80 ? '#fbbf24' : '#34d399';
+          const budgetColor = budgetPct === null ? color : budgetPct >= 100 ? theme.palette.error.light : budgetPct >= 80 ? theme.palette.warning.main : theme.palette.success.light;
           const over = budget && catTotal && catTotal > budget;
 
           return (
@@ -83,7 +85,7 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, prevMonthTransaction
                 <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: 'text.primary' }}>{name}</Typography>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
                   {budget && catTotal != null && (
-                    <Typography sx={{ fontSize: '0.68rem', color: over ? '#fb7185' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
+                    <Typography sx={{ fontSize: '0.68rem', color: over ? theme.palette.error.light : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
                       {over
                         ? `+${symbol}${convert(catTotal - budget).toLocaleString(undefined, { maximumFractionDigits: 0 })} over`
                         : `${symbol}${convert(catTotal).toLocaleString(undefined, { maximumFractionDigits: 0 })} / ${symbol}${convert(budget).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
@@ -95,7 +97,7 @@ const SpendingBreakdown: React.FC<Props> = ({ transactions, prevMonthTransaction
                     </Typography>
                   )}
                   {catDelta !== null && (
-                    <Typography sx={{ fontSize: '0.65rem', color: catDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '0.65rem', color: catDelta > 0 ? theme.palette.error.light : theme.palette.success.light, fontWeight: 600 }}>
                       {catDelta > 0 ? '↑' : '↓'}{Math.abs(catDelta)}%
                     </Typography>
                   )}

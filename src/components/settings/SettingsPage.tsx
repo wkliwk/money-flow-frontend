@@ -22,6 +22,7 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import LightModeIcon from '@mui/icons-material/LightMode';
 import DarkModeIcon from '@mui/icons-material/DarkMode';
 import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
+import { useTheme } from '@mui/material/styles';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
@@ -89,6 +90,7 @@ const ThemeToggle: React.FC = () => {
 };
 
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
+  const theme = useTheme();
   const userId = getUserId();
   const { symbol, convert } = useFxRates();
   const { enabledCurrencies, toggleCurrency, isEnabled } = useCurrencyPreferences();
@@ -133,10 +135,10 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                 onClick={() => onCurrencyChange(c as Currency)}
                 sx={{
                   fontSize: '0.72rem', height: 28,
-                  bgcolor: currency === c ? 'rgba(129,140,248,0.18)' : 'action.hover',
+                  bgcolor: currency === c ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.12)') : 'action.hover',
                   color: currency === c ? 'primary.main' : 'text.secondary',
                   border: '1px solid',
-                  borderColor: currency === c ? 'rgba(129,140,248,0.4)' : 'divider',
+                  borderColor: currency === c ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.3)') : 'divider',
                   fontWeight: currency === c ? 700 : 400,
                 }}
               />
@@ -176,10 +178,10 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   aria-disabled={isLastEnabled}
                   sx={{
                     fontSize: '0.72rem', height: 28,
-                    bgcolor: enabled ? 'rgba(129,140,248,0.18)' : 'action.hover',
+                    bgcolor: enabled ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.12)') : 'action.hover',
                     color: enabled ? 'primary.main' : 'text.secondary',
                     border: '1px solid',
-                    borderColor: enabled ? 'rgba(129,140,248,0.4)' : 'divider',
+                    borderColor: enabled ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.3)') : 'divider',
                     fontWeight: enabled ? 700 : 400,
                     opacity: isLastEnabled ? 0.5 : 1,
                     cursor: isLastEnabled ? 'default' : 'pointer',
@@ -273,7 +275,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
                 {(['expense', 'income'] as TransactionType[]).map((t) => (
                   <Box key={t} onClick={() => setRecurringDraft((d) => ({ ...d, type: t, item: '' }))}
-                    sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer', border: '1.5px solid', borderColor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.4)' : 'rgba(52,211,153,0.4)') : 'divider', bgcolor: recurringDraft.type === t ? (t === 'expense' ? 'rgba(251,113,133,0.12)' : 'rgba(52,211,153,0.12)') : 'transparent' }}>
+                    sx={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 0.5, py: 0.75, borderRadius: 1.5, cursor: 'pointer', border: '1.5px solid', borderColor: recurringDraft.type === t ? (t === 'expense' ? (theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.4)' : 'rgba(244,63,94,0.5)') : (theme.palette.mode === 'dark' ? 'rgba(52,211,153,0.4)' : 'rgba(16,185,129,0.5)')) : 'divider', bgcolor: recurringDraft.type === t ? (t === 'expense' ? (theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.12)' : 'rgba(244,63,94,0.08)') : (theme.palette.mode === 'dark' ? 'rgba(52,211,153,0.12)' : 'rgba(16,185,129,0.08)')) : 'transparent' }}>
                     {t === 'expense' ? <TrendingDownIcon sx={{ fontSize: 14, color: 'error.main' }} /> : <TrendingUpIcon sx={{ fontSize: 14, color: 'success.main' }} />}
                     <Typography variant="caption" fontWeight={700} sx={{ fontSize: '0.72rem', color: recurringDraft.type === t ? (t === 'expense' ? 'error.main' : 'success.main') : 'text.secondary' }}>{t === 'expense' ? 'Expense' : 'Income'}</Typography>
                   </Box>
@@ -282,7 +284,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mb: 1 }}>
                 {ITEM_PRESETS.filter((p) => p.type === recurringDraft.type).map((p) => (
                   <Chip key={p.label} label={p.label} size="small" clickable onClick={() => setRecurringDraft((d) => ({ ...d, item: d.item === p.label ? '' : p.label, category: p.category }))}
-                    sx={{ fontSize: '0.68rem', height: 22, bgcolor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.18)' : 'action.hover', color: recurringDraft.item === p.label ? 'primary.main' : 'text.disabled', border: '1px solid', borderColor: recurringDraft.item === p.label ? 'rgba(129,140,248,0.35)' : 'divider' }}
+                    sx={{ fontSize: '0.68rem', height: 22, bgcolor: recurringDraft.item === p.label ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.12)') : 'action.hover', color: recurringDraft.item === p.label ? 'primary.main' : 'text.disabled', border: '1px solid', borderColor: recurringDraft.item === p.label ? (theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.35)' : 'rgba(99,102,241,0.3)') : 'divider' }}
                   />
                 ))}
               </Box>

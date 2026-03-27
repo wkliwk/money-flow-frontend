@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { Box, Typography, TextField, Button, InputAdornment, CircularProgress } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getNetWorth, getLatestNetWorth, createNetWorth, NetWorthSnapshot } from '../../services/api';
 
@@ -22,6 +23,7 @@ const LIABILITY_FIELDS = [
 ] as const;
 
 const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
+  const theme = useTheme();
   const [snapshots, setSnapshots] = useState<NetWorthSnapshot[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -75,17 +77,17 @@ const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
         <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', mb: 0.5 }}>
           Net Worth
         </Typography>
-        <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: netWorth >= 0 ? '#34d399' : '#fb7185', lineHeight: 1.2 }}>
+        <Typography sx={{ fontSize: '2rem', fontWeight: 800, color: netWorth >= 0 ? theme.palette.success.light : theme.palette.error.light, lineHeight: 1.2 }}>
           {netWorth < 0 ? '-' : ''}{symbol}{convert(Math.abs(netWorth)).toLocaleString(undefined, { maximumFractionDigits: 0 })}
         </Typography>
         <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 1 }}>
           <Box>
             <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Assets</Typography>
-            <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#34d399' }}>{symbol}{convert(totalAssets).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+            <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: theme.palette.success.light }}>{symbol}{convert(totalAssets).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
           </Box>
           <Box>
             <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Liabilities</Typography>
-            <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#fb7185' }}>{symbol}{convert(totalLiabilities).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
+            <Typography sx={{ fontSize: '0.9rem', fontWeight: 700, color: theme.palette.error.light }}>{symbol}{convert(totalLiabilities).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>
           </Box>
         </Box>
       </Box>
@@ -99,10 +101,10 @@ const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
           <ResponsiveContainer width="100%" height={180}>
             <LineChart data={chartData}>
               <CartesianGrid strokeDasharray="3 3" stroke="rgba(148,163,184,0.1)" />
-              <XAxis dataKey="month" tick={{ fontSize: 10, fill: '#94a3b8' }} />
-              <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
+              <XAxis dataKey="month" tick={{ fontSize: 10, fill: theme.palette.text.secondary }} />
+              <YAxis tick={{ fontSize: 10, fill: theme.palette.text.secondary }} tickFormatter={(v) => `${symbol}${(v / 1000).toFixed(0)}k`} />
               <Tooltip formatter={(value) => [`${symbol}${convert(Number(value)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`, '']} />
-              <Line type="monotone" dataKey="netWorth" stroke="#818cf8" strokeWidth={2} dot={{ r: 3 }} />
+              <Line type="monotone" dataKey="netWorth" stroke={theme.palette.primary.main} strokeWidth={2} dot={{ r: 3 }} />
             </LineChart>
           </ResponsiveContainer>
         </Box>
@@ -175,7 +177,7 @@ const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
           </Typography>
           {totalAssets > 0 && (
             <Box sx={{ mb: 1.5 }}>
-              <Typography sx={{ fontSize: '0.72rem', color: '#34d399', fontWeight: 600, mb: 0.5 }}>Assets</Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: theme.palette.success.light, fontWeight: 600, mb: 0.5 }}>Assets</Typography>
               {ASSET_FIELDS.filter(({ key }) => assets[key] > 0).map(({ key, label }) => (
                 <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
                   <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>{label}</Typography>
@@ -186,7 +188,7 @@ const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
           )}
           {totalLiabilities > 0 && (
             <Box>
-              <Typography sx={{ fontSize: '0.72rem', color: '#fb7185', fontWeight: 600, mb: 0.5 }}>Liabilities</Typography>
+              <Typography sx={{ fontSize: '0.72rem', color: theme.palette.error.light, fontWeight: 600, mb: 0.5 }}>Liabilities</Typography>
               {LIABILITY_FIELDS.filter(({ key }) => liabilities[key] > 0).map(({ key, label }) => (
                 <Box key={key} sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.25 }}>
                   <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>{label}</Typography>

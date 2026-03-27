@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import PeopleAltIcon from '@mui/icons-material/PeopleAlt';
 import { Transaction } from '../../types';
 
@@ -11,6 +12,8 @@ interface Props {
 }
 
 const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onPersonClick }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const rows = useMemo(() => {
     const expenses = transactions.filter((t) => t.type === 'expense' && t.participants?.length);
     if (expenses.length === 0) return [];
@@ -44,8 +47,8 @@ const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onPer
         {rows.map(({ name, amount, count }) => (
           <Box key={name} onClick={() => onPersonClick?.(name)} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.75, px: 1.25, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.07)', cursor: onPersonClick ? 'pointer' : 'default', '&:hover': onPersonClick ? { bgcolor: 'rgba(148,163,184,0.08)' } : {} }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: 'rgba(129,140,248,0.12)', border: '1px solid rgba(129,140,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: '#818cf8' }}>
+              <Box sx={{ width: 28, height: 28, borderRadius: '50%', bgcolor: isDark ? 'rgba(129,140,248,0.12)' : 'rgba(99,102,241,0.15)', border: isDark ? '1px solid rgba(129,140,248,0.2)' : '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Typography sx={{ fontSize: '0.7rem', fontWeight: 700, color: theme.palette.primary.main }}>
                   {name.charAt(0).toUpperCase()}
                 </Typography>
               </Box>
@@ -54,7 +57,7 @@ const PeopleBreakdown: React.FC<Props> = ({ transactions, convert, symbol, onPer
                 <Typography sx={{ fontSize: '0.65rem', color: 'text.disabled' }}>{count} time{count > 1 ? 's' : ''}</Typography>
               </Box>
             </Box>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#fb7185', fontVariantNumeric: 'tabular-nums' }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: theme.palette.error.light, fontVariantNumeric: 'tabular-nums' }}>
               {symbol}{convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
             </Typography>
           </Box>

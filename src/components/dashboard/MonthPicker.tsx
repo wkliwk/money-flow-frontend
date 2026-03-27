@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, IconButton, Typography, Chip, Popover } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import CalendarTodayOutlinedIcon from '@mui/icons-material/CalendarTodayOutlined';
@@ -13,6 +14,8 @@ interface Props {
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
 const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null);
   const [pickerYear, setPickerYear] = useState(() => (selectedMonth ?? dayjs()).year());
 
@@ -97,9 +100,9 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
               fontSize: '0.75rem',
               fontWeight: 500,
               color: 'primary.main',
-              bgcolor: 'rgba(129,140,248,0.1)',
-              border: '1px solid rgba(129,140,248,0.2)',
-              '&:hover': { bgcolor: 'rgba(129,140,248,0.16)' },
+              bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)',
+              border: isDark ? '1px solid rgba(129,140,248,0.2)' : '1px solid rgba(99,102,241,0.25)',
+              '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.16)' : 'rgba(99,102,241,0.18)' },
             }}
           />
         </>
@@ -146,17 +149,21 @@ const MonthPicker: React.FC<Props> = ({ selectedMonth, onChange }) => {
                   py: 0.75,
                   borderRadius: 1.5,
                   cursor: 'pointer',
-                  bgcolor: isSelected ? 'rgba(129,140,248,0.2)' : 'transparent',
+                  bgcolor: isSelected
+                    ? isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.15)'
+                    : 'transparent',
                   border: '1px solid',
-                  borderColor: isSelected ? 'rgba(129,140,248,0.5)' : 'transparent',
-                  '&:hover': { bgcolor: 'rgba(129,140,248,0.1)' },
+                  borderColor: isSelected
+                    ? isDark ? 'rgba(129,140,248,0.5)' : 'rgba(99,102,241,0.4)'
+                    : 'transparent',
+                  '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)' },
                 }}
               >
                 <Typography
                   sx={{
                     fontSize: '0.82rem',
                     fontWeight: isSelected ? 700 : 400,
-                    color: isSelected ? '#818cf8' : 'text.secondary',
+                    color: isSelected ? theme.palette.primary.main : 'text.secondary',
                   }}
                 >
                   {label}

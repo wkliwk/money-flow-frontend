@@ -13,6 +13,7 @@ import {
   Button,
   Chip,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
@@ -40,6 +41,8 @@ const emptyForm = () => ({
 });
 
 const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAdd, onDelete }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [form, setForm] = useState(emptyForm());
   const [showForm, setShowForm] = useState(false);
 
@@ -58,8 +61,8 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
   };
 
   const typeCards = [
-    { value: 'expense' as TransactionType, label: 'Expense', icon: <TrendingDownIcon sx={{ fontSize: 18 }} />, color: '#fb7185', activeBg: 'rgba(251,113,133,0.15)', border: 'rgba(251,113,133,0.3)' },
-    { value: 'income' as TransactionType, label: 'Income', icon: <TrendingUpIcon sx={{ fontSize: 18 }} />, color: '#34d399', activeBg: 'rgba(52,211,153,0.15)', border: 'rgba(52,211,153,0.3)' },
+    { value: 'expense' as TransactionType, label: 'Expense', icon: <TrendingDownIcon sx={{ fontSize: 18 }} />, color: theme.palette.error.light, activeBg: isDark ? 'rgba(251,113,133,0.15)' : 'rgba(244,63,94,0.18)', border: isDark ? 'rgba(251,113,133,0.3)' : 'rgba(244,63,94,0.38)' },
+    { value: 'income' as TransactionType, label: 'Income', icon: <TrendingUpIcon sx={{ fontSize: 18 }} />, color: theme.palette.success.light, activeBg: isDark ? 'rgba(52,211,153,0.15)' : 'rgba(16,185,129,0.18)', border: isDark ? 'rgba(52,211,153,0.3)' : 'rgba(16,185,129,0.38)' },
   ];
 
   return (
@@ -89,8 +92,10 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
                           size="small"
                           sx={{
                             height: 18, fontSize: '0.62rem',
-                            bgcolor: t.type === 'income' ? 'rgba(52,211,153,0.12)' : 'rgba(251,113,133,0.12)',
-                            color: t.type === 'income' ? '#34d399' : '#fb7185',
+                            bgcolor: t.type === 'income'
+                              ? (isDark ? 'rgba(52,211,153,0.12)' : 'rgba(16,185,129,0.15)')
+                              : (isDark ? 'rgba(251,113,133,0.12)' : 'rgba(244,63,94,0.15)'),
+                            color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light,
                             border: 'none',
                           }}
                         />
@@ -103,7 +108,7 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
                     }
                   />
                   <ListItemSecondaryAction>
-                    <IconButton size="small" onClick={() => onDelete(t.id)} sx={{ color: 'rgba(251,113,133,0.5)', '&:hover': { color: '#fb7185' } }}>
+                    <IconButton size="small" onClick={() => onDelete(t.id)} sx={{ color: isDark ? 'rgba(251,113,133,0.5)' : 'rgba(244,63,94,0.5)', '&:hover': { color: theme.palette.error.light } }}>
                       <DeleteIcon sx={{ fontSize: 18 }} />
                     </IconButton>
                   </ListItemSecondaryAction>
@@ -165,10 +170,10 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
                   onClick={() => setForm((f) => ({ ...f, item: f.item === p.label ? '' : p.label, category: p.category }))}
                   sx={{
                     fontSize: '0.7rem', height: 24,
-                    bgcolor: form.item === p.label ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
-                    color: form.item === p.label ? '#818cf8' : 'text.disabled',
+                    bgcolor: form.item === p.label ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.06)',
+                    color: form.item === p.label ? theme.palette.primary.main : 'text.disabled',
                     border: '1px solid',
-                    borderColor: form.item === p.label ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)',
+                    borderColor: form.item === p.label ? (isDark ? 'rgba(129,140,248,0.35)' : 'rgba(99,102,241,0.44)') : 'rgba(148,163,184,0.1)',
                   }}
                 />
               ))}
@@ -188,10 +193,10 @@ const ManageTemplatesDrawer: React.FC<Props> = ({ open, onClose, templates, onAd
                   onClick={() => setForm((f) => ({ ...f, category: f.category === cat ? '' : cat }))}
                   sx={{
                     fontSize: '0.68rem', height: 22,
-                    bgcolor: form.category === cat ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
-                    color: form.category === cat ? '#818cf8' : 'text.disabled',
+                    bgcolor: form.category === cat ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.06)',
+                    color: form.category === cat ? theme.palette.primary.main : 'text.disabled',
                     border: '1px solid',
-                    borderColor: form.category === cat ? 'rgba(129,140,248,0.35)' : 'rgba(148,163,184,0.1)',
+                    borderColor: form.category === cat ? (isDark ? 'rgba(129,140,248,0.35)' : 'rgba(99,102,241,0.44)') : 'rgba(148,163,184,0.1)',
                   }}
                 />
               ))}

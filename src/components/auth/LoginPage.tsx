@@ -87,7 +87,7 @@ const LoginPage: React.FC = () => {
             variant="h4"
             fontWeight={700}
             sx={{
-              background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.success.main} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
               mb: 0.5,

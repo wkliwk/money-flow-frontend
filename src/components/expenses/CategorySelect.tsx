@@ -1,5 +1,6 @@
 import React from 'react';
 import { Autocomplete, TextField, Box, Chip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 export const PRESET_CATEGORIES = [
   'Food & Drink',
@@ -34,6 +35,8 @@ interface Props {
 }
 
 const CategorySelect: React.FC<Props> = ({ value, onChange, existingCategories }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const options = Array.from(
     new Set([...PRESET_CATEGORIES, ...existingCategories.map((c) => c.trim()).filter(Boolean)])
   );
@@ -84,12 +87,12 @@ const CategorySelect: React.FC<Props> = ({ value, onChange, existingCategories }
                 flexShrink: 0,
                 fontSize: '0.72rem',
                 height: 28,
-                bgcolor: selected ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                color: selected ? '#818cf8' : 'text.secondary',
+                bgcolor: selected ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+                color: selected ? theme.palette.primary.main : 'text.secondary',
                 border: '1px solid',
-                borderColor: selected ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                borderColor: selected ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                 '& .MuiChip-label': { px: 1.25 },
-                '&:hover': { bgcolor: 'rgba(129,140,248,0.12)' },
+                '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.12)' : 'rgba(99,102,241,0.15)' },
               }}
             />
           );

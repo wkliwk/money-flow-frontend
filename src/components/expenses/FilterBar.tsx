@@ -15,6 +15,7 @@ import {
   ListItemIcon,
   ListItemText,
 } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import SearchIcon from '@mui/icons-material/Search';
 import ClearIcon from '@mui/icons-material/Clear';
 import DownloadIcon from '@mui/icons-material/Download';
@@ -62,6 +63,8 @@ const FilterBar: React.FC<Props> = ({
   onExport,
   onExportJson,
 }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [showPaymentFilter, setShowPaymentFilter] = useState(paymentMethodFilter !== 'all');
   const [showCategoryFilter, setShowCategoryFilter] = useState(categoryFilter !== 'all');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
@@ -113,7 +116,7 @@ const FilterBar: React.FC<Props> = ({
               if (!next) onPaymentMethodFilterChange('all');
             }}
             sx={{
-              color: paymentMethodFilter !== 'all' ? '#818cf8' : 'text.secondary',
+              color: paymentMethodFilter !== 'all' ? theme.palette.primary.main : 'text.secondary',
               '&:hover': { color: 'text.primary' },
             }}
           >
@@ -131,7 +134,7 @@ const FilterBar: React.FC<Props> = ({
                 if (!next) onCategoryFilterChange('all');
               }}
               sx={{
-                color: categoryFilter !== 'all' ? '#818cf8' : 'text.secondary',
+                color: categoryFilter !== 'all' ? theme.palette.primary.main : 'text.secondary',
                 '&:hover': { color: 'text.primary' },
               }}
             >
@@ -143,7 +146,7 @@ const FilterBar: React.FC<Props> = ({
           <IconButton
             size="small"
             onClick={() => onSortChange(sortBy === 'date' ? 'amount' : 'date')}
-            sx={{ color: sortBy === 'amount' ? '#818cf8' : 'text.secondary', '&:hover': { color: 'text.primary' } }}
+            sx={{ color: sortBy === 'amount' ? theme.palette.primary.main : 'text.secondary', '&:hover': { color: 'text.primary' } }}
           >
             <SortIcon fontSize="small" />
           </IconButton>
@@ -206,10 +209,10 @@ const FilterBar: React.FC<Props> = ({
             sx={{
               fontSize: '0.72rem',
               height: 26,
-              bgcolor: paymentMethodFilter === 'all' ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-              color: paymentMethodFilter === 'all' ? '#818cf8' : 'text.secondary',
+              bgcolor: paymentMethodFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+              color: paymentMethodFilter === 'all' ? theme.palette.primary.main : 'text.secondary',
               border: '1px solid',
-              borderColor: paymentMethodFilter === 'all' ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+              borderColor: paymentMethodFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
               fontWeight: paymentMethodFilter === 'all' ? 700 : 400,
             }}
           />
@@ -223,10 +226,10 @@ const FilterBar: React.FC<Props> = ({
               sx={{
                 fontSize: '0.72rem',
                 height: 26,
-                bgcolor: paymentMethodFilter === m ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                color: paymentMethodFilter === m ? '#818cf8' : 'text.secondary',
+                bgcolor: paymentMethodFilter === m ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+                color: paymentMethodFilter === m ? theme.palette.primary.main : 'text.secondary',
                 border: '1px solid',
-                borderColor: paymentMethodFilter === m ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                borderColor: paymentMethodFilter === m ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                 fontWeight: paymentMethodFilter === m ? 700 : 400,
               }}
             />
@@ -243,10 +246,10 @@ const FilterBar: React.FC<Props> = ({
             sx={{
               fontSize: '0.72rem',
               height: 26,
-              bgcolor: categoryFilter === 'all' ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-              color: categoryFilter === 'all' ? '#818cf8' : 'text.secondary',
+              bgcolor: categoryFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+              color: categoryFilter === 'all' ? theme.palette.primary.main : 'text.secondary',
               border: '1px solid',
-              borderColor: categoryFilter === 'all' ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+              borderColor: categoryFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
               fontWeight: categoryFilter === 'all' ? 700 : 400,
             }}
           />
@@ -260,10 +263,10 @@ const FilterBar: React.FC<Props> = ({
               sx={{
                 fontSize: '0.72rem',
                 height: 26,
-                bgcolor: categoryFilter === cat ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                color: categoryFilter === cat ? '#818cf8' : 'text.secondary',
+                bgcolor: categoryFilter === cat ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+                color: categoryFilter === cat ? theme.palette.primary.main : 'text.secondary',
                 border: '1px solid',
-                borderColor: categoryFilter === cat ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                borderColor: categoryFilter === cat ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                 fontWeight: categoryFilter === cat ? 700 : 400,
               }}
             />

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Box, Typography, Chip, TextField, IconButton } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import { compareTwoStrings } from 'string-similarity';
 
@@ -12,6 +13,8 @@ interface Props {
 }
 
 const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, categoriesByDescription = {}, onCategorySelect }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [custom, setCustom] = useState('');
   const [suggestedCategory, setSuggestedCategory] = useState<string | null>(null);
   const debounceTimer = useRef<NodeJS.Timeout | null>(null);
@@ -82,10 +85,10 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, cate
                 height: 26,
                 fontSize: '0.78rem',
                 fontWeight: 700,
-                bgcolor: 'rgba(129,140,248,0.18)',
-                color: '#818cf8',
-                border: '1px solid rgba(129,140,248,0.4)',
-                '& .MuiChip-deleteIcon': { color: 'rgba(129,140,248,0.5)', fontSize: 14 },
+                bgcolor: isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)',
+                color: theme.palette.primary.main,
+                border: `1px solid ${isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)'}`,
+                '& .MuiChip-deleteIcon': { color: isDark ? 'rgba(129,140,248,0.5)' : 'rgba(99,102,241,0.5)', fontSize: 14 },
               }}
             />
           )}
@@ -103,10 +106,10 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, cate
                   height: 26,
                   fontSize: '0.78rem',
                   fontWeight: selected ? 700 : 400,
-                  bgcolor: selected ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
-                  color: selected ? '#818cf8' : 'text.secondary',
+                  bgcolor: selected ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.06)',
+                  color: selected ? theme.palette.primary.main : 'text.secondary',
                   border: '1px solid',
-                  borderColor: selected ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.1)',
+                  borderColor: selected ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.1)',
                   transition: 'all 0.1s ease',
                   '&:active': { transform: 'scale(0.96)' },
                 }}
@@ -126,11 +129,11 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, cate
             sx={{
               fontSize: '0.72rem',
               height: 26,
-              bgcolor: 'rgba(52,211,153,0.1)',
-              color: '#34d399',
-              border: '1px solid rgba(52,211,153,0.3)',
+              bgcolor: isDark ? 'rgba(52,211,153,0.1)' : 'rgba(16,185,129,0.12)',
+              color: theme.palette.success.light,
+              border: `1px solid ${isDark ? 'rgba(52,211,153,0.3)' : 'rgba(16,185,129,0.38)'}`,
               cursor: 'pointer',
-              '&:hover': { bgcolor: 'rgba(52,211,153,0.15)' },
+              '&:hover': { bgcolor: isDark ? 'rgba(52,211,153,0.15)' : 'rgba(16,185,129,0.18)' },
             }}
           />
         </Box>
@@ -147,8 +150,8 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, cate
           sx={{ flex: 1, '& .MuiInputBase-input': { fontSize: '0.85rem', py: 0.75 } }}
         />
         {custom.trim() && (
-          <IconButton size="small" onClick={addCustom} sx={{ bgcolor: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.2)', '&:hover': { bgcolor: 'rgba(129,140,248,0.18)' } }}>
-            <AddIcon sx={{ fontSize: 18, color: '#818cf8' }} />
+          <IconButton size="small" onClick={addCustom} sx={{ bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)' } }}>
+            <AddIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />
           </IconButton>
         )}
       </Box>

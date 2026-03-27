@@ -89,6 +89,7 @@ const PULL_DEBOUNCE_MS = 2000;
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, onAddClick, onRefresh }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isDark = theme.palette.mode === 'dark';
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
   const [swipedId, setSwipedId] = useState<string | null>(null);
   const [swipeOffset, setSwipeOffset] = useState<Record<string, number>>({});
@@ -289,7 +290,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {group.items.map((t) => {
                   const itemColor = t.item ? ITEM_COLOR[t.item] : undefined;
-                  const accentColor = itemColor || (t.type === 'income' ? '#34d399' : '#fb7185');
+                  const accentColor = itemColor || (t.type === 'income' ? theme.palette.success.light : theme.palette.error.light);
                   const isRecurring = recurringLabels && (
                     (t.item && recurringLabels.has(t.item)) ||
                     recurringLabels.has(t.description)
@@ -367,7 +368,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />
                               )}
                               {t.notes && (
-                                <NoteIcon sx={{ fontSize: 13, color: 'rgba(129,140,248,0.6)', flexShrink: 0 }} />
+                                <NoteIcon sx={{ fontSize: 13, color: isDark ? 'rgba(129,140,248,0.6)' : 'rgba(99,102,241,0.6)', flexShrink: 0 }} />
                               )}
                             </Box>
                             {t.item && t.description && t.description !== t.item && (
@@ -395,7 +396,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                             <Typography
                               fontWeight={700}
                               sx={{
-                                color: t.type === 'income' ? '#34d399' : '#fb7185',
+                                color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light,
                                 fontSize: '0.95rem',
                                 letterSpacing: '-0.01em',
                               }}
@@ -420,7 +421,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                               </Typography>
                             </Collapse>
                             {expandedNote !== t._id && (
-                              <Typography sx={{ fontSize: '0.68rem', color: 'rgba(129,140,248,0.7)', mt: 0.25 }}>
+                              <Typography sx={{ fontSize: '0.68rem', color: isDark ? 'rgba(129,140,248,0.7)' : 'rgba(99,102,241,0.7)', mt: 0.25 }}>
                                 tap to expand note
                               </Typography>
                             )}
@@ -465,7 +466,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                     {isRecurring && <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />}
                     {t.notes && (
                       <Tooltip title={t.notes} placement="top" arrow>
-                        <NoteIcon sx={{ fontSize: 14, color: 'rgba(129,140,248,0.6)', flexShrink: 0, cursor: 'default' }} />
+                        <NoteIcon sx={{ fontSize: 14, color: isDark ? 'rgba(129,140,248,0.6)' : 'rgba(99,102,241,0.6)', flexShrink: 0, cursor: 'default' }} />
                       </Tooltip>
                     )}
                   </Box>
