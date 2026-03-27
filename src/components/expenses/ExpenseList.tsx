@@ -385,7 +385,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                               )}
                             </Box>
                             {t.item && t.description && t.description !== t.item && (
-                              <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', lineHeight: 1.2 }}>
+                              <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', lineHeight: 1.2, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {t.description}
                               </Typography>
                             )}
@@ -476,9 +476,36 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
               return (
               <TableRow key={t._id} hover>
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
-                <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                    <span>{t.item ? `${t.item}${t.description && t.description !== t.item ? ` · ${t.description}` : ''}` : t.description}</span>
+                <TableCell sx={{ maxWidth: 280 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                      {t.item ? (
+                        <>
+                          <Typography
+                            variant="body2"
+                            fontWeight={600}
+                            sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                          >
+                            {t.item}
+                          </Typography>
+                          {t.description && t.description !== t.item && (
+                            <Typography
+                              variant="caption"
+                              sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', display: 'block' }}
+                            >
+                              {t.description}
+                            </Typography>
+                          )}
+                        </>
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        >
+                          {t.description}
+                        </Typography>
+                      )}
+                    </Box>
                     {isRecurring && <RepeatIcon sx={{ fontSize: 13, color: 'text.disabled', flexShrink: 0 }} />}
                     {t.notes && (
                       <Tooltip title={t.notes} placement="top" arrow>
