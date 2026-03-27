@@ -343,13 +343,24 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         />
 
         {/* Type selector — icon cards */}
-        <Box sx={{ display: 'flex', gap: 1, mb: 1.5, mt: 0.5 }}>
+        <Box role="radiogroup" aria-label="Transaction type" sx={{ display: 'flex', gap: 1, mb: 1.5, mt: 0.5 }}>
           {typeCards.map((card) => {
             const selected = type === card.value;
             return (
               <Box
                 key={card.value}
+                role="radio"
+                aria-checked={selected}
+                tabIndex={0}
                 onClick={() => { setType(card.value); setItem(''); setCategory(''); }}
+                onKeyDown={(e) => {
+                  if (e.key === ' ' || e.key === 'Enter') {
+                    e.preventDefault();
+                    setType(card.value);
+                    setItem('');
+                    setCategory('');
+                  }
+                }}
                 sx={{
                   flex: 1,
                   display: 'flex',
@@ -366,6 +377,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
                   transition: 'all 0.15s ease',
                   userSelect: 'none',
                   '&:hover': { bgcolor: card.activeBg },
+                  '&:focus': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                 }}
               >
                 <Box sx={{ color: card.color }}>{card.icon}</Box>
