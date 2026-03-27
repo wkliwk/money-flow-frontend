@@ -14,6 +14,10 @@ import {
   ToggleButtonGroup,
   ToggleButton,
   SvgIcon,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -110,6 +114,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [recurringDraft, setRecurringDraft] = useState(emptyRecurring());
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState('');
+  const [signOutConfirm, setSignOutConfirm] = useState(false);
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -132,6 +137,11 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const handleLogout = () => {
     clearToken();
     window.location.href = '/login';
+  };
+
+  const confirmLogout = () => {
+    setSignOutConfirm(false);
+    handleLogout();
   };
 
   const renderItemSection = (label: string, items: typeof ITEM_PRESETS) => (
@@ -432,11 +442,24 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         variant="outlined"
         color="error"
         startIcon={<LogoutIcon />}
-        onClick={handleLogout}
+        onClick={() => setSignOutConfirm(true)}
         fullWidth
       >
         Sign Out
       </Button>
+
+      <Dialog open={signOutConfirm} onClose={() => setSignOutConfirm(false)}>
+        <DialogTitle>Sign Out</DialogTitle>
+        <DialogContent>
+          <Typography>Are you sure you want to sign out?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setSignOutConfirm(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmLogout}>
+            Sign Out
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
