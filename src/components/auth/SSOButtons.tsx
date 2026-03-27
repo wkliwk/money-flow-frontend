@@ -99,7 +99,7 @@ const SSOButtons: React.FC = () => {
           </Box>
 
           <Button
-            onClick={handleAppleSignIn}
+            disabled
             fullWidth
             variant="outlined"
             size="large"
@@ -108,20 +108,19 @@ const SSOButtons: React.FC = () => {
               py: 1.25,
               fontSize: '0.9rem',
               fontWeight: 600,
-              color: '#ffffff',
-              bgcolor: '#000000',
-              borderColor: 'rgba(255,255,255,0.12)',
+              color: 'rgba(255,255,255,0.3)',
+              bgcolor: 'rgba(0,0,0,0.3)',
+              borderColor: 'rgba(255,255,255,0.08)',
               display: 'flex',
               alignItems: 'center',
               gap: 1.25,
-              '&:hover': {
-                bgcolor: '#1a1a1a',
-                borderColor: 'rgba(255,255,255,0.2)',
+              '&.Mui-disabled': {
+                color: 'rgba(255,255,255,0.3)',
               },
             }}
           >
             <AppleIcon />
-            Continue with Apple
+            Continue with Apple — Coming Soon
           </Button>
         </Box>
       )}
