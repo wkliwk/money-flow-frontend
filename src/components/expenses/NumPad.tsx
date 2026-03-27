@@ -1,14 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Box, Typography, ButtonBase } from '@mui/material';
+import { Box, Typography, ButtonBase, Collapse, TextField, InputAdornment } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
+import CalculateOutlinedIcon from '@mui/icons-material/CalculateOutlined';
 
 interface Props {
   value: string;           // Always HKD — parent stores HKD
   onChange: (hkdValue: string) => void;
   fxSymbol?: string;       // e.g. 'CA$' — if set, FX swap available
   fxRate?: number;         // HKD per 1 foreign unit
+  compact?: boolean;       // Hide calculator grid by default, show text input
 }
 
 function compute(a: number, b: number, op: string): number {
@@ -25,7 +27,7 @@ function fmt(n: number): string {
   return String(Math.round(n * 100) / 100);
 }
 
-const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
+const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate, compact }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
   const isFxAvailable = !!fxSymbol && !!fxRate;
@@ -35,6 +37,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
   const [storedValue, setStoredValue] = useState<number | null>(null);
   const [pendingOp, setPendingOp] = useState<string | null>(null);
   const [waitForNext, setWaitForNext] = useState(false);
+  const [showGrid, setShowGrid] = useState(false);
 
   // On currency switch, default to FX mode when FX available, re-init fxInput
   useEffect(() => {
@@ -149,53 +152,94 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
     '&:active': { transform: 'scale(0.95)' },
   };
 
-  return (
-    <Box>
-      {/* Display */}
-      <Box sx={{ mb: 1, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden' }}>
-        {pendingOp && (
-          <Typography sx={{ fontSize: '0.65rem', color: theme.palette.primary.main, px: 2, pt: 1, letterSpacing: '0.04em', textAlign: 'center' }}>
-            {storedValue} {pendingOp}
+  // Compact mode: text input + calc toggle instead of large display
+  const compactAmountInput = compact ? (
+    <Box sx={{ mb: 1 }}>
+      <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+        Amount
+      </Typography>
+      <TextField
+        value={displayStr || ''}
+        onChange={(e) => {
+          const v = e.target.value.replace(/[^0-9.]/g, '');
+          if (inputInFx) { setFxInput(v); emitHkd(v); } else onChange(v);
+        }}
+        placeholder="0"
+        size="small"
+        fullWidth
+        inputProps={{ inputMode: 'decimal', style: { fontSize: '1.3rem', fontWeight: 700, letterSpacing: '-0.02em' } }}
+        InputProps={{
+          startAdornment: (
+            <InputAdornment position="start">
+              <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary', fontWeight: 500 }}>{displaySymbol}</Typography>
+            </InputAdornment>
+          ),
+          endAdornment: (
+            <InputAdornment position="end">
+              <ButtonBase
+                onClick={() => setShowGrid((v) => !v)}
+                sx={{ p: 0.5, borderRadius: 1, bgcolor: showGrid ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'transparent' }}
+              >
+                <CalculateOutlinedIcon sx={{ fontSize: 20, color: showGrid ? theme.palette.primary.main : 'text.disabled' }} />
+              </ButtonBase>
+            </InputAdornment>
+          ),
+        }}
+        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+      />
+      {isFxAvailable && (
+        <Box
+          onClick={handleSwap}
+          sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.5, cursor: 'pointer' }}
+        >
+          <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled' }}>
+            {hintSymbol}{hintVal ?? '0'}
           </Typography>
-        )}
+          <SwapVertIcon sx={{ fontSize: 14, color: inputInFx ? theme.palette.primary.main : 'text.disabled' }} />
+        </Box>
+      )}
+    </Box>
+  ) : null;
 
-        {/* Primary — what user is entering */}
-        <Box sx={{ px: 2, pt: pendingOp ? 0.5 : 1.5, pb: isFxAvailable ? 0.5 : 1.5, textAlign: 'center' }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}>
-            Amount
-          </Typography>
-          <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: '-0.03em', lineHeight: 1.1, color: displayStr ? 'text.primary' : 'text.disabled' }}>
-            <span style={{ fontSize: '1rem', fontWeight: 500, opacity: 0.6 }}>{displaySymbol}</span>
-            {displayNum}
+  const fullDisplay = !compact ? (
+    <Box sx={{ mb: 1, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden' }}>
+      {pendingOp && (
+        <Typography sx={{ fontSize: '0.65rem', color: theme.palette.primary.main, px: 2, pt: 1, letterSpacing: '0.04em', textAlign: 'center' }}>
+          {storedValue} {pendingOp}
+        </Typography>
+      )}
+      <Box sx={{ px: 2, pt: pendingOp ? 0.5 : 1.5, pb: isFxAvailable ? 0.5 : 1.5, textAlign: 'center' }}>
+        <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}>
+          Amount
+        </Typography>
+        <Typography variant="h3" fontWeight={700} sx={{ letterSpacing: '-0.03em', lineHeight: 1.1, color: displayStr ? 'text.primary' : 'text.disabled' }}>
+          <span style={{ fontSize: '1rem', fontWeight: 500, opacity: 0.6 }}>{displaySymbol}</span>
+          {displayNum}
+        </Typography>
+      </Box>
+      {isFxAvailable && (
+        <Box
+          sx={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, py: 0.75,
+            borderTop: '1px solid rgba(148,163,184,0.08)', cursor: 'pointer', bgcolor: 'rgba(148,163,184,0.03)',
+            '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)' },
+          }}
+          onClick={handleSwap}
+        >
+          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{hintSymbol}{hintVal ?? '0'}</Typography>
+          <SwapVertIcon sx={{ fontSize: 16, color: inputInFx ? theme.palette.primary.main : 'text.disabled' }} />
+          <Typography sx={{ fontSize: '0.65rem', color: inputInFx ? theme.palette.primary.main : 'text.disabled', fontWeight: 600 }}>
+            {inputInFx ? `Enter in ${fxSymbol}` : 'Enter in HK$'}
           </Typography>
         </Box>
+      )}
+    </Box>
+  ) : null;
 
-        {/* Swap row — only when FX available */}
-        {isFxAvailable && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 1,
-              py: 0.75,
-              borderTop: '1px solid rgba(148,163,184,0.08)',
-              cursor: 'pointer',
-              bgcolor: 'rgba(148,163,184,0.03)',
-              '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)' },
-            }}
-            onClick={handleSwap}
-          >
-            <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>
-              {hintSymbol}{hintVal ?? '0'}
-            </Typography>
-            <SwapVertIcon sx={{ fontSize: 16, color: inputInFx ? theme.palette.primary.main : 'text.disabled' }} />
-            <Typography sx={{ fontSize: '0.65rem', color: inputInFx ? theme.palette.primary.main : 'text.disabled', fontWeight: 600 }}>
-              {inputInFx ? `Enter in ${fxSymbol}` : 'Enter in HK$'}
-            </Typography>
-          </Box>
-        )}
-      </Box>
+  return (
+    <Box>
+      {compactAmountInput}
+      {fullDisplay}
 
       {/* Quick amount presets */}
       <Box sx={{ display: 'flex', gap: 0.75, mb: 0.75 }}>
@@ -231,7 +275,8 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
         ))}
       </Box>
 
-      {/* Grid */}
+      {/* Grid — collapsible in compact mode */}
+      <Collapse in={compact ? showGrid : true}>
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0.75 }}>
         {['7','8','9'].map(k => (
           <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
@@ -280,6 +325,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
           <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#fff' }}>=</Typography>
         </ButtonBase>
       </Box>
+      </Collapse>
     </Box>
   );
 };
