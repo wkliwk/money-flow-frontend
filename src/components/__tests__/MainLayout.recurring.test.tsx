@@ -86,6 +86,14 @@ jest.mock('../../hooks/useTemplates', () => ({
 
 jest.setTimeout(30000);
 
+beforeEach(() => {
+  localStorage.setItem('mf_onboarding_complete', 'true');
+});
+
+afterEach(() => {
+  localStorage.clear();
+});
+
 describe('MainLayout — applyRecurring branch', () => {
   beforeEach(() => {
     jest.clearAllMocks();
