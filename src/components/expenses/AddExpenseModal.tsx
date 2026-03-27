@@ -93,7 +93,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(today());
   const [participants, setParticipants] = useState<string[]>([]);
-  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split'>('treat');
+  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split' | 'participate'>('treat');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
@@ -169,7 +169,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       item: item || undefined,
       category: category || undefined,
       participants: participants,
-      splitBill: participants.length > 0 ? splitBillMode === 'split' : undefined,
+      splitBill: participants.length > 0 ? splitBillMode : undefined,
       paymentMethod: paymentMethod || undefined,
       notes: notes.trim() || undefined,
       date: resolvedDate,
@@ -514,6 +514,9 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
                 </ToggleButton>
                 <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
                   My treat
+                </ToggleButton>
+                <ToggleButton value="participate" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  Participate
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>

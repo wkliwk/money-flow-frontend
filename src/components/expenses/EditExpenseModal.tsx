@@ -84,7 +84,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [quickDate, setQuickDate] = useState<QuickDate>('today');
   const [customDate, setCustomDate] = useState(todayStr());
   const [participants, setParticipants] = useState<string[]>([]);
-  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split'>('treat');
+  const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split' | 'participate'>('treat');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -107,7 +107,10 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setAmount(String(transaction.amount));
       setType(transaction.type);
       setParticipants(transaction.participants ?? []);
-      setSplitBillMode(transaction.splitBill === true ? 'split' : 'treat');
+      setSplitBillMode(
+        typeof transaction.splitBill === 'string' ? transaction.splitBill as 'split' | 'treat' | 'participate'
+          : transaction.splitBill === true ? 'split' : 'treat'
+      );
       setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
       setTxCurrency((transaction.currency as Currency) || 'HKD');
       setNotes(transaction.notes || '');
@@ -150,7 +153,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         item: item || undefined,
         category: category || undefined,
         participants: participants,
-        splitBill: participants.length > 0 ? splitBillMode === 'split' : undefined,
+        splitBill: participants.length > 0 ? splitBillMode : undefined,
         paymentMethod: paymentMethod || undefined,
         notes: notes.trim() || undefined,
         date: resolvedDate,
@@ -411,6 +414,9 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
                 </ToggleButton>
                 <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
                   My treat
+                </ToggleButton>
+                <ToggleButton value="participate" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  Participate
                 </ToggleButton>
               </ToggleButtonGroup>
             </Box>
