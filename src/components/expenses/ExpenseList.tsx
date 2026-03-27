@@ -28,10 +28,6 @@ import PaymentIcon from '@mui/icons-material/Payment';
 import NoteIcon from '@mui/icons-material/Notes';
 import { Transaction } from '../../types';
 import { CURRENCY_SYMBOLS, Currency } from '../../constants/currencies';
-import { ITEM_PRESETS } from './ItemPicker';
-
-const ITEM_COLOR: Record<string, string> = {};
-ITEM_PRESETS.forEach((p) => { ITEM_COLOR[p.label] = p.color; });
 
 interface Props {
   transactions: Transaction[];
@@ -304,8 +300,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {group.items.map((t) => {
-                  const itemColor = t.item ? ITEM_COLOR[t.item] : undefined;
-                  const accentColor = itemColor || (t.type === 'income' ? theme.palette.success.light : theme.palette.error.light);
+                  const edgeColor = t.type === 'income' ? 'rgba(102,187,106,0.6)' : 'rgba(239,83,80,0.6)';
                   const isRecurring = recurringLabels && (
                     (t.item && recurringLabels.has(t.item)) ||
                     recurringLabels.has(t.description)
@@ -350,7 +345,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                         border: '1px solid rgba(148,163,184,0.08)',
                         background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
                         backdropFilter: 'blur(8px)',
-                        borderLeft: `3px solid ${accentColor}44`,
+                        borderLeft: `4px solid ${edgeColor}`,
                         transform: `translateX(${offset}px)`,
                         transition: isSwiping.current[t._id] ? 'none' : 'transform 0.2s ease',
                         position: 'relative',
@@ -420,7 +415,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                             <Typography
                               fontWeight={700}
                               sx={{
-                                color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light,
+                                color: t.type === 'income' ? '#81c784' : '#e57373',
                                 fontSize: '0.95rem',
                                 letterSpacing: '-0.01em',
                               }}
@@ -540,7 +535,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   {t.paymentMethod || '\u2014'}
                 </TableCell>
                 <TableCell align="right">
-                  <Typography color={t.type === 'income' ? 'success.main' : 'error.main'} fontWeight={600} sx={{ letterSpacing: '-0.01em' }}>
+                  <Typography fontWeight={600} sx={{ letterSpacing: '-0.01em', color: t.type === 'income' ? '#81c784' : '#e57373' }}>
                     {t.type === 'income' ? '+' : '-'}{fmtAmt(t.amount, convert, symbol)}
                   </Typography>
                   {fmtOriginal(t) && (
