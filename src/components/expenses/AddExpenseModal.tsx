@@ -27,6 +27,8 @@ import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CallSplitIcon from '@mui/icons-material/CallSplit';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import { TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import { ReceiptConfidence } from '../../services/api';
 import NumPad from './NumPad';
@@ -534,9 +536,11 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
                 sx={{ height: 30 }}
               >
                 <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  <CallSplitIcon sx={{ fontSize: 14, mr: 0.5 }} />
                   Split bill
                 </ToggleButton>
                 <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  <CardGiftcardIcon sx={{ fontSize: 14, mr: 0.5 }} />
                   My treat
                 </ToggleButton>
                 <ToggleButton value="participate" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
