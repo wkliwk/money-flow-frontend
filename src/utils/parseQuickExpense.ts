@@ -30,20 +30,21 @@ const CATEGORY_KEYWORDS: Record<string, string[]> = {
 };
 
 const PAYMENT_METHOD_KEYWORDS: Record<string, PaymentMethod> = {
-  'cash': 'Cash',
-  'octopus': 'Octopus',
-  'payme': 'PayMe',
-  'fps': 'FPS',
-  'creditcard': 'Credit Card',
-  'credit': 'Credit Card',
-  'debitcard': 'Debit Card',
-  'debit': 'Debit Card',
-  'banktransfer': 'Bank Transfer',
-  'bank': 'Bank Transfer',
-  'alipayhk': 'AlipayHK',
-  'alipay': 'AlipayHK',
-  'wechatpay': 'WeChat Pay',
-  'wechat': 'WeChat Pay',
+  'cash': 'cash',
+  'octopus': 'octopus',
+  'payme': 'payme',
+  'fps': 'fps',
+  'creditcard': 'credit_card',
+  'credit': 'credit_card',
+  'debitcard': 'debit_card',
+  'debit': 'debit_card',
+  'banktransfer': 'bank_transfer',
+  'bank': 'bank_transfer',
+  'alipayhk': 'alipay_hk',
+  'alipay': 'alipay_hk',
+  'wechatpay': 'wechat_pay',
+  'wechat': 'wechat_pay',
+  'other': 'other',
 };
 
 const CURRENCY_CODES: Record<string, string> = {

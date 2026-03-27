@@ -1,18 +1,34 @@
 export type TransactionType = 'income' | 'expense';
 
+// Backend enum values — these are sent to the API
 export const PAYMENT_METHODS = [
-  'Cash',
-  'Octopus',
-  'PayMe',
-  'FPS',
-  'Credit Card',
-  'Debit Card',
-  'Bank Transfer',
-  'AlipayHK',
-  'WeChat Pay',
+  'cash',
+  'octopus',
+  'payme',
+  'fps',
+  'credit_card',
+  'debit_card',
+  'bank_transfer',
+  'alipay_hk',
+  'wechat_pay',
+  'other',
 ] as const;
 
 export type PaymentMethod = typeof PAYMENT_METHODS[number];
+
+// Display names for the UI
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  cash: 'Cash',
+  octopus: 'Octopus',
+  payme: 'PayMe',
+  fps: 'FPS',
+  credit_card: 'Credit Card',
+  debit_card: 'Debit Card',
+  bank_transfer: 'Bank Transfer',
+  alipay_hk: 'AlipayHK',
+  wechat_pay: 'WeChat Pay',
+  other: 'Other',
+};
 
 export interface Transaction {
   _id: string;

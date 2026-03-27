@@ -26,7 +26,7 @@ import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import EmptyState from '../EmptyState';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NoteIcon from '@mui/icons-material/Notes';
-import { Transaction } from '../../types';
+import { Transaction, PAYMENT_METHOD_LABELS, PaymentMethod } from '../../types';
 import { CURRENCY_SYMBOLS, Currency } from '../../constants/currencies';
 
 interface Props {
@@ -402,7 +402,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
                                 <PaymentIcon sx={{ fontSize: 11, color: 'text.disabled' }} />
                                 <Typography sx={{ fontSize: '0.62rem', color: 'text.disabled' }}>
-                                  {t.paymentMethod}
+                                  {PAYMENT_METHOD_LABELS[t.paymentMethod as PaymentMethod] || t.paymentMethod}
                                 </Typography>
                               </Box>
                             )}
@@ -533,7 +533,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                   <Chip label={t.type === 'income' ? 'Income' : 'Expense'} color={t.type === 'income' ? 'success' : 'error'} size="small" />
                 </TableCell>
                 <TableCell sx={{ color: 'text.secondary', fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
-                  {t.paymentMethod || '\u2014'}
+                  {t.paymentMethod ? (PAYMENT_METHOD_LABELS[t.paymentMethod as PaymentMethod] || t.paymentMethod) : '\u2014'}
                 </TableCell>
                 <TableCell align="right">
                   <Typography fontWeight={600} sx={{ letterSpacing: '-0.01em', color: t.type === 'income' ? '#81c784' : '#e57373' }}>
