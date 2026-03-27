@@ -1,13 +1,17 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AppThemeProvider } from './ThemeContext';
 import LoginPage from './components/auth/LoginPage';
 import RegisterPage from './components/auth/RegisterPage';
 import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 
+const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+
 const App: React.FC = () => {
   return (
+    <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <AppThemeProvider>
       <BrowserRouter>
         <Routes>
@@ -25,6 +29,7 @@ const App: React.FC = () => {
         </Routes>
       </BrowserRouter>
     </AppThemeProvider>
+    </GoogleOAuthProvider>
   );
 };
 

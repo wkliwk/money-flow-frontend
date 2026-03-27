@@ -479,4 +479,53 @@ describe('AddExpenseModal', () => {
       expect(onClose).not.toHaveBeenCalled();
     });
   });
+
+  describe('receipt prefill', () => {
+    it('shows "Scanned from receipt" banner when receiptPrefill is provided', () => {
+      render(
+        <AddExpenseModal
+          {...defaultProps}
+          receiptPrefill={{ amount: 45.5, description: 'Lunch', category: 'Food', confidence: 'high' }}
+        />
+      );
+      expect(screen.getByText('Scanned from receipt')).toBeInTheDocument();
+    });
+
+    it('shows low confidence warning when confidence is low', () => {
+      render(
+        <AddExpenseModal
+          {...defaultProps}
+          receiptPrefill={{ amount: 20, description: 'Purchase', confidence: 'low' }}
+        />
+      );
+      expect(screen.getByText('Some fields may need correction')).toBeInTheDocument();
+    });
+
+    it('does not show low confidence warning when confidence is high', () => {
+      render(
+        <AddExpenseModal
+          {...defaultProps}
+          receiptPrefill={{ amount: 20, description: 'Purchase', confidence: 'high' }}
+        />
+      );
+      expect(screen.queryByText('Some fields may need correction')).not.toBeInTheDocument();
+    });
+
+    it('shows image preview thumbnail when imagePreviewUrl is set', () => {
+      render(
+        <AddExpenseModal
+          {...defaultProps}
+          receiptPrefill={{ amount: 10, imagePreviewUrl: 'blob:http://localhost/fake-url' }}
+        />
+      );
+      const img = screen.getByAltText('Receipt preview');
+      expect(img).toBeInTheDocument();
+      expect(img).toHaveAttribute('src', 'blob:http://localhost/fake-url');
+    });
+
+    it('does not show banner when receiptPrefill is undefined', () => {
+      render(<AddExpenseModal {...defaultProps} />);
+      expect(screen.queryByText('Scanned from receipt')).not.toBeInTheDocument();
+    });
+  });
 });

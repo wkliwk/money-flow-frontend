@@ -36,7 +36,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, ReceiptScanResult } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
@@ -49,7 +49,8 @@ import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
-import AddExpenseModal from './expenses/AddExpenseModal';
+import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
+import ReceiptScanButton from './expenses/ReceiptScanButton';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import QuickExpenseInput from './expenses/QuickExpenseInput';
 import { useFxRates } from '../hooks/useFxRates';
@@ -110,6 +111,9 @@ const MainLayout: React.FC = () => {
   });
   const [undoSnackbar, setUndoSnackbar] = useState(false);
   const pendingDelete = useRef<Transaction | null>(null);
+  const [scanLoading, setScanLoading] = useState(false);
+  const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
+  const receiptImageUrlRef = useRef<string | null>(null);
 
   const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
     setSnackbar({ open: true, message, severity });
@@ -155,7 +159,40 @@ const MainLayout: React.FC = () => {
     const owner = getOwnerFromToken();
     const created = await createExpense({ ...data, owner });
     setTransactions((prev) => [created, ...prev]);
+    // Clean up receipt object URL if it was used
+    if (receiptImageUrlRef.current) {
+      URL.revokeObjectURL(receiptImageUrlRef.current);
+      receiptImageUrlRef.current = null;
+    }
+    setReceiptPrefill(undefined);
     showSnackbar('Transaction added');
+  };
+
+  const handleScanReceipt = async (file: File) => {
+    setScanLoading(true);
+    // Create object URL for image preview
+    const previewUrl = URL.createObjectURL(file);
+    receiptImageUrlRef.current = previewUrl;
+    try {
+      const result: ReceiptScanResult = await scanReceipt(file);
+      setReceiptPrefill({
+        amount: result.amount,
+        description: result.description || result.merchant || '',
+        category: result.category,
+        date: result.date,
+        confidence: result.confidence,
+        imagePreviewUrl: previewUrl,
+      });
+      setAddOpen(true);
+    } catch {
+      URL.revokeObjectURL(previewUrl);
+      receiptImageUrlRef.current = null;
+      showSnackbar('Could not read receipt — fill in manually', 'error');
+      setReceiptPrefill(undefined);
+      setAddOpen(true);
+    } finally {
+      setScanLoading(false);
+    }
   };
 
   const handleDelete = useCallback((id: string) => {
@@ -886,40 +923,57 @@ const MainLayout: React.FC = () => {
         </BottomNavigation>
       </Box>
 
-      {/* Fixed FAB — primary action */}
-      <Fab
-        color="primary"
-        onClick={() => setAddOpen(true)}
-        variant={isDesktop ? 'extended' : 'circular'}
+      {/* Fixed FAB group — primary action + scan receipt */}
+      <Box
         sx={{
           position: 'fixed',
           bottom: { xs: 'calc(56px + 20px + env(safe-area-inset-bottom))', sm: 32 },
           right: { xs: 20, sm: 40 },
           zIndex: 1200,
-          px: isDesktop ? 3 : undefined,
-          gap: isDesktop ? 1 : undefined,
-          boxShadow: '0 0 0 0 rgba(129,140,248,0.4)',
-          '@media (prefers-reduced-motion: no-preference)': {
-            animation: 'fab-pulse 2.5s ease-in-out 3',
-            '@keyframes fab-pulse': {
-              '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
-              '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
-              '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
-            },
-          },
-          '&:hover': {
-            animation: 'none',
-            boxShadow: '0 0 28px rgba(129,140,248,0.5)',
-          },
+          display: 'flex',
+          flexDirection: { xs: 'column-reverse', sm: 'row' },
+          alignItems: { xs: 'flex-end', sm: 'center' },
+          gap: 1,
         }}
       >
-        <AddIcon sx={{ fontSize: isDesktop ? 20 : 24 }} />
-        {isDesktop && <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Record</span>}
-      </Fab>
+        <ReceiptScanButton onFileSelected={handleScanReceipt} loading={scanLoading} />
+        <Fab
+          color="primary"
+          onClick={() => setAddOpen(true)}
+          variant={isDesktop ? 'extended' : 'circular'}
+          sx={{
+            px: isDesktop ? 3 : undefined,
+            gap: isDesktop ? 1 : undefined,
+            boxShadow: '0 0 0 0 rgba(129,140,248,0.4)',
+            '@media (prefers-reduced-motion: no-preference)': {
+              animation: 'fab-pulse 2.5s ease-in-out 3',
+              '@keyframes fab-pulse': {
+                '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
+                '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
+                '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
+              },
+            },
+            '&:hover': {
+              animation: 'none',
+              boxShadow: '0 0 28px rgba(129,140,248,0.5)',
+            },
+          }}
+        >
+          <AddIcon sx={{ fontSize: isDesktop ? 20 : 24 }} />
+          {isDesktop && <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Record</span>}
+        </Fab>
+      </Box>
 
       <AddExpenseModal
         open={addOpen}
-        onClose={() => setAddOpen(false)}
+        onClose={() => {
+          setAddOpen(false);
+          if (receiptImageUrlRef.current) {
+            URL.revokeObjectURL(receiptImageUrlRef.current);
+            receiptImageUrlRef.current = null;
+          }
+          setReceiptPrefill(undefined);
+        }}
         onSubmit={handleAdd}
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
@@ -927,6 +981,7 @@ const MainLayout: React.FC = () => {
         recentItems={recentItems}
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
+        receiptPrefill={receiptPrefill}
       />
 
       <QuickExpenseInput
