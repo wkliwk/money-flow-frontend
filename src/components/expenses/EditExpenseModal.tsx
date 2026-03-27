@@ -297,12 +297,13 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           return <DescriptionPicker value={description} onChange={setDescription} suggestions={suggestions} />;
         })()}
 
-        {/* Amount — calculator keypad with FX support */}
+        {/* Amount — compact calculator with expandable grid */}
         <NumPad
           value={amount}
           onChange={setAmount}
           fxSymbol={txCurrency !== 'HKD' ? CURRENCY_SYMBOLS[txCurrency] : undefined}
           fxRate={fxRate}
+          compact
         />
 
         {/* Date — quick chips */}
