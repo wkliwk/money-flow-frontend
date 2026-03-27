@@ -8,6 +8,7 @@ import {
   Snackbar,
   SnackbarContent,
   Alert,
+  CircularProgress,
   Button,
   Fab,
   useMediaQuery,
@@ -115,6 +116,7 @@ const MainLayout: React.FC = () => {
   const [scanLoading, setScanLoading] = useState(false);
   const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
   const receiptImageUrlRef = useRef<string | null>(null);
+  const [initialLoading, setInitialLoading] = useState(true);
   const [onboardingOpen, setOnboardingOpen] = useState(() => !isOnboardingComplete());
 
   const handleOnboardingDismiss = useCallback(() => {
@@ -138,6 +140,8 @@ const MainLayout: React.FC = () => {
       setTransactions(data);
     } catch {
       showSnackbar('Failed to load transactions', 'error');
+    } finally {
+      setInitialLoading(false);
     }
   };
 
@@ -627,7 +631,11 @@ const MainLayout: React.FC = () => {
         >
           {activeTab === 0 && (
             <>
-              {transactions.length === 0 ? (
+              {initialLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
+                  <CircularProgress size={32} />
+                </Box>
+              ) : transactions.length === 0 ? (
                 <EmptyState
                   heading="Track your first expense"
                   subtext="Track your first expense to see insights"
