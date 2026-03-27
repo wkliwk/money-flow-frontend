@@ -186,5 +186,20 @@ describe('ExpenseList (desktop)', () => {
     const noteIcons = document.querySelectorAll('[data-testid="NotesIcon"]');
     expect(noteIcons.length).toBe(0);
   });
+
+  it('shows transaction date in full format on desktop table (current year)', () => {
+    const currentYear = new Date().getFullYear();
+    const currentYearDate = `${currentYear}-03-15`;
+    const transactions = [makeTransaction({ date: currentYearDate })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    // Should show full format with day, month, and year
+    expect(screen.getByText('15 Mar 2026')).toBeInTheDocument();
+  });
+
+  it('shows transaction date in full format on desktop table (past year)', () => {
+    const transactions = [makeTransaction({ date: '2025-03-15' })];
+    render(<ExpenseList {...defaultProps} transactions={transactions} />);
+    expect(screen.getByText('15 Mar 2025')).toBeInTheDocument();
+  });
 });
 

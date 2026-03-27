@@ -69,6 +69,19 @@ function formatDate(dateStr: string | undefined, fallback?: string): string {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
 }
 
+function formatDateShort(dateStr: string | undefined, fallback?: string): string {
+  const raw = dateStr || fallback;
+  if (!raw) return '—';
+  const d = new Date(raw);
+  if (Number.isNaN(d.getTime())) return '—';
+  const today = new Date();
+  const isCurrentYear = d.getFullYear() === today.getFullYear();
+  if (isCurrentYear) {
+    return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
 function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) {
   return `${symbol}${convert(amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
 }
@@ -389,6 +402,9 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 </Typography>
                               </Box>
                             )}
+                            <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', mt: 0.5 }}>
+                              {formatDateShort(t.date, t.createdAt)}
+                            </Typography>
                           </Box>
 
                           {/* Right: amount (tap card to edit/delete) */}
