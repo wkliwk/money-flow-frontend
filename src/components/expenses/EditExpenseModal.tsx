@@ -27,6 +27,8 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
+import CallSplitIcon from '@mui/icons-material/CallSplit';
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../../types';
 import { updateExpense } from '../../services/api';
@@ -410,9 +412,11 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
                 sx={{ height: 30 }}
               >
                 <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  <CallSplitIcon sx={{ fontSize: 14, mr: 0.5 }} />
                   Split bill
                 </ToggleButton>
                 <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
+                  <CardGiftcardIcon sx={{ fontSize: 14, mr: 0.5 }} />
                   My treat
                 </ToggleButton>
                 <ToggleButton value="participate" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
