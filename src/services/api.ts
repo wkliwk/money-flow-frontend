@@ -287,6 +287,25 @@ export const removeFriend = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/friends/${id}`);
 };
 
+// NLP Transaction Parsing
+export interface ParsedTransaction {
+  merchant?: string;
+  amount?: number;
+  currency?: string;
+  category?: string;
+  subcategory?: string;
+  participants?: string[];
+  date?: string;
+  notes?: string;
+  confidence?: number;
+  missing_fields?: string[];
+}
+
+export const parseTransactionText = async (text: string, locale = 'zh-HK'): Promise<ParsedTransaction> => {
+  const res = await axiosInstance.post('/api/transactions/parse-text', { text, locale }, { timeout: 15000 });
+  return res.data;
+};
+
 // Receipts
 export const scanReceipt = async (file: File): Promise<ReceiptScanResult> => {
   const form = new FormData();

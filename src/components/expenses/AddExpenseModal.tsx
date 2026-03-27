@@ -36,6 +36,8 @@ import TemplateChips from './TemplateChips';
 import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
 import PaymentMethodPicker from './PaymentMethodPicker';
+import NlpInput from './NlpInput';
+import { ParsedTransaction } from '../../services/api';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
@@ -130,6 +132,21 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setDescription(t.description);
     if (t.item) setItem(t.item);
     if (t.defaultAmount) setAmount(String(t.defaultAmount));
+  };
+
+  const handleNlpParsed = (result: ParsedTransaction) => {
+    if (result.amount) setAmount(String(result.amount));
+    if (result.category) setCategory(result.category);
+    if (result.notes || result.merchant) setDescription(result.notes || result.merchant || '');
+    if (result.participants?.length) setParticipants(result.participants);
+    if (result.date) {
+      setQuickDate('custom');
+      setCustomDate(result.date);
+    }
+    // If amount exists, it's likely an expense unless explicitly income
+    if (result.missing_fields?.length) {
+      // Focus user's attention on missing fields — no-op for now, form is visible
+    }
   };
 
   const resolvedDate = quickDate === 'today' ? today() : quickDate === 'yesterday' ? yesterday() : customDate;
@@ -334,6 +351,9 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
             </Box>
           </Box>
         )}
+
+        {/* NLP quick entry */}
+        {!receiptPrefill && <NlpInput onParsed={handleNlpParsed} />}
 
         {/* Template quick-tap row */}
         <TemplateChips
