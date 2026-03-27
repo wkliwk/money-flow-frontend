@@ -78,6 +78,12 @@ export const deleteExpense = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/expenses/${id}`);
 };
 
+// Price hints
+export const getLastAmounts = async (): Promise<Record<string, number>> => {
+  const res = await axiosInstance.get('/api/expenses/last-amounts');
+  return res.data;
+};
+
 // Price history
 export interface PriceHistoryStats {
   count: number;
@@ -215,6 +221,47 @@ export interface ReceiptScanResult {
   confidence: ReceiptConfidence;
 }
 
+// Friends
+export interface Friend {
+  id: string;
+  email: string;
+  since: string;
+}
+
+export interface FriendRequest {
+  id: string;
+  email: string;
+  createdAt: string;
+}
+
+export const sendFriendRequest = async (email: string): Promise<{ id: string; status: string }> => {
+  const res = await axiosInstance.post('/api/friends/request', { email });
+  return res.data;
+};
+
+export const getFriends = async (): Promise<Friend[]> => {
+  const res = await axiosInstance.get('/api/friends');
+  return res.data.friends;
+};
+
+export const getPendingRequests = async (): Promise<FriendRequest[]> => {
+  const res = await axiosInstance.get('/api/friends/pending');
+  return res.data.requests;
+};
+
+export const acceptFriend = async (id: string): Promise<void> => {
+  await axiosInstance.post(`/api/friends/${id}/accept`);
+};
+
+export const rejectFriend = async (id: string): Promise<void> => {
+  await axiosInstance.post(`/api/friends/${id}/reject`);
+};
+
+export const removeFriend = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/friends/${id}`);
+};
+
+// Receipts
 export const scanReceipt = async (file: File): Promise<ReceiptScanResult> => {
   const form = new FormData();
   form.append('receipt', file);
