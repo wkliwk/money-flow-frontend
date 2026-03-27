@@ -168,6 +168,20 @@ export const deleteNetWorthSnapshot = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/net-worth/${id}`);
 };
 
+// Reports
+export interface MonthlyReportEntry {
+  month: string;
+  income: number;
+  expenses: number;
+  net: number;
+  transactionCount: number;
+}
+
+export const getMonthlyReport = async (months = 6): Promise<MonthlyReportEntry[]> => {
+  const res = await axiosInstance.get(`/api/reports/monthly?months=${months}`);
+  return res.data.data;
+};
+
 // Receipts
 export type ReceiptConfidence = 'high' | 'medium' | 'low';
 

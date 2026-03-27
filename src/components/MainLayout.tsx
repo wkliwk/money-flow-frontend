@@ -29,9 +29,9 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import CategoryIcon from '@mui/icons-material/Category';
 import SettingsIcon from '@mui/icons-material/Settings';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
+import BarChartIcon from '@mui/icons-material/BarChart';
 import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
@@ -57,11 +57,11 @@ import QuickExpenseInput from './expenses/QuickExpenseInput';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
-import ManageItemsPage from './items/ManageItemsPage';
 import NetWorthPage from './networth/NetWorthPage';
 import SettingsPage from './settings/SettingsPage';
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
+import SpendingInsightsPage from './insights/SpendingInsightsPage';
 
 function getOwnerFromToken(): string {
   try {
@@ -489,8 +489,8 @@ const MainLayout: React.FC = () => {
   const navItems = [
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
-    { label: 'Items', icon: <CategoryIcon /> },
     { label: 'Net Worth', icon: <AccountBalanceIcon /> },
+    { label: 'Insights', icon: <BarChartIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
 
@@ -908,6 +908,10 @@ const MainLayout: React.FC = () => {
           )}
 
           {activeTab === 3 && (
+            <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />
+          )}
+
+          {activeTab === 4 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -938,6 +942,7 @@ const MainLayout: React.FC = () => {
           <BottomNavigationAction label="Home" icon={<DashboardIcon />} />
           <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
           <BottomNavigationAction label="Worth" icon={<AccountBalanceIcon />} />
+          <BottomNavigationAction label="Insights" icon={<BarChartIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
       </Box>
