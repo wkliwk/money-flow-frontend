@@ -147,7 +147,7 @@ describe('Empty state on Transactions tab', () => {
     await waitFor(() => {
       expect(screen.getByText('No transactions yet')).toBeInTheDocument();
     });
-    expect(screen.getByText('Tap + to add your first expense')).toBeInTheDocument();
+    expect(screen.getByText('Tap + to record your first expense')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
   });
 
@@ -174,7 +174,7 @@ describe('Empty state on Transactions tab', () => {
     await navigateToTransactionsTab();
     // The transaction is from 2 years ago, default 'month' preset means it won't appear in filteredTransactions
     await waitFor(() => {
-      expect(screen.getByText('No results for these filters')).toBeInTheDocument();
+      expect(screen.getByText('No results')).toBeInTheDocument();
     });
     expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
     expect(screen.queryByRole('button', { name: /add expense/i })).not.toBeInTheDocument();
@@ -190,6 +190,6 @@ describe('Empty state on Transactions tab', () => {
       expect(screen.getByText('Coffee')).toBeInTheDocument();
     });
     expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
-    expect(screen.queryByText('No results for these filters')).not.toBeInTheDocument();
+    expect(screen.queryByText('No results')).not.toBeInTheDocument();
   });
 });
