@@ -39,7 +39,15 @@ const DescriptionPicker: React.FC<Props> = ({ value, onChange, suggestions, cate
         }
       }
 
-      setSuggestedCategory(bestMatch?.category || null);
+      if (bestMatch) {
+        setSuggestedCategory(bestMatch.category);
+        // Auto-apply category on exact or near-exact match
+        if (bestMatch.score >= 0.85 && onCategorySelect) {
+          onCategorySelect(bestMatch.category);
+        }
+      } else {
+        setSuggestedCategory(null);
+      }
     }, 300);
 
     return () => {

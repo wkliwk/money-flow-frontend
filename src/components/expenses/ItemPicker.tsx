@@ -66,16 +66,25 @@ interface Props {
   type: TransactionType;
   onSelect: (item: ItemPreset) => void;
   recentItems?: string[]; // ordered by most recently used
+  timeRelevantItems?: string[]; // items relevant to current time of day
 }
 
-const ItemPicker: React.FC<Props> = ({ value, type, onSelect, recentItems }) => {
+const ItemPicker: React.FC<Props> = ({ value, type, onSelect, recentItems, timeRelevantItems = [] }) => {
   const filtered = ITEM_PRESETS.filter((p) => p.type === type);
-  const presets = recentItems && recentItems.length
-    ? [
-        ...filtered.filter((p) => recentItems.includes(p.label)).sort((a, b) => recentItems.indexOf(a.label) - recentItems.indexOf(b.label)),
-        ...filtered.filter((p) => !recentItems.includes(p.label)),
-      ]
-    : filtered;
+  // Score each item: time relevance (highest priority) + recency
+  const presets = [...filtered].sort((a, b) => {
+    const aTimeIdx = timeRelevantItems.indexOf(a.en);
+    const bTimeIdx = timeRelevantItems.indexOf(b.en);
+    const aRecIdx = recentItems?.indexOf(a.label) ?? -1;
+    const bRecIdx = recentItems?.indexOf(b.label) ?? -1;
+    // Time-relevant items first (lower index = higher priority)
+    const aTimeScore = aTimeIdx >= 0 ? 100 - aTimeIdx : 0;
+    const bTimeScore = bTimeIdx >= 0 ? 100 - bTimeIdx : 0;
+    // Recent items get a boost
+    const aRecScore = aRecIdx >= 0 ? 50 - aRecIdx : 0;
+    const bRecScore = bRecIdx >= 0 ? 50 - bRecIdx : 0;
+    return (bTimeScore + bRecScore) - (aTimeScore + aRecScore);
+  });
 
   return (
     <Box sx={{ mb: 1.5 }}>

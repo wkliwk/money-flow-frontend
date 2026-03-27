@@ -64,6 +64,10 @@ interface Props {
   amountsByDescription?: Record<string, number>;
   categoriesByDescription?: Record<string, string>;
   receiptPrefill?: ReceiptPrefill;
+  /** Smart suggestions: participants ranked for current item */
+  participantsForItem?: (item: string) => string[];
+  /** Smart suggestions: time-relevant items for current hour */
+  timeRelevantItems?: string[];
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -75,7 +79,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill, participantsForItem, timeRelevantItems = [] }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -394,7 +398,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         {/* Item picker — sets item + category, filtered by type */}
-        <ItemPicker value={item} type={type} onSelect={handleItemSelect} recentItems={recentItems} />
+        <ItemPicker value={item} type={type} onSelect={handleItemSelect} recentItems={recentItems} timeRelevantItems={timeRelevantItems} />
 
         {/* Description — tag picker */}
         {(() => {
@@ -498,7 +502,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         </Box>
 
         <Collapse in={showMore}>
-          <ParticipantPicker value={participants} onChange={setParticipants} suggestions={knownParticipants} />
+          <ParticipantPicker value={participants} onChange={setParticipants} suggestions={participantsForItem && item ? participantsForItem(item) : knownParticipants} />
 
           {participants.length > 0 && (
             <Box sx={{ mt: 1, mb: 0.5 }}>
