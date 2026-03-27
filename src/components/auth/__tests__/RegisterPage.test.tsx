@@ -5,7 +5,11 @@ import RegisterPage from '../RegisterPage';
 
 jest.mock('../../../services/api', () => ({
   register: jest.fn(),
+  loginWithGoogle: jest.fn(),
+  loginWithApple: jest.fn(),
 }));
+
+jest.mock('../SSOButtons', () => () => <div data-testid="sso-buttons">SSO Buttons</div>);
 
 const mockNavigate = jest.fn();
 jest.mock('react-router-dom', () => ({

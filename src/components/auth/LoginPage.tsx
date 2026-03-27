@@ -9,6 +9,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { login } from '../../services/api';
+import SSOButtons from './SSOButtons';
 
 const LoginPage: React.FC = () => {
   const navigate = useNavigate();
@@ -104,6 +105,8 @@ const LoginPage: React.FC = () => {
             {error}
           </Alert>
         )}
+
+        <SSOButtons />
 
         <Box component="form" onSubmit={handleSubmit}>
           <TextField

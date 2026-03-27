@@ -14,6 +14,16 @@ export const login = async (email: string, password: string): Promise<void> => {
   setToken(res.data.token);
 };
 
+export const loginWithGoogle = async (idToken: string): Promise<void> => {
+  const res = await axiosInstance.post('/auth/google', { idToken });
+  setToken(res.data.token);
+};
+
+export const loginWithApple = async (idToken: string): Promise<void> => {
+  const res = await axiosInstance.post('/auth/apple', { idToken });
+  setToken(res.data.token);
+};
+
 // User
 export interface UserProfile {
   _id: string;
@@ -143,4 +153,27 @@ export const createNetWorth = async (data: {
 
 export const deleteNetWorthSnapshot = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/net-worth/${id}`);
+};
+
+// Receipts
+export type ReceiptConfidence = 'high' | 'medium' | 'low';
+
+export interface ReceiptScanResult {
+  amount: number;
+  description: string;
+  category: string;
+  date: string;
+  merchant: string;
+  currency: string;
+  confidence: ReceiptConfidence;
+}
+
+export const scanReceipt = async (file: File): Promise<ReceiptScanResult> => {
+  const form = new FormData();
+  form.append('receipt', file);
+  const res = await axiosInstance.post('/api/receipts/scan', form, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 30000,
+  });
+  return res.data;
 };

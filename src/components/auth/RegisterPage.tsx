@@ -8,6 +8,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import VisibilityOffOutlinedIcon from '@mui/icons-material/VisibilityOffOutlined';
 import VisibilityOutlinedIcon from '@mui/icons-material/VisibilityOutlined';
 import { register } from '../../services/api';
+import SSOButtons from './SSOButtons';
 
 const RegisterPage: React.FC = () => {
   const navigate = useNavigate();
@@ -94,6 +95,8 @@ const RegisterPage: React.FC = () => {
             {error}
           </Alert>
         )}
+
+        <SSOButtons />
 
         <Box component="form" onSubmit={handleSubmit}>
           <TextField
