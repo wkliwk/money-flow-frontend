@@ -328,6 +328,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                         alignItems: 'center',
                         justifyContent: 'center',
                         borderRadius: '0 4px 4px 0',
+                        visibility: offset < 0 ? 'visible' : 'hidden',
                       }}
                     >
                       <IconButton
@@ -342,9 +343,9 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                     </Box>
                     <Card
                       sx={{
+                        width: '100%',
                         border: '1px solid rgba(148,163,184,0.08)',
                         background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)',
-                        backdropFilter: 'blur(8px)',
                         borderLeft: `4px solid ${edgeColor}`,
                         transform: `translateX(${offset}px)`,
                         transition: isSwiping.current[t._id] ? 'none' : 'transform 0.2s ease',

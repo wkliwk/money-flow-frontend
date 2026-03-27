@@ -5,6 +5,8 @@ import { AppThemeProvider } from '../../../ThemeContext';
 
 const mockToggleCurrency = jest.fn();
 
+jest.mock('../FriendsSection', () => () => null);
+
 jest.mock('../../../hooks/useCurrencyPreferences', () => ({
   useCurrencyPreferences: () => ({
     enabledCurrencies: ['HKD', 'USD'],
