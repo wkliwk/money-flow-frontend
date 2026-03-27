@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -24,7 +24,9 @@ import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import RepeatIcon from '@mui/icons-material/Repeat';
+import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import { TransactionRequest, TransactionType, PaymentMethod } from '../../types';
+import { ReceiptConfidence } from '../../services/api';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
@@ -39,6 +41,15 @@ import { useRecurring } from '../../hooks/useRecurring';
 
 type RecurringFrequency = 'monthly' | 'weekly' | 'daily';
 
+export interface ReceiptPrefill {
+  amount?: number;
+  description?: string;
+  category?: string;
+  date?: string;
+  confidence?: ReceiptConfidence;
+  imagePreviewUrl?: string;
+}
+
 interface Props {
   open: boolean;
   onClose: () => void;
@@ -49,6 +60,7 @@ interface Props {
   recentItems?: string[];
   amountsByDescription?: Record<string, number>;
   categoriesByDescription?: Record<string, string>;
+  receiptPrefill?: ReceiptPrefill;
 }
 
 const today = () => new Date().toISOString().split('T')[0];
@@ -60,7 +72,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {} }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -87,6 +99,18 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [error, setError] = useState('');
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
   const [pendingSubmit, setPendingSubmit] = useState<{ data: Omit<TransactionRequest, 'owner'>; addAnother: boolean } | null>(null);
+
+  // Apply receipt OCR prefill when the modal opens with data
+  useEffect(() => {
+    if (!open || !receiptPrefill) return;
+    if (receiptPrefill.amount !== undefined) setAmount(String(receiptPrefill.amount));
+    if (receiptPrefill.description) setDescription(receiptPrefill.description);
+    if (receiptPrefill.category) setCategory(receiptPrefill.category);
+    if (receiptPrefill.date) {
+      setQuickDate('custom');
+      setCustomDate(receiptPrefill.date);
+    }
+  }, [open, receiptPrefill]);
 
   const handleItemSelect = (preset: ItemPreset) => {
     setItem(preset.label);
@@ -267,6 +291,43 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
 
       <DialogContent sx={{ pt: 1 }}>
         {error && <Alert severity="error" sx={{ mb: 2, mt: 1 }}>{error}</Alert>}
+
+        {/* Receipt preview + confidence warning */}
+        {receiptPrefill && (
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, mb: 1.5, mt: 0.5 }}>
+            {receiptPrefill.imagePreviewUrl && (
+              <Box
+                component="img"
+                src={receiptPrefill.imagePreviewUrl}
+                alt="Receipt preview"
+                sx={{
+                  width: 56,
+                  height: 56,
+                  objectFit: 'cover',
+                  borderRadius: 1.5,
+                  border: '1px solid rgba(148,163,184,0.15)',
+                  flexShrink: 0,
+                }}
+              />
+            )}
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="caption" sx={{ color: 'rgba(129,140,248,0.9)', fontWeight: 600, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+                Scanned from receipt
+              </Typography>
+              {receiptPrefill.confidence === 'low' && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25 }}>
+                  <WarningAmberIcon sx={{ fontSize: 13, color: 'warning.main' }} />
+                  <Typography variant="caption" sx={{ color: 'warning.main', fontSize: '0.7rem' }}>
+                    Some fields may need correction
+                  </Typography>
+                </Box>
+              )}
+              <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '0.7rem', display: 'block', mt: 0.25 }}>
+                Review and edit before saving
+              </Typography>
+            </Box>
+          </Box>
+        )}
 
         {/* Template quick-tap row */}
         <TemplateChips
