@@ -145,18 +145,16 @@ describe('ExpenseList (mobile layout)', () => {
 
   it('shows transaction date in user-friendly format on mobile card (current year)', () => {
     const currentYear = new Date().getFullYear();
-    const currentYearDate = `${currentYear}-03-15`;
+    const currentYearDate = `${currentYear}-03-15T12:00:00`;
     const transactions = [makeTransaction({ date: currentYearDate })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    // Should show "15 Mar" format (day month, no year)
     expect(screen.getByText('15 Mar')).toBeInTheDocument();
   });
 
   it('shows transaction date in user-friendly format on mobile card (past year)', () => {
-    const transactions = [makeTransaction({ date: '2025-03-15' })];
+    const transactions = [makeTransaction({ date: '2025-03-15T12:00:00' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    // Should show "15 Mar, 2025" format
-    expect(screen.getByText('15 Mar, 2025')).toBeInTheDocument();
+    expect(screen.getByText('15 Mar 2025')).toBeInTheDocument();
   });
 
   it('clicking notes section on mobile card toggles expanded state', () => {
