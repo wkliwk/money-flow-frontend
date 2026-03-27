@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Typography, TextField, IconButton, Chip } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 
 interface Props {
@@ -9,6 +10,8 @@ interface Props {
 }
 
 const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [input, setInput] = useState('');
 
   const add = () => {
@@ -46,10 +49,10 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] 
             sx={{
               height: 26,
               fontSize: '0.75rem',
-              bgcolor: 'rgba(129,140,248,0.12)',
-              color: '#818cf8',
-              border: '1px solid rgba(129,140,248,0.3)',
-              '& .MuiChip-deleteIcon': { color: 'rgba(129,140,248,0.5)', fontSize: 14 },
+              bgcolor: isDark ? 'rgba(129,140,248,0.12)' : 'rgba(99,102,241,0.15)',
+              color: theme.palette.primary.main,
+              border: `1px solid ${isDark ? 'rgba(129,140,248,0.3)' : 'rgba(99,102,241,0.38)'}`,
+              '& .MuiChip-deleteIcon': { color: isDark ? 'rgba(129,140,248,0.5)' : 'rgba(99,102,241,0.5)', fontSize: 14 },
             }}
           />
         ))}
@@ -70,7 +73,7 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] 
                 color: 'text.secondary',
                 border: '1px solid rgba(148,163,184,0.15)',
                 cursor: 'pointer',
-                '&:hover': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
+                '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: theme.palette.primary.main },
               }}
             />
           ))}
@@ -85,8 +88,8 @@ const ParticipantPicker: React.FC<Props> = ({ value, onChange, suggestions = [] 
           onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); add(); } }}
           sx={{ flex: 1, '& .MuiInputBase-input': { fontSize: '0.85rem', py: 0.75 } }}
         />
-        <IconButton size="small" onClick={add} disabled={!input.trim()} sx={{ bgcolor: 'rgba(129,140,248,0.1)', border: '1px solid rgba(129,140,248,0.2)', '&:hover': { bgcolor: 'rgba(129,140,248,0.18)' } }}>
-          <AddIcon sx={{ fontSize: 18, color: '#818cf8' }} />
+        <IconButton size="small" onClick={add} disabled={!input.trim()} sx={{ bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)' } }}>
+          <AddIcon sx={{ fontSize: 18, color: theme.palette.primary.main }} />
         </IconButton>
       </Box>
     </Box>

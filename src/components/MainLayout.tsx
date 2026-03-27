@@ -492,7 +492,7 @@ const MainLayout: React.FC = () => {
               fontWeight: 700,
               letterSpacing: '-0.01em',
               color: 'primary.main',
-              background: 'linear-gradient(135deg, #818cf8 0%, #34d399 100%)',
+              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.success.main} 100%)`,
               WebkitBackgroundClip: 'text',
               WebkitTextFillColor: 'transparent',
             }}
@@ -500,7 +500,7 @@ const MainLayout: React.FC = () => {
             Money Flow
           </Typography>
           {isOffline && (
-            <Typography sx={{ fontSize: '0.68rem', color: '#fbbf24', fontWeight: 600, letterSpacing: '0.04em', px: 1, py: 0.25, borderRadius: 1, bgcolor: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)' }}>
+            <Typography sx={{ fontSize: '0.68rem', color: 'warning.main', fontWeight: 600, letterSpacing: '0.04em', px: 1, py: 0.25, borderRadius: 1, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,191,36,0.1)' : 'rgba(245,158,11,0.12)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(245,158,11,0.25)' }}>
               Offline
             </Typography>
           )}
@@ -564,7 +564,7 @@ const MainLayout: React.FC = () => {
             top: '64px',
             height: 'calc(100% - 64px)',
             bgcolor: 'background.paper',
-            borderRight: '1px solid rgba(148,163,184,0.1)',
+            borderRight: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(148,163,184,0.1)' : 'rgba(148,163,184,0.15)'}`,
           },
         }}
       >
@@ -576,8 +576,8 @@ const MainLayout: React.FC = () => {
                 selected={activeTab === index}
                 onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4)}
                 sx={{
-                  '&.Mui-selected': { bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8' },
-                  '&.Mui-selected .MuiListItemIcon-root': { color: '#818cf8' },
+                  '&.Mui-selected': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: 'primary.main' },
+                  '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
@@ -624,7 +624,7 @@ const MainLayout: React.FC = () => {
               ) : (<>
               {/* Recurring prompt banner */}
               {pendingRecurring.length > 0 && (
-                <Box sx={{ mb: 2, py: 1.5, px: 2, borderRadius: 2, bgcolor: 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                <Box sx={{ mb: 2, py: 1.5, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)', border: theme.palette.mode === 'dark' ? '1px solid rgba(129,140,248,0.2)' : '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
                   <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', flex: 1 }}>
                     {pendingRecurring.length} recurring transaction{pendingRecurring.length > 1 ? 's' : ''} pending for {dayjs().format('MMMM')}
                   </Typography>
@@ -639,8 +639,8 @@ const MainLayout: React.FC = () => {
                 const overBudget = Object.entries(budgets).filter(([cat, limit]) => limit > 0 && (categorySpend[cat] || 0) > limit);
                 if (overBudget.length === 0) return null;
                 return (
-                  <Box sx={{ mb: 2, py: 1.25, px: 2, borderRadius: 2, bgcolor: 'rgba(251,113,133,0.07)', border: '1px solid rgba(251,113,133,0.2)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography sx={{ fontSize: '0.82rem', color: '#fb7185', fontWeight: 600 }}>⚠</Typography>
+                  <Box sx={{ mb: 2, py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,113,133,0.2)' : '1px solid rgba(244,63,94,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Typography sx={{ fontSize: '0.82rem', color: 'error.light', fontWeight: 600 }}>⚠</Typography>
                     <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
                       Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert(categorySpend[cat] - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
                     </Typography>
@@ -682,7 +682,7 @@ const MainLayout: React.FC = () => {
                   <Box sx={{ mt: 2 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
                       <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent</Typography>
-                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: '#818cf8', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: 'primary.main', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {monthFiltered.slice(0, 5).map((t) => (
@@ -705,7 +705,7 @@ const MainLayout: React.FC = () => {
                                     </Typography>
                                   )}
                                 </Box>
-                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? '#34d399' : '#fb7185', fontSize: '0.9rem', flexShrink: 0 }}>
+                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light, fontSize: '0.9rem', flexShrink: 0 }}>
                                   {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                 </Typography>
                               </Box>
@@ -752,12 +752,12 @@ const MainLayout: React.FC = () => {
                   if (weekExp === 0 && weekInc === 0) return null;
                   const delta = lastWeekExp > 0 ? weekExp - lastWeekExp : null;
                   return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, px: 0.5, py: 1, borderRadius: 1.5, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, px: 0.5, py: 1, borderRadius: 1.5, bgcolor: theme.palette.mode === 'dark' ? 'rgba(148,163,184,0.04)' : 'rgba(148,163,184,0.06)', border: theme.palette.mode === 'dark' ? '1px solid rgba(148,163,184,0.08)' : '1px solid rgba(148,163,184,0.12)' }}>
                       <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>This week</Typography>
-                      {weekExp > 0 && <Typography sx={{ fontSize: '0.78rem', color: '#fb7185', fontWeight: 600 }}>-{symbol}{convert(weekExp).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
-                      {weekInc > 0 && <Typography sx={{ fontSize: '0.78rem', color: '#34d399', fontWeight: 600 }}>+{symbol}{convert(weekInc).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                      {weekExp > 0 && <Typography sx={{ fontSize: '0.78rem', color: 'error.light', fontWeight: 600 }}>-{symbol}{convert(weekExp).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                      {weekInc > 0 && <Typography sx={{ fontSize: '0.78rem', color: 'success.light', fontWeight: 600 }}>+{symbol}{convert(weekInc).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
                       <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{thisWeek.length} txn{thisWeek.length !== 1 ? 's' : ''}</Typography>
-                      {delta !== null && <Typography sx={{ fontSize: '0.72rem', color: delta > 0 ? '#fb7185' : '#34d399', fontWeight: 600, ml: 'auto' }}>{delta > 0 ? '↑' : '↓'} {symbol}{convert(Math.abs(delta)).toLocaleString(undefined, { maximumFractionDigits: 0 })} vs last week</Typography>}
+                      {delta !== null && <Typography sx={{ fontSize: '0.72rem', color: delta > 0 ? theme.palette.error.light : theme.palette.success.light, fontWeight: 600, ml: 'auto' }}>{delta > 0 ? '↑' : '↓'} {symbol}{convert(Math.abs(delta)).toLocaleString(undefined, { maximumFractionDigits: 0 })} vs last week</Typography>}
                     </Box>
                   );
                 })()}
@@ -770,7 +770,7 @@ const MainLayout: React.FC = () => {
                   <Box sx={{ mt: 3 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
                       <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent Transactions</Typography>
-                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: '#818cf8', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: 'primary.main', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                       {monthFiltered.slice(0, 5).map((t) => (
@@ -793,7 +793,7 @@ const MainLayout: React.FC = () => {
                                     </Typography>
                                   )}
                                 </Box>
-                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? '#34d399' : '#fb7185', fontSize: '0.9rem', flexShrink: 0 }}>
+                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light, fontSize: '0.9rem', flexShrink: 0 }}>
                                   {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                                 </Typography>
                               </Box>
@@ -851,17 +851,17 @@ const MainLayout: React.FC = () => {
                 return (
                   <Box sx={{ display: 'flex', gap: 2, mb: 1.5, px: 0.5 }}>
                     {fIncome > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#34d399', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: 'success.light', fontWeight: 600 }}>
                         +{symbol}{convert(fIncome).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     )}
                     {fExpense > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#fb7185', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: 'error.light', fontWeight: 600 }}>
                         -{symbol}{convert(fExpense).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     )}
                     {fIncome > 0 && fExpense > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: fNet >= 0 ? '#818cf8' : 'text.secondary', fontWeight: 600, ml: 'auto' }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: fNet >= 0 ? 'primary.main' : 'text.secondary', fontWeight: 600, ml: 'auto' }}>
                         {fNet >= 0 ? '+' : ''}{symbol}{convert(fNet).toLocaleString(undefined, { maximumFractionDigits: 0 })} net
                       </Typography>
                     )}
@@ -944,18 +944,18 @@ const MainLayout: React.FC = () => {
           sx={{
             px: isDesktop ? 3 : undefined,
             gap: isDesktop ? 1 : undefined,
-            boxShadow: '0 0 0 0 rgba(129,140,248,0.4)',
+            boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0.4)' : '0 0 0 0 rgba(99,102,241,0.4)',
             '@media (prefers-reduced-motion: no-preference)': {
               animation: 'fab-pulse 2.5s ease-in-out 3',
               '@keyframes fab-pulse': {
-                '0%': { boxShadow: '0 0 0 0 rgba(129,140,248,0.4)' },
-                '60%': { boxShadow: '0 0 0 12px rgba(129,140,248,0)' },
-                '100%': { boxShadow: '0 0 0 0 rgba(129,140,248,0)' },
+                '0%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0.4)' : '0 0 0 0 rgba(99,102,241,0.4)' },
+                '60%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 12px rgba(129,140,248,0)' : '0 0 0 12px rgba(99,102,241,0)' },
+                '100%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0)' : '0 0 0 0 rgba(99,102,241,0)' },
               },
             },
             '&:hover': {
               animation: 'none',
-              boxShadow: '0 0 28px rgba(129,140,248,0.5)',
+              boxShadow: theme.palette.mode === 'dark' ? '0 0 28px rgba(129,140,248,0.5)' : '0 0 28px rgba(99,102,241,0.5)',
             },
           }}
         >
@@ -1040,7 +1040,7 @@ const MainLayout: React.FC = () => {
           sx={{ bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}`, borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
           message={<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>Transaction deleted</Typography>}
           action={
-            <Button size="small" onClick={handleUndo} sx={{ color: '#818cf8', fontWeight: 700, fontSize: '0.8rem' }}>
+            <Button size="small" onClick={handleUndo} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.8rem' }}>
               Undo
             </Button>
           }

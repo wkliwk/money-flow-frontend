@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Box, Chip, Popover, TextField, Button, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import dayjs, { Dayjs } from 'dayjs';
 import MonthPicker from './MonthPicker';
 import CurrencyPicker from './CurrencyPicker';
@@ -38,6 +39,8 @@ const DateRangeControl: React.FC<Props> = ({
   onCustomChange,
   onCurrencyChange,
 }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const [customAnchor, setCustomAnchor] = useState<HTMLElement | null>(null);
   const [draftStart, setDraftStart] = useState(customStart);
   const [draftEnd, setDraftEnd] = useState(customEnd);
@@ -82,11 +85,17 @@ const DateRangeControl: React.FC<Props> = ({
                 height: 26,
                 fontSize: '0.75rem',
                 fontWeight: isActive ? 700 : 400,
-                color: isActive ? '#818cf8' : 'text.secondary',
-                bgcolor: isActive ? 'rgba(129,140,248,0.12)' : 'transparent',
+                color: isActive ? theme.palette.primary.main : 'text.secondary',
+                bgcolor: isActive
+                  ? isDark ? 'rgba(129,140,248,0.12)' : 'rgba(99,102,241,0.15)'
+                  : 'transparent',
                 border: '1px solid',
-                borderColor: isActive ? 'rgba(129,140,248,0.3)' : 'rgba(148,163,184,0.12)',
-                '&:hover': { bgcolor: isActive ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)' },
+                borderColor: isActive
+                  ? isDark ? 'rgba(129,140,248,0.3)' : 'rgba(99,102,241,0.35)'
+                  : 'rgba(148,163,184,0.12)',
+                '&:hover': { bgcolor: isActive
+                  ? isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)'
+                  : 'rgba(148,163,184,0.06)' },
               }}
             />
           );
@@ -132,7 +141,7 @@ const DateRangeControl: React.FC<Props> = ({
             onChange={(e) => setDraftStart(e.target.value)}
             InputLabelProps={{ shrink: true }}
             inputProps={{ max: draftEnd || undefined }}
-            sx={{ '& input': { colorScheme: 'dark' } }}
+            sx={{ '& input': { colorScheme: isDark ? 'dark' : 'light' } }}
           />
           <TextField
             label="To"
@@ -142,7 +151,7 @@ const DateRangeControl: React.FC<Props> = ({
             onChange={(e) => setDraftEnd(e.target.value)}
             InputLabelProps={{ shrink: true }}
             inputProps={{ min: draftStart || undefined, max: dayjs().format('YYYY-MM-DD') }}
-            sx={{ '& input': { colorScheme: 'dark' } }}
+            sx={{ '& input': { colorScheme: isDark ? 'dark' : 'light' } }}
           />
           <Button
             variant="contained"

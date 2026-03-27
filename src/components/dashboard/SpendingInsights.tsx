@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Typography } from '@mui/material';
+import { useTheme, alpha } from '@mui/material/styles';
 import { Transaction } from '../../types';
 
 interface Props {
@@ -35,6 +36,7 @@ function topCategoryChange(current: Transaction[], prev: Transaction[]): { categ
 }
 
 const SpendingInsights: React.FC<Props> = ({ transactions, prevMonthTransactions, convert, symbol }) => {
+  const theme = useTheme();
   const insights = useMemo(() => {
     if (prevMonthTransactions.length === 0) return null;
 
@@ -53,26 +55,29 @@ const SpendingInsights: React.FC<Props> = ({ transactions, prevMonthTransactions
 
   const { spendDelta, topCat, net } = insights;
 
-  const cards: { text: string; color: string }[] = [];
+  const successColor = theme.palette.success.light;
+  const errorColor = theme.palette.error.light;
+
+  const cards: { text: string; color: string; bgAlpha: number; borderAlpha: number }[] = [];
 
   if (spendDelta !== null) {
     const dir = spendDelta <= 0 ? 'less' : 'more';
     const arrow = spendDelta <= 0 ? '\u2193' : '\u2191';
-    const color = spendDelta <= 0 ? '#34d399' : '#fb7185';
-    cards.push({ text: `${arrow} ${Math.abs(Math.round(spendDelta))}% ${dir} spending than last month`, color });
+    const color = spendDelta <= 0 ? successColor : errorColor;
+    cards.push({ text: `${arrow} ${Math.abs(Math.round(spendDelta))}% ${dir} spending than last month`, color, bgAlpha: 0.08, borderAlpha: 0.2 });
   }
 
   if (topCat && topCat.prevSpend > 0) {
     const pct = Math.round(((topCat.currentSpend - topCat.prevSpend) / topCat.prevSpend) * 100);
     if (Math.abs(pct) >= 10) {
       const arrow = pct <= 0 ? '\u2193' : '\u2191';
-      const color = pct <= 0 ? '#34d399' : '#fb7185';
-      cards.push({ text: `${topCat.category}: ${symbol}${convert(topCat.prevSpend).toLocaleString(undefined, { maximumFractionDigits: 0 })} \u2192 ${symbol}${convert(topCat.currentSpend).toLocaleString(undefined, { maximumFractionDigits: 0 })} (${arrow}${Math.abs(pct)}%)`, color });
+      const color = pct <= 0 ? successColor : errorColor;
+      cards.push({ text: `${topCat.category}: ${symbol}${convert(topCat.prevSpend).toLocaleString(undefined, { maximumFractionDigits: 0 })} \u2192 ${symbol}${convert(topCat.currentSpend).toLocaleString(undefined, { maximumFractionDigits: 0 })} (${arrow}${Math.abs(pct)}%)`, color, bgAlpha: 0.08, borderAlpha: 0.2 });
     }
   }
 
   if (net > 0) {
-    cards.push({ text: `Saved ${symbol}${convert(net).toLocaleString(undefined, { maximumFractionDigits: 0 })} this month`, color: '#34d399' });
+    cards.push({ text: `Saved ${symbol}${convert(net).toLocaleString(undefined, { maximumFractionDigits: 0 })} this month`, color: successColor, bgAlpha: 0.08, borderAlpha: 0.2 });
   }
 
   if (cards.length === 0) return null;
@@ -80,7 +85,7 @@ const SpendingInsights: React.FC<Props> = ({ transactions, prevMonthTransactions
   return (
     <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
       {cards.map((card, i) => (
-        <Box key={i} sx={{ py: 0.75, px: 1.5, borderRadius: 1.5, bgcolor: `${card.color}08`, border: `1px solid ${card.color}20` }}>
+        <Box key={i} sx={{ py: 0.75, px: 1.5, borderRadius: 1.5, bgcolor: alpha(card.color, card.bgAlpha), border: `1px solid ${alpha(card.color, card.borderAlpha)}` }}>
           <Typography sx={{ fontSize: '0.75rem', color: card.color, fontWeight: 600 }}>
             {card.text}
           </Typography>

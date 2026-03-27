@@ -3,10 +3,12 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
 import { AppThemeProvider } from '../../../ThemeContext';
 
+const mockToggleCurrency = jest.fn();
+
 jest.mock('../../../hooks/useCurrencyPreferences', () => ({
   useCurrencyPreferences: () => ({
     enabledCurrencies: ['HKD', 'USD'],
-    toggleCurrency: jest.fn(),
+    toggleCurrency: mockToggleCurrency,
     isEnabled: (code: string) => ['HKD', 'USD'].includes(code),
   }),
 }));
@@ -200,6 +202,15 @@ describe('SettingsPage', () => {
   it('does not show last-currency warning when multiple currencies are enabled', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.queryByText(/At least one currency must remain enabled/)).not.toBeInTheDocument();
+  });
+
+  it('toggles My Currencies chip when more than one currency is enabled', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    // My Currencies section uses the same labels; pick the second HKD chip which belongs to My Currencies
+    const hkdChips = screen.getAllByText('HK$ HKD');
+    const myCurrenciesHkdChip = hkdChips[hkdChips.length - 1];
+    fireEvent.click(myCurrenciesHkdChip);
+    expect(mockToggleCurrency).toHaveBeenCalledWith('HKD');
   });
 
   it('shows Appearance section with theme toggle', () => {

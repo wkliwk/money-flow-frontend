@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Typography, LinearProgress } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 
 interface Props {
   budgets: Record<string, number>;
@@ -10,6 +11,7 @@ interface Props {
 }
 
 const BudgetProgress: React.FC<Props> = ({ budgets, categorySpend, convert, symbol, onCategoryClick }) => {
+  const theme = useTheme();
   const entries = Object.entries(budgets)
     .filter(([, limit]) => limit > 0)
     .map(([category, limit]) => {
@@ -28,7 +30,7 @@ const BudgetProgress: React.FC<Props> = ({ budgets, categorySpend, convert, symb
       </Typography>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         {entries.map(({ category, limit, spent, pct }) => {
-          const color = pct >= 90 ? '#fb7185' : pct >= 70 ? '#fbbf24' : '#34d399';
+          const color = pct >= 90 ? theme.palette.error.light : pct >= 70 ? theme.palette.warning.main : theme.palette.success.light;
           return (
             <Box
               key={category}

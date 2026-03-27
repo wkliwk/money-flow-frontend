@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Box, Typography, ButtonBase } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import BackspaceOutlinedIcon from '@mui/icons-material/BackspaceOutlined';
 import SwapVertIcon from '@mui/icons-material/SwapVert';
 
@@ -25,6 +26,8 @@ function fmt(n: number): string {
 }
 
 const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const isFxAvailable = !!fxSymbol && !!fxRate;
   const rate = fxRate ?? 1;
   const [inputInFx, setInputInFx] = useState(() => isFxAvailable);
@@ -151,7 +154,7 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
       {/* Display */}
       <Box sx={{ mb: 1, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.05)', border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden' }}>
         {pendingOp && (
-          <Typography sx={{ fontSize: '0.65rem', color: '#818cf8', px: 2, pt: 1, letterSpacing: '0.04em', textAlign: 'center' }}>
+          <Typography sx={{ fontSize: '0.65rem', color: theme.palette.primary.main, px: 2, pt: 1, letterSpacing: '0.04em', textAlign: 'center' }}>
             {storedValue} {pendingOp}
           </Typography>
         )}
@@ -179,15 +182,15 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
               borderTop: '1px solid rgba(148,163,184,0.08)',
               cursor: 'pointer',
               bgcolor: 'rgba(148,163,184,0.03)',
-              '&:active': { bgcolor: 'rgba(129,140,248,0.08)' },
+              '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)' },
             }}
             onClick={handleSwap}
           >
             <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>
               {hintSymbol}{hintVal ?? '0'}
             </Typography>
-            <SwapVertIcon sx={{ fontSize: 16, color: inputInFx ? '#818cf8' : 'text.disabled' }} />
-            <Typography sx={{ fontSize: '0.65rem', color: inputInFx ? '#818cf8' : 'text.disabled', fontWeight: 600 }}>
+            <SwapVertIcon sx={{ fontSize: 16, color: inputInFx ? theme.palette.primary.main : 'text.disabled' }} />
+            <Typography sx={{ fontSize: '0.65rem', color: inputInFx ? theme.palette.primary.main : 'text.disabled', fontWeight: 600 }}>
               {inputInFx ? `Enter in ${fxSymbol}` : 'Enter in HK$'}
             </Typography>
           </Box>
@@ -215,13 +218,13 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
               flex: 1,
               py: 0.6,
               borderRadius: 1.5,
-              bgcolor: 'rgba(129,140,248,0.07)',
-              border: '1px solid rgba(129,140,248,0.18)',
-              '&:active': { bgcolor: 'rgba(129,140,248,0.2)', transform: 'scale(0.95)' },
+              bgcolor: isDark ? 'rgba(129,140,248,0.07)' : 'rgba(99,102,241,0.09)',
+              border: `1px solid ${isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)'}`,
+              '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)', transform: 'scale(0.95)' },
               transition: 'all 0.1s ease',
             }}
           >
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#818cf8' }}>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 600, color: theme.palette.primary.main }}>
               {preset}
             </Typography>
           </ButtonBase>
@@ -231,49 +234,49 @@ const NumPad: React.FC<Props> = ({ value, onChange, fxSymbol, fxRate }) => {
       {/* Grid */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 0.75 }}>
         {['7','8','9'].map(k => (
-          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
+          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
             <Typography fontWeight={600} sx={{ fontSize: '1.15rem', color: 'text.primary' }}>{k}</Typography>
           </ButtonBase>
         ))}
-        <ButtonBase onClick={() => handleOp('÷')} sx={{ ...btnBase, bgcolor: pendingOp === '÷' ? 'rgba(129,140,248,0.2)' : 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', '&:active': { bgcolor: 'rgba(129,140,248,0.25)', transform: 'scale(0.95)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#818cf8' }}>÷</Typography>
+        <ButtonBase onClick={() => handleOp('÷')} sx={{ ...btnBase, bgcolor: pendingOp === '÷' ? (isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)') : (isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)'), border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)', transform: 'scale(0.95)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: theme.palette.primary.main }}>÷</Typography>
         </ButtonBase>
 
         {['4','5','6'].map(k => (
-          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
+          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
             <Typography fontWeight={600} sx={{ fontSize: '1.15rem', color: 'text.primary' }}>{k}</Typography>
           </ButtonBase>
         ))}
-        <ButtonBase onClick={() => handleOp('×')} sx={{ ...btnBase, bgcolor: pendingOp === '×' ? 'rgba(129,140,248,0.2)' : 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', '&:active': { bgcolor: 'rgba(129,140,248,0.25)', transform: 'scale(0.95)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#818cf8' }}>×</Typography>
+        <ButtonBase onClick={() => handleOp('×')} sx={{ ...btnBase, bgcolor: pendingOp === '×' ? (isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)') : (isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)'), border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)', transform: 'scale(0.95)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: theme.palette.primary.main }}>×</Typography>
         </ButtonBase>
 
         {['1','2','3'].map(k => (
-          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
+          <ButtonBase key={k} onClick={() => handleDigit(k)} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
             <Typography fontWeight={600} sx={{ fontSize: '1.15rem', color: 'text.primary' }}>{k}</Typography>
           </ButtonBase>
         ))}
-        <ButtonBase onClick={() => handleOp('−')} sx={{ ...btnBase, bgcolor: pendingOp === '−' ? 'rgba(129,140,248,0.2)' : 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', '&:active': { bgcolor: 'rgba(129,140,248,0.25)', transform: 'scale(0.95)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#818cf8' }}>−</Typography>
+        <ButtonBase onClick={() => handleOp('−')} sx={{ ...btnBase, bgcolor: pendingOp === '−' ? (isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)') : (isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)'), border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)', transform: 'scale(0.95)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: theme.palette.primary.main }}>−</Typography>
         </ButtonBase>
 
-        <ButtonBase onClick={() => handleDigit('C')} sx={{ ...btnBase, bgcolor: 'rgba(251,113,133,0.07)', border: '1px solid rgba(251,113,133,0.15)', '&:active': { bgcolor: 'rgba(251,113,133,0.18)', transform: 'scale(0.95)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '0.9rem', color: '#fb7185' }}>C</Typography>
+        <ButtonBase onClick={() => handleDigit('C')} sx={{ ...btnBase, bgcolor: isDark ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.09)', border: `1px solid ${isDark ? 'rgba(251,113,133,0.15)' : 'rgba(244,63,94,0.18)'}`, '&:active': { bgcolor: isDark ? 'rgba(251,113,133,0.18)' : 'rgba(244,63,94,0.22)', transform: 'scale(0.95)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '0.9rem', color: theme.palette.error.light }}>C</Typography>
         </ButtonBase>
-        <ButtonBase onClick={() => handleDigit('.')} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
+        <ButtonBase onClick={() => handleDigit('.')} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
           <Typography fontWeight={600} sx={{ fontSize: '1.15rem', color: 'text.primary' }}>.</Typography>
         </ButtonBase>
-        <ButtonBase onClick={() => handleDigit('0')} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: 'rgba(129,140,248,0.15)', transform: 'scale(0.95)' } }}>
+        <ButtonBase onClick={() => handleDigit('0')} sx={{ ...btnBase, bgcolor: 'rgba(148,163,184,0.06)', border: '1px solid rgba(148,163,184,0.1)', '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.15)' : 'rgba(99,102,241,0.18)', transform: 'scale(0.95)' } }}>
           <Typography fontWeight={600} sx={{ fontSize: '1.15rem', color: 'text.primary' }}>0</Typography>
         </ButtonBase>
-        <ButtonBase onClick={() => handleOp('+')} sx={{ ...btnBase, bgcolor: pendingOp === '+' ? 'rgba(129,140,248,0.2)' : 'rgba(129,140,248,0.08)', border: '1px solid rgba(129,140,248,0.2)', '&:active': { bgcolor: 'rgba(129,140,248,0.25)', transform: 'scale(0.95)' } }}>
-          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#818cf8' }}>+</Typography>
+        <ButtonBase onClick={() => handleOp('+')} sx={{ ...btnBase, bgcolor: pendingOp === '+' ? (isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)') : (isDark ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)'), border: `1px solid ${isDark ? 'rgba(129,140,248,0.2)' : 'rgba(99,102,241,0.25)'}`, '&:active': { bgcolor: isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)', transform: 'scale(0.95)' } }}>
+          <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: theme.palette.primary.main }}>+</Typography>
         </ButtonBase>
 
-        <ButtonBase onClick={() => handleDigit('⌫')} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: 'rgba(251,113,133,0.06)', border: '1px solid rgba(251,113,133,0.12)', '&:active': { bgcolor: 'rgba(251,113,133,0.16)', transform: 'scale(0.97)' } }}>
-          <BackspaceOutlinedIcon sx={{ fontSize: 20, color: '#fb7185' }} />
+        <ButtonBase onClick={() => handleDigit('⌫')} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: isDark ? 'rgba(251,113,133,0.06)' : 'rgba(244,63,94,0.08)', border: `1px solid ${isDark ? 'rgba(251,113,133,0.12)' : 'rgba(244,63,94,0.15)'}`, '&:active': { bgcolor: isDark ? 'rgba(251,113,133,0.16)' : 'rgba(244,63,94,0.2)', transform: 'scale(0.97)' } }}>
+          <BackspaceOutlinedIcon sx={{ fontSize: 20, color: theme.palette.error.light }} />
         </ButtonBase>
-        <ButtonBase onClick={handleEquals} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: '#818cf8', border: 'none', '&:active': { bgcolor: '#6366f1', transform: 'scale(0.97)' } }}>
+        <ButtonBase onClick={handleEquals} sx={{ ...btnBase, gridColumn: 'span 2', bgcolor: theme.palette.primary.main, border: 'none', '&:active': { bgcolor: isDark ? '#6366f1' : '#4f46e5', transform: 'scale(0.97)' } }}>
           <Typography fontWeight={700} sx={{ fontSize: '1.1rem', color: '#fff' }}>=</Typography>
         </ButtonBase>
       </Box>

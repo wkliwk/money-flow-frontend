@@ -258,24 +258,25 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     }
   };
 
+  const isDark = theme.palette.mode === 'dark';
   const typeCards = [
     {
       value: 'expense' as TransactionType,
       label: 'Expense',
       icon: <TrendingDownIcon sx={{ fontSize: 20 }} />,
-      color: '#fb7185',
-      bg: 'rgba(251,113,133,0.1)',
-      border: 'rgba(251,113,133,0.35)',
-      activeBg: 'rgba(251,113,133,0.18)',
+      color: theme.palette.error.light,
+      bg: isDark ? 'rgba(251,113,133,0.1)' : 'rgba(244,63,94,0.12)',
+      border: isDark ? 'rgba(251,113,133,0.35)' : 'rgba(244,63,94,0.44)',
+      activeBg: isDark ? 'rgba(251,113,133,0.18)' : 'rgba(244,63,94,0.22)',
     },
     {
       value: 'income' as TransactionType,
       label: 'Income',
       icon: <TrendingUpIcon sx={{ fontSize: 20 }} />,
-      color: '#34d399',
-      bg: 'rgba(52,211,153,0.07)',
-      border: 'rgba(52,211,153,0.35)',
-      activeBg: 'rgba(52,211,153,0.18)',
+      color: theme.palette.success.light,
+      bg: isDark ? 'rgba(52,211,153,0.07)' : 'rgba(16,185,129,0.09)',
+      border: isDark ? 'rgba(52,211,153,0.35)' : 'rgba(16,185,129,0.44)',
+      activeBg: isDark ? 'rgba(52,211,153,0.18)' : 'rgba(16,185,129,0.22)',
     },
   ];
 
@@ -399,7 +400,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
                 label={`Last time: ${displaySymbol}${convert(suggested).toLocaleString(undefined, { maximumFractionDigits: 0 })} — use this?`}
                 size="small"
                 onClick={() => setAmount(String(suggested))}
-                sx={{ fontSize: '0.72rem', height: 26, bgcolor: 'rgba(129,140,248,0.1)', color: '#818cf8', border: '1px solid rgba(129,140,248,0.25)', cursor: 'pointer', '&:hover': { bgcolor: 'rgba(129,140,248,0.18)' } }}
+                sx={{ fontSize: '0.72rem', height: 26, bgcolor: isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: theme.palette.primary.main, border: `1px solid ${isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)'}`, cursor: 'pointer', '&:hover': { bgcolor: isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)' } }}
               />
             </Box>
           );
@@ -430,10 +431,10 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
                 sx={{
                   fontSize: '0.75rem',
                   height: 30,
-                  bgcolor: quickDate === d ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: quickDate === d ? '#818cf8' : 'text.secondary',
+                  bgcolor: quickDate === d ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+                  color: quickDate === d ? theme.palette.primary.main : 'text.secondary',
                   border: '1px solid',
-                  borderColor: quickDate === d ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  borderColor: quickDate === d ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                   fontWeight: quickDate === d ? 600 : 400,
                 }}
               />
@@ -509,10 +510,10 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
             sx={{
               fontSize: '0.75rem',
               height: 30,
-              bgcolor: isRecurring ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-              color: isRecurring ? '#818cf8' : 'text.secondary',
+              bgcolor: isRecurring ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+              color: isRecurring ? theme.palette.primary.main : 'text.secondary',
               border: '1px solid',
-              borderColor: isRecurring ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+              borderColor: isRecurring ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
               fontWeight: isRecurring ? 600 : 400,
             }}
           />
@@ -526,10 +527,10 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
               sx={{
                 fontSize: '0.72rem',
                 height: 28,
-                bgcolor: frequency === f ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.06)',
-                color: frequency === f ? '#818cf8' : 'text.disabled',
+                bgcolor: frequency === f ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.06)',
+                color: frequency === f ? theme.palette.primary.main : 'text.disabled',
                 border: '1px solid',
-                borderColor: frequency === f ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.1)',
+                borderColor: frequency === f ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.1)',
                 fontWeight: frequency === f ? 700 : 400,
               }}
             />

@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import { Box, Typography, IconButton, Divider } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
@@ -34,6 +35,9 @@ const MobileHero: React.FC<Props> = ({
   convert,
   symbol,
 }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
+
   const income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const prevExpenses = (prevMonthTransactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
@@ -89,16 +93,24 @@ const MobileHero: React.FC<Props> = ({
         p: 3,
         mb: 2,
         background: isPositive
-          ? 'linear-gradient(135deg, rgba(129,140,248,0.18) 0%, rgba(52,211,153,0.08) 100%)'
-          : 'linear-gradient(135deg, rgba(251,113,133,0.18) 0%, rgba(251,113,133,0.06) 100%)',
-        border: `1px solid ${isPositive ? 'rgba(129,140,248,0.25)' : 'rgba(251,113,133,0.25)'}`,
-        boxShadow: `0 8px 32px ${isPositive ? 'rgba(129,140,248,0.1)' : 'rgba(251,113,133,0.1)'}`,
+          ? isDark
+            ? 'linear-gradient(135deg, rgba(129,140,248,0.18) 0%, rgba(52,211,153,0.08) 100%)'
+            : 'linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(16,185,129,0.1) 100%)'
+          : isDark
+            ? 'linear-gradient(135deg, rgba(251,113,133,0.18) 0%, rgba(251,113,133,0.06) 100%)'
+            : 'linear-gradient(135deg, rgba(244,63,94,0.22) 0%, rgba(244,63,94,0.08) 100%)',
+        border: `1px solid ${isPositive
+          ? isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)'
+          : isDark ? 'rgba(251,113,133,0.25)' : 'rgba(244,63,94,0.3)'}`,
+        boxShadow: `0 8px 32px ${isPositive
+          ? isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)'
+          : isDark ? 'rgba(251,113,133,0.1)' : 'rgba(244,63,94,0.12)'}`,
       }}
     >
       {/* Streak badge */}
       {streak && streak >= 2 && (
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#fbbf24', bgcolor: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', px: 1, py: 0.25, borderRadius: 1, letterSpacing: '0.03em' }}>
+          <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: theme.palette.warning.main, bgcolor: isDark ? 'rgba(251,191,36,0.1)' : 'rgba(251,191,36,0.12)', border: isDark ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(251,191,36,0.25)', px: 1, py: 0.25, borderRadius: 1, letterSpacing: '0.03em' }}>
             🔥 {streak} day streak
           </Typography>
         </Box>
@@ -213,14 +225,14 @@ const MobileHero: React.FC<Props> = ({
             <AreaChart data={dailySpend} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#fb7185" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#fb7185" stopOpacity={0} />
+                  <stop offset="5%" stopColor={theme.palette.error.light} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={theme.palette.error.light} stopOpacity={0} />
                 </linearGradient>
               </defs>
               <Area
                 type="monotone"
                 dataKey="amount"
-                stroke="#fb7185"
+                stroke={theme.palette.error.light}
                 strokeWidth={1.5}
                 fill="url(#sparkGrad)"
                 dot={false}

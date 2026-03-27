@@ -1,5 +1,6 @@
 import React from 'react';
 import { Grid, Card, CardContent, Typography, Box } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import TrendingDownIcon from '@mui/icons-material/TrendingDown';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
@@ -16,6 +17,8 @@ const fmt = (n: number) =>
   n.toLocaleString('en-HK', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
 
 const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, convert, symbol }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   const income = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0);
@@ -49,30 +52,42 @@ const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, co
     {
       label: 'Income',
       value: `+${symbol}${fmt(convert(income))}`,
-      color: '#34d399',
-      gradient: 'linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%)',
-      border: 'rgba(52, 211, 153, 0.2)',
-      glow: 'rgba(52, 211, 153, 0.08)',
+      color: theme.palette.success.light,
+      gradient: isDark
+        ? 'linear-gradient(135deg, rgba(52, 211, 153, 0.12) 0%, rgba(16, 185, 129, 0.04) 100%)'
+        : 'linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(16, 185, 129, 0.05) 100%)',
+      border: isDark ? 'rgba(52, 211, 153, 0.2)' : 'rgba(16, 185, 129, 0.25)',
+      glow: isDark ? 'rgba(52, 211, 153, 0.08)' : 'rgba(16, 185, 129, 0.1)',
       icon: <TrendingUpIcon sx={{ fontSize: 20 }} />,
     },
     {
       label: 'Expenses',
       value: `-${symbol}${fmt(convert(expenses))}`,
-      color: '#fb7185',
-      gradient: 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)',
-      border: 'rgba(251, 113, 133, 0.2)',
-      glow: 'rgba(251, 113, 133, 0.08)',
+      color: theme.palette.error.light,
+      gradient: isDark
+        ? 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)'
+        : 'linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%)',
+      border: isDark ? 'rgba(251, 113, 133, 0.2)' : 'rgba(244, 63, 94, 0.25)',
+      glow: isDark ? 'rgba(251, 113, 133, 0.08)' : 'rgba(244, 63, 94, 0.1)',
       icon: <TrendingDownIcon sx={{ fontSize: 20 }} />,
     },
     {
       label: 'Net Balance',
       value: `${net >= 0 ? '+' : '-'}${symbol}${fmt(convert(Math.abs(net)))}`,
-      color: net >= 0 ? '#818cf8' : '#fb7185',
+      color: net >= 0 ? theme.palette.primary.main : theme.palette.error.light,
       gradient: net >= 0
-        ? 'linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(99, 102, 241, 0.04) 100%)'
-        : 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)',
-      border: net >= 0 ? 'rgba(129, 140, 248, 0.2)' : 'rgba(251, 113, 133, 0.2)',
-      glow: net >= 0 ? 'rgba(129, 140, 248, 0.08)' : 'rgba(251, 113, 133, 0.08)',
+        ? isDark
+          ? 'linear-gradient(135deg, rgba(129, 140, 248, 0.12) 0%, rgba(99, 102, 241, 0.04) 100%)'
+          : 'linear-gradient(135deg, rgba(99, 102, 241, 0.15) 0%, rgba(99, 102, 241, 0.05) 100%)'
+        : isDark
+          ? 'linear-gradient(135deg, rgba(251, 113, 133, 0.12) 0%, rgba(244, 63, 94, 0.04) 100%)'
+          : 'linear-gradient(135deg, rgba(244, 63, 94, 0.15) 0%, rgba(244, 63, 94, 0.05) 100%)',
+      border: net >= 0
+        ? isDark ? 'rgba(129, 140, 248, 0.2)' : 'rgba(99, 102, 241, 0.25)'
+        : isDark ? 'rgba(251, 113, 133, 0.2)' : 'rgba(244, 63, 94, 0.25)',
+      glow: net >= 0
+        ? isDark ? 'rgba(129, 140, 248, 0.08)' : 'rgba(99, 102, 241, 0.1)'
+        : isDark ? 'rgba(251, 113, 133, 0.08)' : 'rgba(244, 63, 94, 0.1)',
       icon: <AccountBalanceIcon sx={{ fontSize: 20 }} />,
     },
   ];
@@ -125,12 +140,12 @@ const SummaryCards: React.FC<Props> = ({ transactions, prevMonthTransactions, co
                 </Typography>
               )}
               {card.label === 'Expenses' && expenseDelta !== null && (
-                <Typography sx={{ fontSize: '0.65rem', mt: 0.25, color: expenseDelta > 0 ? '#fb7185' : '#34d399', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.25, color: expenseDelta > 0 ? theme.palette.error.light : theme.palette.success.light, fontWeight: 600 }}>
                   {expenseDelta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(expenseDelta)))} vs last month
                 </Typography>
               )}
               {card.label === 'Net Balance' && income > 0 && (
-                <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: net >= 0 ? '#34d399' : '#fb7185', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: '0.65rem', mt: 0.5, color: net >= 0 ? theme.palette.success.light : theme.palette.error.light, fontWeight: 600 }}>
                   {net >= 0
                     ? `${Math.round((net / income) * 100)}% savings rate`
                     : `${Math.round((Math.abs(net) / income) * 100)}% over income`}

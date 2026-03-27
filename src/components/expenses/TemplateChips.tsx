@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Chip, Typography } from '@mui/material';
+import { useTheme } from '@mui/material/styles';
 import AddIcon from '@mui/icons-material/Add';
 import { TransactionTemplate } from '../../hooks/useTemplates';
 
@@ -10,6 +11,8 @@ interface Props {
 }
 
 const TemplateChips: React.FC<Props> = ({ templates, onSelect, onManage }) => {
+  const theme = useTheme();
+  const isDark = theme.palette.mode === 'dark';
   if (templates.length === 0) return null;
 
   return (
@@ -42,12 +45,18 @@ const TemplateChips: React.FC<Props> = ({ templates, onSelect, onManage }) => {
               fontSize: '0.75rem',
               height: 30,
               fontWeight: 500,
-              bgcolor: t.type === 'income' ? 'rgba(52,211,153,0.1)' : 'rgba(129,140,248,0.1)',
-              color: t.type === 'income' ? '#34d399' : '#818cf8',
+              bgcolor: t.type === 'income'
+                ? (isDark ? 'rgba(52,211,153,0.1)' : 'rgba(16,185,129,0.12)')
+                : (isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)'),
+              color: t.type === 'income' ? theme.palette.success.light : theme.palette.primary.main,
               border: '1px solid',
-              borderColor: t.type === 'income' ? 'rgba(52,211,153,0.25)' : 'rgba(129,140,248,0.25)',
+              borderColor: t.type === 'income'
+                ? (isDark ? 'rgba(52,211,153,0.25)' : 'rgba(16,185,129,0.3)')
+                : (isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)'),
               '&:hover': {
-                bgcolor: t.type === 'income' ? 'rgba(52,211,153,0.18)' : 'rgba(129,140,248,0.18)',
+                bgcolor: t.type === 'income'
+                  ? (isDark ? 'rgba(52,211,153,0.18)' : 'rgba(16,185,129,0.22)')
+                  : (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)'),
               },
             }}
           />

@@ -197,24 +197,25 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
     }
   };
 
+  const isDark = theme.palette.mode === 'dark';
   const typeCards = [
     {
       value: 'expense' as TransactionType,
       label: 'Expense',
       icon: <TrendingDownIcon sx={{ fontSize: 20 }} />,
-      color: '#fb7185',
-      bg: 'rgba(251,113,133,0.07)',
-      border: 'rgba(251,113,133,0.35)',
-      activeBg: 'rgba(251,113,133,0.18)',
+      color: theme.palette.error.light,
+      bg: isDark ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.09)',
+      border: isDark ? 'rgba(251,113,133,0.35)' : 'rgba(244,63,94,0.44)',
+      activeBg: isDark ? 'rgba(251,113,133,0.18)' : 'rgba(244,63,94,0.22)',
     },
     {
       value: 'income' as TransactionType,
       label: 'Income',
       icon: <TrendingUpIcon sx={{ fontSize: 20 }} />,
-      color: '#34d399',
-      bg: 'rgba(52,211,153,0.07)',
-      border: 'rgba(52,211,153,0.35)',
-      activeBg: 'rgba(52,211,153,0.18)',
+      color: theme.palette.success.light,
+      bg: isDark ? 'rgba(52,211,153,0.07)' : 'rgba(16,185,129,0.09)',
+      border: isDark ? 'rgba(52,211,153,0.35)' : 'rgba(16,185,129,0.44)',
+      activeBg: isDark ? 'rgba(52,211,153,0.18)' : 'rgba(16,185,129,0.22)',
     },
   ];
 
@@ -313,10 +314,10 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
                 sx={{
                   fontSize: '0.75rem',
                   height: 30,
-                  bgcolor: quickDate === d ? 'rgba(129,140,248,0.18)' : 'rgba(148,163,184,0.08)',
-                  color: quickDate === d ? '#818cf8' : 'text.secondary',
+                  bgcolor: quickDate === d ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+                  color: quickDate === d ? theme.palette.primary.main : 'text.secondary',
                   border: '1px solid',
-                  borderColor: quickDate === d ? 'rgba(129,140,248,0.4)' : 'rgba(148,163,184,0.12)',
+                  borderColor: quickDate === d ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                   fontWeight: quickDate === d ? 600 : 400,
                 }}
               />
@@ -393,10 +394,10 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
           </>
         ) : (
           <>
-            <IconButton size="small" onClick={() => setDeleteConfirm(true)} disabled={loading || duplicating} sx={{ color: 'rgba(251,113,133,0.5)', '&:hover': { color: '#fb7185' } }}>
+            <IconButton size="small" onClick={() => setDeleteConfirm(true)} disabled={loading || duplicating} sx={{ color: isDark ? 'rgba(251,113,133,0.5)' : 'rgba(244,63,94,0.5)', '&:hover': { color: theme.palette.error.light } }}>
               <DeleteIcon sx={{ fontSize: 20 }} />
             </IconButton>
-            <IconButton size="small" onClick={handleDuplicate} disabled={loading || duplicating} title="Log again today" sx={{ color: 'rgba(129,140,248,0.5)', '&:hover': { color: '#818cf8' }, mr: 'auto' }}>
+            <IconButton size="small" onClick={handleDuplicate} disabled={loading || duplicating} title="Log again today" sx={{ color: isDark ? 'rgba(129,140,248,0.5)' : 'rgba(99,102,241,0.5)', '&:hover': { color: theme.palette.primary.main }, mr: 'auto' }}>
               {duplicating ? <CircularProgress size={16} /> : <ContentCopyIcon sx={{ fontSize: 18 }} />}
             </IconButton>
             <Button onClick={onClose} disabled={loading || duplicating}>Cancel</Button>

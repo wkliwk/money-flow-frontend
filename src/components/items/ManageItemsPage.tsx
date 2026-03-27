@@ -11,10 +11,12 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DeleteIcon from '@mui/icons-material/Delete';
+import { useTheme } from '@mui/material/styles';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useItemPresets } from '../../hooks/useItemPresets';
 
 const ManageItemsPage: React.FC = () => {
+  const theme = useTheme();
   const { presets, setPreset, deletePreset } = useItemPresets();
   const [editing, setEditing] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
@@ -51,10 +53,10 @@ const ManageItemsPage: React.FC = () => {
       >
         {label}
       </Typography>
-      <Box sx={{ borderRadius: 2, border: '1px solid rgba(148,163,184,0.1)', overflow: 'hidden' }}>
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}>
         {items.map((item, idx) => (
           <Box key={item.label + item.type}>
-            {idx > 0 && <Divider sx={{ borderColor: 'rgba(148,163,184,0.06)' }} />}
+            {idx > 0 && <Divider />}
             <Box sx={{ px: 2, py: 1.25 }}>
               {editing === item.label ? (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -72,7 +74,7 @@ const ManageItemsPage: React.FC = () => {
                     placeholder={`Default description for ${item.label}`}
                     sx={{ flex: 1, '& .MuiInputBase-input': { fontSize: '0.82rem', py: 0.75 } }}
                   />
-                  <IconButton size="small" onClick={save} sx={{ color: '#34d399' }}>
+                  <IconButton size="small" onClick={save} sx={{ color: theme.palette.success.light }}>
                     <CheckIcon sx={{ fontSize: 18 }} />
                   </IconButton>
                   <IconButton size="small" onClick={() => setEditing(null)} sx={{ color: 'text.disabled' }}>
@@ -91,7 +93,7 @@ const ManageItemsPage: React.FC = () => {
                   <IconButton
                     size="small"
                     onClick={() => startEdit(item.label)}
-                    sx={{ color: 'text.disabled', '&:hover': { color: '#818cf8' } }}
+                    sx={{ color: 'text.disabled', '&:hover': { color: theme.palette.primary.main } }}
                   >
                     <EditIcon sx={{ fontSize: 16 }} />
                   </IconButton>
@@ -99,7 +101,7 @@ const ManageItemsPage: React.FC = () => {
                     <IconButton
                       size="small"
                       onClick={() => deletePreset(item.label)}
-                      sx={{ color: 'rgba(251,113,133,0.4)', '&:hover': { color: '#fb7185' } }}
+                      sx={{ color: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.4)' : 'rgba(244,63,94,0.5)', '&:hover': { color: theme.palette.error.light } }}
                     >
                       <DeleteIcon sx={{ fontSize: 16 }} />
                     </IconButton>
