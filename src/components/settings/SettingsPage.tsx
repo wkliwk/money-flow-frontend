@@ -32,6 +32,7 @@ import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/
 import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { useRecurring, RecurringItem } from '../../hooks/useRecurring';
+import FriendsSection from './FriendsSection';
 import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { TransactionType } from '../../types';
@@ -336,6 +337,13 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
               );
             })}
           </Box>
+        </Box>
+      </Box>
+
+      {/* Friends */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <FriendsSection />
         </Box>
       </Box>
 
