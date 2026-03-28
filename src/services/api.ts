@@ -118,3 +118,29 @@ export const updateGoal = async (id: string, data: Partial<GoalAPI>): Promise<Go
 export const deleteGoalAPI = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/goals/${id}`);
 };
+
+// Templates
+export interface TemplateAPI {
+  id: string;
+  _id: string;
+  label: string;
+  item?: string;
+  description: string;
+  type: 'income' | 'expense';
+  category: string;
+  defaultAmount?: number;
+}
+
+export const getTemplates = async (): Promise<TemplateAPI[]> => {
+  const res = await axiosInstance.get('/api/templates');
+  return res.data;
+};
+
+export const createTemplate = async (data: Omit<TemplateAPI, 'id' | '_id'>): Promise<TemplateAPI> => {
+  const res = await axiosInstance.post('/api/templates', data);
+  return res.data;
+};
+
+export const deleteTemplateAPI = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/templates/${id}`);
+};
