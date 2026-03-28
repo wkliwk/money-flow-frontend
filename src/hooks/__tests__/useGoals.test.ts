@@ -1,9 +1,27 @@
 import { renderHook, act } from '@testing-library/react';
+
+const mockGetGoals = jest.fn().mockResolvedValue([]);
+const mockCreateGoal = jest.fn().mockResolvedValue({ id: 'server-1', _id: 'server-1', createdAt: '2026-01-01' });
+const mockUpdateGoal = jest.fn().mockResolvedValue({});
+const mockDeleteGoalAPI = jest.fn().mockResolvedValue(null);
+
+jest.mock('../../services/api', () => ({
+  getGoals: (...args: unknown[]) => mockGetGoals(...args),
+  createGoal: (...args: unknown[]) => mockCreateGoal(...args),
+  updateGoal: (...args: unknown[]) => mockUpdateGoal(...args),
+  deleteGoalAPI: (...args: unknown[]) => mockDeleteGoalAPI(...args),
+}));
+
 import { useGoals } from '../useGoals';
 
 describe('useGoals', () => {
   beforeEach(() => {
     localStorage.clear();
+    jest.clearAllMocks();
+    mockGetGoals.mockResolvedValue([]);
+    mockCreateGoal.mockResolvedValue({ id: 'server-1', _id: 'server-1', createdAt: '2026-01-01' });
+    mockUpdateGoal.mockResolvedValue({});
+    mockDeleteGoalAPI.mockResolvedValue(null);
   });
 
   it('starts with empty goals when localStorage is empty', () => {
@@ -22,6 +40,16 @@ describe('useGoals', () => {
     expect(result.current.goals[0].currentAmount).toBe(0);
     expect(result.current.goals[0].id).toBeDefined();
     expect(result.current.goals[0].createdAt).toBeDefined();
+  });
+
+  it('addGoal calls createGoal API', () => {
+    const { result } = renderHook(() => useGoals());
+    act(() => {
+      result.current.addGoal({ name: 'Emergency Fund', targetAmount: 10000 });
+    });
+    expect(mockCreateGoal).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Emergency Fund', targetAmount: 10000 })
+    );
   });
 
   it('addGoal persists to localStorage', () => {
@@ -60,6 +88,18 @@ describe('useGoals', () => {
     expect(result.current.goals[0].currentAmount).toBe(500);
   });
 
+  it('updateAmount calls updateGoal API', () => {
+    const { result } = renderHook(() => useGoals());
+    act(() => {
+      result.current.addGoal({ name: 'Test', targetAmount: 1000 });
+    });
+    const id = result.current.goals[0].id;
+    act(() => {
+      result.current.updateAmount(id, 500);
+    });
+    expect(mockUpdateGoal).toHaveBeenCalledWith(id, { currentAmount: 500 });
+  });
+
   it('updateAmount clamps to 0', () => {
     const { result } = renderHook(() => useGoals());
     act(() => {
@@ -87,7 +127,7 @@ describe('useGoals', () => {
     expect(result.current.goals[0].name).toBe('B');
   });
 
-  it('deleteGoal persists to localStorage', () => {
+  it('deleteGoal calls deleteGoalAPI', () => {
     const { result } = renderHook(() => useGoals());
     act(() => {
       result.current.addGoal({ name: 'Del', targetAmount: 100 });
@@ -96,8 +136,7 @@ describe('useGoals', () => {
     act(() => {
       result.current.deleteGoal(id);
     });
-    const stored = JSON.parse(localStorage.getItem('mf_savings_goals') || '[]');
-    expect(stored).toHaveLength(0);
+    expect(mockDeleteGoalAPI).toHaveBeenCalledWith(id);
   });
 
   it('loads existing goals from localStorage on mount', () => {
