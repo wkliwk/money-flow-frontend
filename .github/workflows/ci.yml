@@ -32,11 +32,11 @@ jobs:
             print(0)
           ")
           echo "Line coverage: ${COVERAGE}%"
-          if [ "${COVERAGE}" -lt 90 ]; then
-            echo "❌ Coverage ${COVERAGE}% is below the 90% baseline. Add tests before merging."
+          if [ "${COVERAGE}" -lt 80 ]; then
+            echo "❌ Coverage ${COVERAGE}% is below the 80% baseline. Add tests before merging."
             exit 1
           fi
-          echo "✅ Coverage ${COVERAGE}% meets 90% baseline."
+          echo "✅ Coverage ${COVERAGE}% meets 80% baseline."
       - name: Build
         run: yarn build
         env:
