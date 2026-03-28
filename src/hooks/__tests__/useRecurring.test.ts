@@ -1,9 +1,27 @@
 import { renderHook, act } from '@testing-library/react';
+
+const mockGetRecurring = jest.fn().mockResolvedValue([]);
+const mockCreateRecurring = jest.fn().mockResolvedValue({ id: 'server-1', _id: 'server-1' });
+const mockDeleteRecurring = jest.fn().mockResolvedValue(null);
+const mockUpdateRecurring = jest.fn().mockResolvedValue({});
+
+jest.mock('../../services/api', () => ({
+  getRecurring: (...args: unknown[]) => mockGetRecurring(...args),
+  createRecurring: (...args: unknown[]) => mockCreateRecurring(...args),
+  deleteRecurring: (...args: unknown[]) => mockDeleteRecurring(...args),
+  updateRecurring: (...args: unknown[]) => mockUpdateRecurring(...args),
+}));
+
 import { useRecurring } from '../useRecurring';
 
 describe('useRecurring', () => {
   beforeEach(() => {
     localStorage.clear();
+    jest.clearAllMocks();
+    mockGetRecurring.mockResolvedValue([]);
+    mockCreateRecurring.mockResolvedValue({ id: 'server-1', _id: 'server-1' });
+    mockDeleteRecurring.mockResolvedValue(null);
+    mockUpdateRecurring.mockResolvedValue({});
   });
 
   it('starts with empty items', () => {
@@ -26,6 +44,16 @@ describe('useRecurring', () => {
     expect(result.current.items[0].id).toBeDefined();
   });
 
+  it('addItem calls createRecurring API', () => {
+    const { result } = renderHook(() => useRecurring());
+    act(() => {
+      result.current.addItem({ label: 'Netflix', description: 'Streaming', amount: 100, type: 'expense' });
+    });
+    expect(mockCreateRecurring).toHaveBeenCalledWith(
+      expect.objectContaining({ label: 'Netflix', amount: 100 })
+    );
+  });
+
   it('deleteItem removes item by id', () => {
     const { result } = renderHook(() => useRecurring());
     act(() => {
@@ -38,6 +66,18 @@ describe('useRecurring', () => {
     expect(result.current.items).toHaveLength(0);
   });
 
+  it('deleteItem calls deleteRecurring API', () => {
+    const { result } = renderHook(() => useRecurring());
+    act(() => {
+      result.current.addItem({ label: 'Netflix', description: '', amount: 100, type: 'expense' });
+    });
+    const id = result.current.items[0].id;
+    act(() => {
+      result.current.deleteItem(id);
+    });
+    expect(mockDeleteRecurring).toHaveBeenCalledWith(id);
+  });
+
   it('markApplied sets lastApplied on specified ids', () => {
     const { result } = renderHook(() => useRecurring());
     act(() => {
@@ -48,6 +88,18 @@ describe('useRecurring', () => {
       result.current.markApplied([id], '2026-03');
     });
     expect(result.current.items[0].lastApplied).toBe('2026-03');
+  });
+
+  it('markApplied syncs to server', () => {
+    const { result } = renderHook(() => useRecurring());
+    act(() => {
+      result.current.addItem({ label: 'Rent', description: '', amount: 5000, type: 'expense' });
+    });
+    const id = result.current.items[0].id;
+    act(() => {
+      result.current.markApplied([id], '2026-03');
+    });
+    expect(mockUpdateRecurring).toHaveBeenCalledWith(id, { lastApplied: '2026-03' });
   });
 
   it('persists items to localStorage', () => {
