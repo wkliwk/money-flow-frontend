@@ -16,7 +16,8 @@ export function useGoals() {
 
   const addGoal = useCallback((goal: Omit<SavingsGoal, 'id' | 'createdAt' | 'currentAmount'>) => {
     setGoals((prev) => {
-      const next = [...prev, { ...goal, id: crypto.randomUUID(), currentAmount: 0, createdAt: new Date().toISOString() }];
+      const id = typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+      const next = [...prev, { ...goal, id, currentAmount: 0, createdAt: new Date().toISOString() }];
       save(next);
       return next;
     });
