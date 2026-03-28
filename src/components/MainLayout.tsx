@@ -665,16 +665,32 @@ const MainLayout: React.FC = () => {
                 </Box>
               )}
 
-              {/* Over-budget alert */}
+              {/* Budget alerts — over limit + approaching limit */}
               {(() => {
                 const overBudget = Object.entries(budgets).filter(([cat, limit]) => limit > 0 && (categorySpend[cat] || 0) > limit);
-                if (overBudget.length === 0) return null;
+                const nearBudget = Object.entries(budgets).filter(([cat, limit]) => {
+                  const spent = categorySpend[cat] || 0;
+                  return limit > 0 && spent >= limit * 0.8 && spent <= limit;
+                });
+                if (overBudget.length === 0 && nearBudget.length === 0) return null;
                 return (
-                  <Box sx={{ mb: 2, py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,113,133,0.2)' : '1px solid rgba(244,63,94,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Typography sx={{ fontSize: '0.82rem', color: 'error.light', fontWeight: 600 }}>⚠</Typography>
-                    <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
-                      Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert(categorySpend[cat] - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
-                    </Typography>
+                  <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                    {overBudget.length > 0 && (
+                      <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,113,133,0.2)' : '1px solid rgba(244,63,94,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography sx={{ fontSize: '0.82rem', color: 'error.light', fontWeight: 600 }}>⚠</Typography>
+                        <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+                          Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert((categorySpend[cat] || 0) - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
+                        </Typography>
+                      </Box>
+                    )}
+                    {nearBudget.length > 0 && (
+                      <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,191,36,0.07)' : 'rgba(245,158,11,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(245,158,11,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography sx={{ fontSize: '0.82rem', color: 'warning.main', fontWeight: 600 }}>⚡</Typography>
+                        <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+                          Near limit: {nearBudget.map(([cat, limit]) => `${cat} (${Math.round(((categorySpend[cat] || 0) / limit) * 100)}%)`).join(', ')}
+                        </Typography>
+                      </Box>
+                    )}
                   </Box>
                 );
               })()}
