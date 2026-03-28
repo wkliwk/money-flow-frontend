@@ -18,13 +18,7 @@ const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
 
 describe('SummaryCards', () => {
   it('renders Income, Expenses, and Net Balance cards', () => {
-    render(
-      <SummaryCards
-        transactions={[]}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={[]} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText('Income')).toBeInTheDocument();
     expect(screen.getByText('Expenses')).toBeInTheDocument();
     expect(screen.getByText('Net Balance')).toBeInTheDocument();
@@ -32,25 +26,13 @@ describe('SummaryCards', () => {
 
   it('shows correct income value', () => {
     const transactions = [makeTransaction({ type: 'income', amount: 5000 })];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getAllByText('+HK$5,000').length).toBeGreaterThan(0);
   });
 
   it('shows correct expense value', () => {
     const transactions = [makeTransaction({ type: 'expense', amount: 1000 })];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getAllByText('-HK$1,000').length).toBeGreaterThan(0);
   });
 
@@ -59,13 +41,7 @@ describe('SummaryCards', () => {
       makeTransaction({ type: 'income', amount: 5000 }),
       makeTransaction({ type: 'expense', amount: 1000 }),
     ];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText('+HK$4,000')).toBeInTheDocument();
   });
 
@@ -74,13 +50,7 @@ describe('SummaryCards', () => {
       makeTransaction({ type: 'income', amount: 1000 }),
       makeTransaction({ type: 'expense', amount: 2000 }),
     ];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText('-HK$1,000')).toBeInTheDocument();
   });
 
@@ -89,13 +59,7 @@ describe('SummaryCards', () => {
       makeTransaction({ type: 'income', amount: 10000 }),
       makeTransaction({ type: 'expense', amount: 2000 }),
     ];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText(/savings rate/i)).toBeInTheDocument();
   });
 
@@ -104,40 +68,50 @@ describe('SummaryCards', () => {
       makeTransaction({ type: 'income', amount: 1000 }),
       makeTransaction({ type: 'expense', amount: 2000 }),
     ];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText(/over income/i)).toBeInTheDocument();
   });
 
-  it('shows expense delta vs previous month', () => {
+  it('shows percentage delta badge when prevMonthTransactions provided', () => {
     const prevMonth = [makeTransaction({ type: 'expense', amount: 500 })];
-    const thisMonth = [makeTransaction({ type: 'expense', amount: 800 })];
+    const thisMonth = [makeTransaction({ type: 'expense', amount: 600 })];
     render(
       <SummaryCards
         transactions={thisMonth}
         prevMonthTransactions={prevMonth}
         convert={(n) => n}
         symbol="HK$"
-      />
+      />,
     );
-    expect(screen.getByText(/vs last month/i)).toBeInTheDocument();
+    // 600 vs 500 = +20%; expenses up is unfavorable — rendered as ↑20%
+    expect(screen.getAllByText(/\u219120%/).length).toBeGreaterThan(0);
+  });
+
+  it('shows income percentage delta vs previous month', () => {
+    const prevMonth = [makeTransaction({ type: 'income', amount: 10000 })];
+    const thisMonth = [makeTransaction({ type: 'income', amount: 11000 })];
+    render(
+      <SummaryCards
+        transactions={thisMonth}
+        prevMonthTransactions={prevMonth}
+        convert={(n) => n}
+        symbol="HK$"
+      />,
+    );
+    // 11000 vs 10000 = +10%
+    expect(screen.getAllByText(/\u219110%/).length).toBeGreaterThan(0);
   });
 
   it('shows today expenses when transactions from today exist', () => {
     const todayDate = dayjs().format('YYYY-MM-DD');
     const transactions = [makeTransaction({ type: 'expense', amount: 100, date: todayDate })];
-    render(
-      <SummaryCards
-        transactions={transactions}
-        convert={(n) => n}
-        symbol="HK$"
-      />
-    );
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText(/Today:/i)).toBeInTheDocument();
+  });
+
+  it('does not show delta badges when no prevMonthTransactions provided', () => {
+    const transactions = [makeTransaction({ type: 'expense', amount: 1000 })];
+    render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
+    expect(screen.queryByText(/\u2191|\u2193/)).not.toBeInTheDocument();
   });
 });
