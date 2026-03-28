@@ -87,3 +87,34 @@ export const updateRecurring = async (id: string, data: Partial<RecurringItemAPI
 export const deleteRecurring = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/recurring/${id}`);
 };
+
+// Goals
+export interface GoalAPI {
+  id: string;
+  _id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: string;
+  category?: string;
+  createdAt: string;
+}
+
+export const getGoals = async (): Promise<GoalAPI[]> => {
+  const res = await axiosInstance.get('/api/goals');
+  return res.data;
+};
+
+export const createGoal = async (data: { name: string; targetAmount: number; deadline?: string; category?: string }): Promise<GoalAPI> => {
+  const res = await axiosInstance.post('/api/goals', data);
+  return res.data;
+};
+
+export const updateGoal = async (id: string, data: Partial<GoalAPI>): Promise<GoalAPI> => {
+  const res = await axiosInstance.put(`/api/goals/${id}`, data);
+  return res.data;
+};
+
+export const deleteGoalAPI = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/goals/${id}`);
+};
