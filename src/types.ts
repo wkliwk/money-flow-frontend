@@ -24,3 +24,13 @@ export interface TransactionRequest {
   participants?: string[];
   date?: string;
 }
+
+export interface SavingsGoal {
+  id: string;
+  name: string;
+  targetAmount: number;
+  currentAmount: number;
+  deadline?: string;
+  category?: string;
+  createdAt: string;
+}
