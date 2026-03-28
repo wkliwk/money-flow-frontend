@@ -412,11 +412,11 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
                 sx={{ height: 30 }}
               >
                 <ToggleButton value="split" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
-                  <CallSplitIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                  <CallSplitIcon sx={{ fontSize: 14, mr: 0.5, color: splitBillMode === 'split' ? '#818cf8' : 'inherit' }} />
                   Split bill
                 </ToggleButton>
                 <ToggleButton value="treat" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
-                  <CardGiftcardIcon sx={{ fontSize: 14, mr: 0.5 }} />
+                  <CardGiftcardIcon sx={{ fontSize: 14, mr: 0.5, color: splitBillMode === 'treat' ? '#f472b6' : 'inherit' }} />
                   My treat
                 </ToggleButton>
                 <ToggleButton value="participate" sx={{ fontSize: '0.72rem', px: 1.5, textTransform: 'none', borderColor: 'rgba(148,163,184,0.15)' }}>
