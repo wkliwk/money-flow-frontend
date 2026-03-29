@@ -953,6 +953,7 @@ const MainLayout: React.FC = () => {
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
               categorySpend={categorySpend}
+              onTransactionsImported={fetchTransactions}
             />
           )}
         </Container>
