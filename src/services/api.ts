@@ -347,3 +347,38 @@ export const updateGoal = async (id: string, data: Partial<GoalAPI>): Promise<Go
 export const deleteGoalAPI = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/goals/${id}`);
 };
+
+// Weekly Spending Pulse
+export interface WeeklyPulseStats {
+  totalSpend: number;
+  fourWeekAverage: number;
+  deltaPercent: number;
+  topCategory: string;
+  highestSpendDay: string;
+  largestTransaction: { description: string; amount: number; category: string } | null;
+  transactionCount: number;
+}
+
+export interface WeeklyPulse {
+  _id: string;
+  userId: string;
+  weekStart: string;
+  narrative: string;
+  stats: WeeklyPulseStats;
+  createdAt: string;
+}
+
+export const getWeeklyPulse = async (): Promise<WeeklyPulse | null> => {
+  const res = await axiosInstance.get('/api/insights/weekly-pulse');
+  return res.data.pulse;
+};
+
+export const getPreviousPulse = async (): Promise<WeeklyPulse | null> => {
+  const res = await axiosInstance.get('/api/insights/previous-pulse');
+  return res.data.pulse;
+};
+
+export const generateWeeklyPulse = async (force = false): Promise<{ pulse: WeeklyPulse | null; generated: boolean; reason?: string }> => {
+  const res = await axiosInstance.post(`/api/insights/weekly-pulse/generate${force ? '?force=true' : ''}`);
+  return res.data;
+};
