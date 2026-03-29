@@ -382,3 +382,47 @@ export const generateWeeklyPulse = async (force = false): Promise<{ pulse: Weekl
   const res = await axiosInstance.post(`/api/insights/weekly-pulse/generate${force ? '?force=true' : ''}`);
   return res.data;
 };
+
+// Statement scanning + reconciliation
+export interface StatementTxn {
+  date: string;
+  description: string;
+  amount: number;
+  type: 'income' | 'expense';
+}
+
+export interface StatementMatch {
+  extracted: StatementTxn;
+  existingId: string;
+  existingDescription: string;
+}
+
+export interface StatementDiscrepancy {
+  extracted: StatementTxn;
+  existingId: string;
+  existingDescription: string;
+  existingAmount: number;
+  reason: string;
+}
+
+export interface StatementScanResult {
+  extracted: StatementTxn[];
+  matched: StatementMatch[];
+  missing: StatementTxn[];
+  discrepancies: StatementDiscrepancy[];
+}
+
+export const scanStatement = async (file: File): Promise<StatementScanResult> => {
+  const formData = new FormData();
+  formData.append('file', file);
+  const res = await axiosInstance.post('/api/import/statement', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+    timeout: 60000,
+  });
+  return res.data;
+};
+
+export const applyStatementImport = async (transactions: StatementTxn[]): Promise<{ imported: number }> => {
+  const res = await axiosInstance.post('/api/import/statement/apply', { transactions });
+  return res.data;
+};

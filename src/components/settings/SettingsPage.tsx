@@ -30,6 +30,7 @@ import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/
 import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import FriendsSection from './FriendsSection';
+import StatementReconciler from './StatementReconciler';
 import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useThemePreference } from '../../ThemeContext';
@@ -39,6 +40,7 @@ interface Props {
   currency: string;
   onCurrencyChange: (c: Currency) => void;
   categorySpend?: Record<string, number>;
+  onTransactionsImported?: () => void;
 }
 
 function getUserId(): string {
@@ -82,7 +84,7 @@ const ThemeToggle: React.FC = () => {
   );
 };
 
-const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
+const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {}, onTransactionsImported }) => {
   const theme = useTheme();
   const userId = getUserId();
   const { symbol, convert } = useFxRates();
@@ -347,6 +349,13 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Typography>
         {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
         {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
+      </Box>
+
+      {/* Statement Reconciliation */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <StatementReconciler onImported={onTransactionsImported} />
+        </Box>
       </Box>
 
       <Button
