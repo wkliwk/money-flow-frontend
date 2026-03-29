@@ -65,6 +65,7 @@ import RecurringPage from './recurring/RecurringPage';
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
 import SpendingInsightsPage from './insights/SpendingInsightsPage';
+import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 import GoalsPage from './goals/GoalsPage';
 
@@ -694,6 +695,8 @@ const MainLayout: React.FC = () => {
                   </Box>
                 );
               })()}
+
+              <SpendingPulse />
 
               {/* Mobile: preset chips + hero card */}
               <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
