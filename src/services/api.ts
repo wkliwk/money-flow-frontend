@@ -347,3 +347,46 @@ export const updateGoal = async (id: string, data: Partial<GoalAPI>): Promise<Go
 export const deleteGoalAPI = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/goals/${id}`);
 };
+
+// Export
+export interface ExportFilters {
+  from?: string;
+  to?: string;
+  type?: string;
+  category?: string;
+  q?: string;
+  paymentMethod?: string;
+  minAmount?: number;
+  maxAmount?: number;
+}
+
+function buildExportParams(filters: ExportFilters): Record<string, string> {
+  const params: Record<string, string> = {};
+  if (filters.from) params.from = filters.from;
+  if (filters.to) params.to = filters.to;
+  if (filters.type) params.type = filters.type;
+  if (filters.category) params.category = filters.category;
+  if (filters.q) params.q = filters.q;
+  if (filters.paymentMethod) params.paymentMethod = filters.paymentMethod;
+  if (filters.minAmount !== undefined) params.minAmount = String(filters.minAmount);
+  if (filters.maxAmount !== undefined) params.maxAmount = String(filters.maxAmount);
+  return params;
+}
+
+export const exportCSV = async (filters: ExportFilters): Promise<Blob> => {
+  const res = await axiosInstance.get('/api/export/csv', {
+    params: buildExportParams(filters),
+    responseType: 'blob',
+    timeout: 30000,
+  });
+  return res.data as Blob;
+};
+
+export const exportPDF = async (filters: ExportFilters): Promise<Blob> => {
+  const res = await axiosInstance.get('/api/export/pdf', {
+    params: buildExportParams(filters),
+    responseType: 'blob',
+    timeout: 60000,
+  });
+  return res.data as Blob;
+};

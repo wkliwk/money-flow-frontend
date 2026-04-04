@@ -21,6 +21,8 @@ import ClearIcon from '@mui/icons-material/Clear';
 import DownloadIcon from '@mui/icons-material/Download';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
+import CircularProgress from '@mui/material/CircularProgress';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import LabelIcon from '@mui/icons-material/Label';
@@ -43,6 +45,9 @@ interface Props {
   onSortChange: (v: 'date' | 'amount') => void;
   onExport: () => void;
   onExportJson: () => void;
+  onExportServerCsv?: () => void;
+  onExportServerPdf?: () => void;
+  exportLoading?: boolean;
 }
 
 const FilterBar: React.FC<Props> = ({
@@ -62,6 +67,9 @@ const FilterBar: React.FC<Props> = ({
   onSortChange,
   onExport,
   onExportJson,
+  onExportServerCsv,
+  onExportServerPdf,
+  exportLoading,
 }) => {
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -151,18 +159,18 @@ const FilterBar: React.FC<Props> = ({
             <SortIcon fontSize="small" />
           </IconButton>
         </Tooltip>
-        <Tooltip title={filtered === 0 ? 'No transactions to export' : 'Export'}>
+        <Tooltip title={filtered === 0 ? 'No transactions to export' : exportLoading ? 'Exporting...' : 'Export'}>
           <span>
             <IconButton
               size="small"
               onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-              disabled={filtered === 0}
+              disabled={filtered === 0 || exportLoading}
               aria-label="Export options"
               aria-haspopup="true"
               aria-expanded={Boolean(exportMenuAnchor)}
               sx={{ color: 'text.secondary', '&:hover': { color: 'text.primary' } }}
             >
-              <DownloadIcon fontSize="small" />
+              {exportLoading ? <CircularProgress size={18} /> : <DownloadIcon fontSize="small" />}
             </IconButton>
           </span>
         </Tooltip>
@@ -197,6 +205,36 @@ const FilterBar: React.FC<Props> = ({
             </ListItemIcon>
             <ListItemText>Export JSON</ListItemText>
           </MenuItem>
+          {onExportServerCsv && (
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                onExportServerCsv();
+              }}
+              disabled={exportLoading}
+              dense
+            >
+              <ListItemIcon>
+                {exportLoading ? <CircularProgress size={18} /> : <TableChartIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>Export CSV (Server)</ListItemText>
+            </MenuItem>
+          )}
+          {onExportServerPdf && (
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                onExportServerPdf();
+              }}
+              disabled={exportLoading}
+              dense
+            >
+              <ListItemIcon>
+                {exportLoading ? <CircularProgress size={18} /> : <PictureAsPdfIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>Export PDF</ListItemText>
+            </MenuItem>
+          )}
         </Menu>
       </Box>
       <Collapse in={showPaymentFilter}>

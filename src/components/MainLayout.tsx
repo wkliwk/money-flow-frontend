@@ -37,9 +37,10 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SavingsIcon from '@mui/icons-material/Savings';
+import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult, exportCSV, exportPDF, ExportFilters } from '../services/api';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
@@ -108,6 +109,7 @@ const MainLayout: React.FC = () => {
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
+  const [serverExportLoading, setServerExportLoading] = useState(false);
   const [addOpen, setAddOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
@@ -494,6 +496,68 @@ const MainLayout: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const buildExportFilters = useCallback((): ExportFilters => {
+    const filters: ExportFilters = {};
+    if (search) filters.q = search;
+    if (typeFilter !== 'all') filters.type = typeFilter;
+    if (paymentMethodFilter !== 'all') filters.paymentMethod = paymentMethodFilter;
+    if (categoryFilter !== 'all') filters.category = categoryFilter;
+
+    if (datePreset === 'month' && selectedMonth) {
+      filters.from = selectedMonth.startOf('month').format('YYYY-MM-DD');
+      filters.to = selectedMonth.endOf('month').format('YYYY-MM-DD');
+    } else if (datePreset === 'last-month') {
+      const lm = dayjs().subtract(1, 'month');
+      filters.from = lm.startOf('month').format('YYYY-MM-DD');
+      filters.to = lm.endOf('month').format('YYYY-MM-DD');
+    } else if (datePreset === 'week') {
+      filters.from = dayjs().startOf('week').format('YYYY-MM-DD');
+      filters.to = dayjs().endOf('week').format('YYYY-MM-DD');
+    } else if (datePreset === 'custom' && customStart && customEnd) {
+      filters.from = customStart;
+      filters.to = customEnd;
+    }
+    return filters;
+  }, [search, typeFilter, paymentMethodFilter, categoryFilter, datePreset, selectedMonth, customStart, customEnd]);
+
+  const downloadBlob = (blob: Blob, filename: string) => {
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  const getFileSuffix = (): string => {
+    if (search) return 'search';
+    if (datePreset === 'month' && selectedMonth) return selectedMonth.format('YYYY-MM');
+    if (datePreset === 'last-month') return dayjs().subtract(1, 'month').format('YYYY-MM');
+    if (datePreset === 'week') return `week-${dayjs().startOf('week').format('YYYY-MM-DD')}`;
+    if (datePreset === 'custom' && customStart) return `${customStart}_${customEnd}`;
+    return 'all';
+  };
+
+  const handleExportServerCsv = async () => {
+    setServerExportLoading(true);
+    try {
+      const blob = await exportCSV(buildExportFilters());
+      downloadBlob(blob, `money-flow-${getFileSuffix()}.csv`);
+    } finally {
+      setServerExportLoading(false);
+    }
+  };
+
+  const handleExportServerPdf = async () => {
+    setServerExportLoading(true);
+    try {
+      const blob = await exportPDF(buildExportFilters());
+      downloadBlob(blob, `money-flow-${getFileSuffix()}.pdf`);
+    } finally {
+      setServerExportLoading(false);
+    }
+  };
+
   const navItems = [
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
@@ -532,16 +596,16 @@ const MainLayout: React.FC = () => {
             </Typography>
           )}
           <Button
-            startIcon={<FileDownloadIcon />}
+            startIcon={serverExportLoading ? <CircularProgress size={16} /> : <FileDownloadIcon />}
             onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-            disabled={transactions.length === 0}
+            disabled={transactions.length === 0 || serverExportLoading}
             sx={{ ml: 2, fontSize: '0.75rem' }}
             variant="outlined"
             size="small"
             aria-haspopup="true"
             aria-expanded={Boolean(exportMenuAnchor)}
           >
-            Export
+            {serverExportLoading ? 'Exporting...' : 'Export'}
           </Button>
           <Menu
             anchorEl={exportMenuAnchor}
@@ -573,6 +637,32 @@ const MainLayout: React.FC = () => {
                 <DataObjectIcon fontSize="small" />
               </ListItemIcon>
               <ListItemText>Export JSON</ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                handleExportServerCsv();
+              }}
+              disabled={serverExportLoading}
+              dense
+            >
+              <ListItemIcon>
+                {serverExportLoading ? <CircularProgress size={18} /> : <TableChartIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>Export CSV (Server)</ListItemText>
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                setExportMenuAnchor(null);
+                handleExportServerPdf();
+              }}
+              disabled={serverExportLoading}
+              dense
+            >
+              <ListItemIcon>
+                {serverExportLoading ? <CircularProgress size={18} /> : <PictureAsPdfIcon fontSize="small" />}
+              </ListItemIcon>
+              <ListItemText>Export PDF</ListItemText>
             </MenuItem>
           </Menu>
         </Toolbar>
@@ -890,6 +980,9 @@ const MainLayout: React.FC = () => {
                 onSortChange={setSortBy}
                 onExport={handleExport}
                 onExportJson={handleExportJson}
+                onExportServerCsv={handleExportServerCsv}
+                onExportServerPdf={handleExportServerPdf}
+                exportLoading={serverExportLoading}
               />
               {filteredTransactions.length > 0 && (() => {
                 const fIncome = filteredTransactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
