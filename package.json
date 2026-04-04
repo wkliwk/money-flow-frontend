@@ -38,7 +38,8 @@
     "eject": "react-scripts eject",
     "lint": "eslint --fix . && prettier --write .",
     "test:e2e": "playwright test",
-    "test:e2e:headed": "playwright test --headed"
+    "test:e2e:headed": "playwright test --headed",
+    "build:check": "CI=false REACT_APP_API_URL=https://money-flow-backend-production.up.railway.app react-scripts build"
   },
   "browserslist": {
     "production": [
