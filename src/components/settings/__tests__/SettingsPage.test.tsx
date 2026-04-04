@@ -7,10 +7,24 @@ const mockToggleCurrency = jest.fn();
 
 jest.mock('../FriendsSection', () => () => null);
 
-const mockExportJSON = jest.fn().mockResolvedValue(new Blob(['{}'], { type: 'application/json' }));
 jest.mock('../../../services/api', () => ({
-  exportJSON: (...args: unknown[]) => mockExportJSON(...args),
+  __esModule: true,
+  exportJSON: jest.fn().mockResolvedValue(new Blob(['{}'], { type: 'application/json' })),
+  getUserMe: jest.fn().mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system' }),
+  changePassword: jest.fn().mockResolvedValue({ message: 'Password updated' }),
+  patchUserPreferences: jest.fn().mockResolvedValue(undefined),
 }));
+
+jest.mock('../../../toastEvents', () => ({
+  __esModule: true,
+  emitToast: jest.fn(),
+  subscribeToast: jest.fn(),
+}));
+
+import * as apiModule from '../../../services/api';
+const mockExportJSON = apiModule.exportJSON as jest.Mock;
+const mockGetUserMe = apiModule.getUserMe as jest.Mock;
+const mockChangePassword = apiModule.changePassword as jest.Mock;
 
 jest.mock('../../../hooks/useCurrencyPreferences', () => ({
   useCurrencyPreferences: () => ({
@@ -59,6 +73,9 @@ describe('SettingsPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetUserMe.mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system' });
+    mockExportJSON.mockResolvedValue(new Blob(['{}'], { type: 'application/json' }));
+    mockChangePassword.mockResolvedValue({ message: 'Password updated' });
     localStorage.removeItem('mf_theme');
     global.URL.createObjectURL = jest.fn(() => 'blob:test');
     global.URL.revokeObjectURL = jest.fn();
@@ -254,5 +271,66 @@ describe('SettingsPage', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     fireEvent.click(screen.getByRole('button', { name: 'Download all data as JSON' }));
     expect(mockExportJSON).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows Security section with Change Password button for email users', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    expect(screen.getByText('Security')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /change password/i })).toBeInTheDocument();
+  });
+
+  it('hides Security section for social-auth users', async () => {
+    mockGetUserMe.mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system', googleId: 'google123' });
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    // Wait for profile fetch to complete
+    await new Promise((r) => setTimeout(r, 50));
+    expect(screen.queryByText('Security')).not.toBeInTheDocument();
+  });
+
+  it('expands change password form when button is clicked', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }));
+    expect(screen.getByLabelText('Current Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('New Password')).toBeInTheDocument();
+    expect(screen.getByLabelText('Confirm New Password')).toBeInTheDocument();
+  });
+
+  it('shows validation error when new password is too short', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }));
+    fireEvent.change(screen.getByLabelText('New Password'), { target: { value: 'abc' } });
+    expect(screen.getByText('Must be at least 6 characters')).toBeInTheDocument();
+  });
+
+  it('shows mismatch error when confirm password differs', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }));
+    fireEvent.change(screen.getByLabelText('New Password'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirm New Password'), { target: { value: 'different' } });
+    expect(screen.getByText('Passwords do not match')).toBeInTheDocument();
+  });
+
+  it('calls changePassword API on valid submit', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }));
+    fireEvent.change(screen.getByLabelText('Current Password'), { target: { value: 'oldpass' } });
+    fireEvent.change(screen.getByLabelText('New Password'), { target: { value: 'newpass123' } });
+    fireEvent.change(screen.getByLabelText('Confirm New Password'), { target: { value: 'newpass123' } });
+    fireEvent.click(screen.getByRole('button', { name: /update password/i }));
+    await new Promise((r) => setTimeout(r, 50));
+    expect(mockChangePassword).toHaveBeenCalledWith('oldpass', 'newpass123');
+  });
+
+  it('disables submit button when fields are incomplete', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    await screen.findByText('Security');
+    fireEvent.click(screen.getByRole('button', { name: /change password/i }));
+    const submitBtn = screen.getByRole('button', { name: /update password/i });
+    expect(submitBtn).toBeDisabled();
   });
 });

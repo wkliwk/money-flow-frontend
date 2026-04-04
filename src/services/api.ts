@@ -29,6 +29,8 @@ export interface UserProfile {
   _id: string;
   email: string;
   themePreference: ThemePreference;
+  googleId?: string;
+  appleId?: string;
 }
 
 export const getUserMe = async (): Promise<UserProfile> => {
@@ -38,6 +40,17 @@ export const getUserMe = async (): Promise<UserProfile> => {
 
 export const patchUserPreferences = async (prefs: { themePreference: ThemePreference }): Promise<void> => {
   await axiosInstance.patch('/api/users/preferences', prefs);
+};
+
+export const changePassword = async (
+  currentPassword: string,
+  newPassword: string,
+): Promise<{ message: string }> => {
+  const res = await axiosInstance.patch('/api/users/password', {
+    currentPassword,
+    newPassword,
+  });
+  return res.data;
 };
 
 // Expenses
