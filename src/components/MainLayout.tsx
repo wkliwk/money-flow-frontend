@@ -37,6 +37,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import RepeatIcon from '@mui/icons-material/Repeat';
 import SavingsIcon from '@mui/icons-material/Savings';
+import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import PictureAsPdfIcon from '@mui/icons-material/PictureAsPdf';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
@@ -68,6 +69,7 @@ import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './
 import SpendingInsightsPage from './insights/SpendingInsightsPage';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 import GoalsPage from './goals/GoalsPage';
+import BudgetsPage from './budgets/BudgetsPage';
 
 function getOwnerFromToken(): string {
   try {
@@ -85,7 +87,7 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -565,6 +567,7 @@ const MainLayout: React.FC = () => {
     { label: 'Insights', icon: <BarChartIcon /> },
     { label: 'Recurring', icon: <RepeatIcon /> },
     { label: 'Goals', icon: <SavingsIcon /> },
+    { label: 'Budgets', icon: <AccountBalanceWalletIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
 
@@ -691,7 +694,7 @@ const MainLayout: React.FC = () => {
               <ListItemButton
                 key={item.label}
                 selected={activeTab === index}
-                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
+                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)}
                 sx={{
                   '&.Mui-selected': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: 'primary.main' },
                   '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
@@ -1039,6 +1042,10 @@ const MainLayout: React.FC = () => {
           )}
 
           {activeTab === 6 && (
+            <BudgetsPage convert={convert} symbol={symbol} categorySpend={categorySpend} />
+          )}
+
+          {activeTab === 7 && (
             <SettingsPage
               currency={currency}
               onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -1072,6 +1079,7 @@ const MainLayout: React.FC = () => {
           <BottomNavigationAction label="Insights" icon={<BarChartIcon />} />
           <BottomNavigationAction label="Repeat" icon={<RepeatIcon />} />
           <BottomNavigationAction label="Goals" icon={<SavingsIcon />} />
+          <BottomNavigationAction label="Budgets" icon={<AccountBalanceWalletIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
       </Box>

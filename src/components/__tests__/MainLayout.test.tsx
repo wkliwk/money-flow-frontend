@@ -53,6 +53,8 @@ jest.mock('../../services/api', () => {
     deleteNetWorthSnapshot: jest.fn(resolvedUndef),
     getBudgets: jest.fn(() => Promise.resolve([])),
     saveBudgets: jest.fn(resolvedArray),
+    getBudgetSummary: jest.fn(resolvedArray),
+    setBudgetAlerts: jest.fn(resolvedEmpty),
     getRecurring: jest.fn(() => Promise.resolve([])),
     createRecurring: jest.fn(resolvedEmpty),
     deleteRecurringAPI: jest.fn(resolvedUndef),
