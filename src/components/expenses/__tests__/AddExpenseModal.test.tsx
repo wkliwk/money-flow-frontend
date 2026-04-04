@@ -528,4 +528,43 @@ describe('AddExpenseModal', () => {
       expect(screen.queryByText('Scanned from receipt')).not.toBeInTheDocument();
     });
   });
+
+  describe('inline receipt scan button', () => {
+    it('shows scan button when onScanReceipt is provided', () => {
+      render(<AddExpenseModal {...defaultProps} onScanReceipt={jest.fn()} />);
+      expect(screen.getByRole('button', { name: /scan receipt/i })).toBeInTheDocument();
+    });
+
+    it('does not show scan button when onScanReceipt is not provided', () => {
+      render(<AddExpenseModal {...defaultProps} />);
+      expect(screen.queryByRole('button', { name: /scan receipt/i })).not.toBeInTheDocument();
+    });
+
+    it('hides scan button when receiptPrefill is active', () => {
+      render(
+        <AddExpenseModal
+          {...defaultProps}
+          onScanReceipt={jest.fn()}
+          receiptPrefill={{ amount: 50, description: 'Test', confidence: 'high' }}
+        />,
+      );
+      expect(screen.queryByRole('button', { name: /scan receipt/i })).not.toBeInTheDocument();
+    });
+
+    it('calls onScanReceipt when a file is selected via inline button', () => {
+      const onScanReceipt = jest.fn();
+      render(<AddExpenseModal {...defaultProps} onScanReceipt={onScanReceipt} />);
+      const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+      expect(input).not.toBeNull();
+      const file = new File(['receipt'], 'receipt.png', { type: 'image/png' });
+      fireEvent.change(input, { target: { files: [file] } });
+      expect(onScanReceipt).toHaveBeenCalledWith(file);
+    });
+
+    it('shows loading state on inline scan button when scanLoading is true', () => {
+      render(<AddExpenseModal {...defaultProps} onScanReceipt={jest.fn()} scanLoading={true} />);
+      const button = screen.getByRole('button', { name: /scan receipt/i });
+      expect(button).toBeDisabled();
+    });
+  });
 });

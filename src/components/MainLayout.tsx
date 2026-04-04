@@ -1141,6 +1141,8 @@ const MainLayout: React.FC = () => {
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
         receiptPrefill={receiptPrefill}
+        onScanReceipt={handleScanReceipt}
+        scanLoading={scanLoading}
         participantsForItem={smartSuggestions.participantsForItem}
         timeRelevantItems={smartSuggestions.timeRelevantItems}
       />
