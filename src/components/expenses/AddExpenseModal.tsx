@@ -39,6 +39,7 @@ import ManageTemplatesDrawer from './ManageTemplatesDrawer';
 import ParticipantPicker from './ParticipantPicker';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import NlpInput from './NlpInput';
+import ReceiptScanButton from './ReceiptScanButton';
 import { ParsedTransaction } from '../../services/api';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -68,6 +69,10 @@ interface Props {
   amountsByDescription?: Record<string, number>;
   categoriesByDescription?: Record<string, string>;
   receiptPrefill?: ReceiptPrefill;
+  /** Callback to trigger receipt scan from within the modal */
+  onScanReceipt?: (file: File) => void;
+  /** Whether a receipt scan is in progress */
+  scanLoading?: boolean;
   /** Smart suggestions: participants ranked for current item */
   participantsForItem?: (item: string) => string[];
   /** Smart suggestions: time-relevant items for current hour */
@@ -83,7 +88,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill, participantsForItem, timeRelevantItems = [] }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill, onScanReceipt, scanLoading = false, participantsForItem, timeRelevantItems = [] }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -358,8 +363,19 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
           </Box>
         )}
 
-        {/* NLP quick entry */}
-        {!receiptPrefill && <NlpInput onParsed={handleNlpParsed} />}
+        {/* NLP quick entry + receipt scan inline */}
+        {!receiptPrefill && (
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1, mb: 0.5 }}>
+            <Box sx={{ flex: 1 }}>
+              <NlpInput onParsed={handleNlpParsed} />
+            </Box>
+            {onScanReceipt && (
+              <Box sx={{ pt: 0.5 }}>
+                <ReceiptScanButton onFileSelected={onScanReceipt} loading={scanLoading} size="small" />
+              </Box>
+            )}
+          </Box>
+        )}
 
         {/* Template quick-tap row */}
         <TemplateChips
