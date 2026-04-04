@@ -46,6 +46,7 @@ const defaultFilterProps = {
   onCategoryFilterChange: jest.fn(),
   onSortChange: jest.fn(),
   onExport: jest.fn(),
+  onExportJson: jest.fn(),
 };
 
 describe('Filter and search workflow', () => {
