@@ -390,3 +390,11 @@ export const exportPDF = async (filters: ExportFilters): Promise<Blob> => {
   });
   return res.data as Blob;
 };
+
+export const exportJSON = async (): Promise<Blob> => {
+  const res = await axiosInstance.get('/api/export/json', {
+    responseType: 'blob',
+    timeout: 60000,
+  });
+  return res.data as Blob;
+};

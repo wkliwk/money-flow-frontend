@@ -15,6 +15,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  CircularProgress,
 } from '@mui/material';
 import LogoutIcon from '@mui/icons-material/Logout';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -24,6 +25,7 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import DownloadIcon from '@mui/icons-material/Download';
 import { useTheme } from '@mui/material/styles';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -34,6 +36,7 @@ import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
+import { exportJSON } from '../../services/api';
 
 interface Props {
   currency: string;
@@ -95,6 +98,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState('');
   const [signOutConfirm, setSignOutConfirm] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -122,6 +126,24 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const confirmLogout = () => {
     setSignOutConfirm(false);
     handleLogout();
+  };
+
+  const handleExportJSON = async () => {
+    setExportLoading(true);
+    try {
+      const blob = await exportJSON();
+      const dateStr = new Date().toISOString().split('T')[0];
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `money-flow-export-${dateStr}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   const renderItemSection = (label: string, items: typeof ITEM_PRESETS) => (
@@ -347,6 +369,28 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Typography>
         {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
         {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
+      </Box>
+
+      {/* Your Data */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+            Your Data
+          </Typography>
+          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
+            Download a complete copy of all your data as a JSON file.
+          </Typography>
+          <Button
+            variant="outlined"
+            startIcon={exportLoading ? <CircularProgress size={16} color="inherit" /> : <DownloadIcon />}
+            onClick={handleExportJSON}
+            disabled={exportLoading}
+            fullWidth
+            aria-label="Download all data as JSON"
+          >
+            {exportLoading ? 'Exporting...' : 'Download All Data'}
+          </Button>
+        </Box>
       </Box>
 
       <Button

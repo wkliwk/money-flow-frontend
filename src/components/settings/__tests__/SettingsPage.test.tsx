@@ -7,6 +7,11 @@ const mockToggleCurrency = jest.fn();
 
 jest.mock('../FriendsSection', () => () => null);
 
+const mockExportJSON = jest.fn().mockResolvedValue(new Blob(['{}'], { type: 'application/json' }));
+jest.mock('../../../services/api', () => ({
+  exportJSON: (...args: unknown[]) => mockExportJSON(...args),
+}));
+
 jest.mock('../../../hooks/useCurrencyPreferences', () => ({
   useCurrencyPreferences: () => ({
     enabledCurrencies: ['HKD', 'USD'],
@@ -55,6 +60,8 @@ describe('SettingsPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.removeItem('mf_theme');
+    global.URL.createObjectURL = jest.fn(() => 'blob:test');
+    global.URL.revokeObjectURL = jest.fn();
   });
 
   it('renders without crashing', () => {
@@ -235,5 +242,17 @@ describe('SettingsPage', () => {
     expect(localStorage.getItem('mf_theme')).toBe('dark');
     fireEvent.click(screen.getByRole('button', { name: 'System' }));
     expect(localStorage.getItem('mf_theme')).toBe('system');
+  });
+
+  it('shows Your Data section with download button', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.getByText('Your Data')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Download all data as JSON' })).toBeInTheDocument();
+  });
+
+  it('calls exportJSON when download button is clicked', async () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Download all data as JSON' }));
+    expect(mockExportJSON).toHaveBeenCalledTimes(1);
   });
 });
