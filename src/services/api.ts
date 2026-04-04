@@ -143,6 +143,32 @@ export const saveBudgets = async (budgets: Budget[]): Promise<Budget[]> => {
   return res.data.budgets;
 };
 
+export interface BudgetSummaryItem {
+  category: string;
+  limit: number;
+  spend: number;
+  remaining: number;
+  percentUsed: number;
+  exceeds: boolean;
+  alertTriggered: boolean;
+  thresholdPercentage: number;
+}
+
+export const getBudgetSummary = async (): Promise<BudgetSummaryItem[]> => {
+  const res = await axiosInstance.get('/api/budgets/summary');
+  return res.data.summary;
+};
+
+export const setBudgetAlerts = async (
+  category: string,
+  enableAlerts: boolean,
+): Promise<{ message: string }> => {
+  const res = await axiosInstance.post(`/api/budgets/${encodeURIComponent(category)}/alerts`, {
+    enable_alerts: enableAlerts,
+  });
+  return res.data;
+};
+
 // Recurring
 export interface RecurringExpenseAPI {
   _id: string;
