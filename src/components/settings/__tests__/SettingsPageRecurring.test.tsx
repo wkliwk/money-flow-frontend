@@ -3,6 +3,23 @@ import { render, screen, fireEvent } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
 import { AppThemeProvider } from '../../../ThemeContext';
 
+jest.mock('../../../services/api', () => ({
+  __esModule: true,
+  exportJSON: jest.fn().mockResolvedValue(new Blob(['{}'], { type: 'application/json' })),
+  getUserMe: jest.fn().mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system' }),
+  changePassword: jest.fn().mockResolvedValue({ message: 'Password updated' }),
+  patchUserPreferences: jest.fn().mockResolvedValue(undefined),
+}));
+
+jest.mock('../../../toastEvents', () => ({
+  __esModule: true,
+  emitToast: jest.fn(),
+  subscribeToast: jest.fn(),
+}));
+
+import * as apiModule from '../../../services/api';
+const mockGetUserMe = apiModule.getUserMe as jest.Mock;
+
 jest.mock('../../../hooks/useFxRates', () => ({
   useFxRates: () => ({
     symbol: 'HK$',
@@ -37,7 +54,10 @@ jest.mock('../../../hooks/useBudgets', () => ({
 }));
 
 describe('SettingsPage (with recurring items)', () => {
-  beforeEach(() => jest.clearAllMocks());
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockGetUserMe.mockResolvedValue({ _id: '1', email: 'test@test.com', themePreference: 'system' });
+  });
 
   it('renders Netflix recurring item', () => {
     render(<AppThemeProvider><SettingsPage currency="HKD" onCurrencyChange={jest.fn()} /></AppThemeProvider>);

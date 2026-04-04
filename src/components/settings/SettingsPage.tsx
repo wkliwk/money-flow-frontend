@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
+  Alert,
   Box,
+  Collapse,
   Typography,
   Button,
   Divider,
@@ -26,6 +28,9 @@ import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
 import DownloadIcon from '@mui/icons-material/Download';
+import LockIcon from '@mui/icons-material/Lock';
+import VisibilityIcon from '@mui/icons-material/Visibility';
+import VisibilityOffIcon from '@mui/icons-material/VisibilityOff';
 import { useTheme } from '@mui/material/styles';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -36,7 +41,9 @@ import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
-import { exportJSON } from '../../services/api';
+import { exportJSON, getUserMe, changePassword, UserProfile } from '../../services/api';
+import { AxiosError } from 'axios';
+import { emitToast } from '../../toastEvents';
 
 interface Props {
   currency: string;
@@ -85,6 +92,162 @@ const ThemeToggle: React.FC = () => {
   );
 };
 
+const ChangePasswordSection: React.FC = () => {
+  const [open, setOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showCurrent, setShowCurrent] = useState(false);
+  const [showNew, setShowNew] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const newTooShort = newPassword.length > 0 && newPassword.length < 6;
+  const confirmMismatch = confirmPassword.length > 0 && newPassword !== confirmPassword;
+  const canSubmit =
+    currentPassword.length > 0 &&
+    newPassword.length >= 6 &&
+    newPassword === confirmPassword &&
+    !loading;
+
+  const resetForm = useCallback(() => {
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowCurrent(false);
+    setShowNew(false);
+    setError('');
+  }, []);
+
+  const handleToggle = () => {
+    if (open) resetForm();
+    setOpen((prev) => !prev);
+  };
+
+  const handleSubmit = async () => {
+    if (!canSubmit) return;
+    setLoading(true);
+    setError('');
+    try {
+      await changePassword(currentPassword, newPassword);
+      emitToast('Password updated', 'success');
+      resetForm();
+      setOpen(false);
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ error?: string; message?: string }>;
+      const msg =
+        axiosErr.response?.data?.error ||
+        axiosErr.response?.data?.message ||
+        'Failed to update password';
+      setError(msg);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <Box sx={{ px: 2, py: 1.5 }}>
+        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+          Security
+        </Typography>
+        <Button
+          variant="outlined"
+          startIcon={<LockIcon />}
+          onClick={handleToggle}
+          fullWidth
+          aria-expanded={open}
+          aria-controls="change-password-form"
+        >
+          Change Password
+        </Button>
+        <Collapse in={open}>
+          <Box
+            id="change-password-form"
+            component="form"
+            onSubmit={(e: React.FormEvent) => { e.preventDefault(); handleSubmit(); }}
+            sx={{ mt: 2, display: 'flex', flexDirection: 'column', gap: 1.5 }}
+          >
+            {error && (
+              <Alert severity="error" sx={{ fontSize: '0.82rem' }}>
+                {error}
+              </Alert>
+            )}
+            <TextField
+              label="Current Password"
+              type={showCurrent ? 'text' : 'password'}
+              size="small"
+              fullWidth
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              autoComplete="current-password"
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowCurrent((s) => !s)}
+                      aria-label={showCurrent ? 'Hide current password' : 'Show current password'}
+                      edge="end"
+                    >
+                      {showCurrent ? <VisibilityOffIcon sx={{ fontSize: 18 }} /> : <VisibilityIcon sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="New Password"
+              type={showNew ? 'text' : 'password'}
+              size="small"
+              fullWidth
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              autoComplete="new-password"
+              error={newTooShort}
+              helperText={newTooShort ? 'Must be at least 6 characters' : undefined}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton
+                      size="small"
+                      onClick={() => setShowNew((s) => !s)}
+                      aria-label={showNew ? 'Hide new password' : 'Show new password'}
+                      edge="end"
+                    >
+                      {showNew ? <VisibilityOffIcon sx={{ fontSize: 18 }} /> : <VisibilityIcon sx={{ fontSize: 18 }} />}
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+            />
+            <TextField
+              label="Confirm New Password"
+              type="password"
+              size="small"
+              fullWidth
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              error={confirmMismatch}
+              helperText={confirmMismatch ? 'Passwords do not match' : undefined}
+            />
+            <Button
+              type="submit"
+              variant="contained"
+              disabled={!canSubmit}
+              startIcon={loading ? <CircularProgress size={16} color="inherit" /> : undefined}
+              fullWidth
+            >
+              {loading ? 'Updating...' : 'Update Password'}
+            </Button>
+          </Box>
+        </Collapse>
+      </Box>
+    </Box>
+  );
+};
+
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {} }) => {
   const theme = useTheme();
   const userId = getUserId();
@@ -99,6 +262,18 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [itemDraft, setItemDraft] = useState('');
   const [signOutConfirm, setSignOutConfirm] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+
+  useEffect(() => {
+    getUserMe()
+      .then((data) => {
+        const profile = (data as { user?: UserProfile }).user || data;
+        setUserProfile(profile as UserProfile);
+      })
+      .catch(() => {});
+  }, []);
+
+  const isSocialOnly = Boolean(userProfile && (userProfile.googleId || userProfile.appleId));
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -370,6 +545,9 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
         {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
       </Box>
+
+      {/* Security — only for email/password users */}
+      {!isSocialOnly && <ChangePasswordSection />}
 
       {/* Your Data */}
       <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
