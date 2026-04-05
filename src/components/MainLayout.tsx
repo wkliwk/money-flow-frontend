@@ -52,6 +52,13 @@ import SpendingForecast from './dashboard/SpendingForecast';
 import SpendingInsights from './dashboard/SpendingInsights';
 import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
+import {
+  SummaryCardsSkeleton,
+  CategoryChartSkeleton,
+  SpendingBreakdownSkeleton,
+  TrendsChartSkeleton,
+  BudgetProgressSkeleton,
+} from './dashboard/DashboardSkeletons';
 import ExpenseList from './expenses/ExpenseList';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
@@ -736,9 +743,22 @@ const MainLayout: React.FC = () => {
           {activeTab === 0 && (
             <>
               {initialLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                  <CircularProgress size={32} />
-                </Box>
+                <>
+                  {/* Mobile skeleton */}
+                  <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                    <SummaryCardsSkeleton />
+                    <BudgetProgressSkeleton />
+                    <SpendingBreakdownSkeleton />
+                  </Box>
+                  {/* Desktop skeleton */}
+                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                    <SummaryCardsSkeleton />
+                    <TrendsChartSkeleton />
+                    <CategoryChartSkeleton />
+                    <BudgetProgressSkeleton />
+                    <SpendingBreakdownSkeleton />
+                  </Box>
+                </>
               ) : transactions.length === 0 ? (
                 <EmptyState
                   heading="Track your first expense"
