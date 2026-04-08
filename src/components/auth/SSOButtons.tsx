@@ -40,7 +40,7 @@ const SSOButtons: React.FC = () => {
     try {
       const response = await appleAuthHelpers.signIn({
         authOptions: {
-          clientId: process.env.REACT_APP_APPLE_CLIENT_ID ?? '',
+          clientId: process.env.VITE_APPLE_CLIENT_ID ?? '',
           scope: 'email name',
           redirectURI: window.location.origin,
           usePopup: true,

@@ -8,7 +8,7 @@ import MainLayout from './components/MainLayout';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import PrivacyPolicy from './components/PrivacyPolicy';
 
-const GOOGLE_CLIENT_ID = process.env.REACT_APP_GOOGLE_CLIENT_ID ?? '';
+const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID ?? '';
 
 const App: React.FC = () => {
   return (

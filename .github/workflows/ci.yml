@@ -21,7 +21,7 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Test with coverage gate
         run: |
-          CI=true yarn test --coverage --watchAll=false --coverageReporters=json-summary 2>&1 | tee /tmp/test-output.txt
+          yarn test:ci --coverageReporters=json-summary 2>&1 | tee /tmp/test-output.txt
           COVERAGE=$(python3 -c "
           import json, sys
           try:
@@ -34,16 +34,15 @@ jobs:
           ")
           echo "Line coverage: ${COVERAGE}%"
           if [ "${COVERAGE}" -lt 85 ]; then
-            echo "❌ Coverage ${COVERAGE}% is below the 85% baseline. Add tests before merging."
+            echo "Coverage ${COVERAGE}% is below the 85% baseline. Add tests before merging."
             exit 1
           fi
-          echo "✅ Coverage ${COVERAGE}% meets 85% baseline."
+          echo "Coverage ${COVERAGE}% meets 85% baseline."
       - name: Build
         run: yarn build
         env:
-          REACT_APP_API_URL: https://money-flow-backend-production.up.railway.app
-          REACT_APP_VERSION: 1.0.0
-          CI: false
+          VITE_API_URL: https://money-flow-backend-production.up.railway.app
+          VITE_VERSION: 1.0.0
       - name: Notify Telegram on success
         if: success()
         continue-on-error: true
@@ -77,14 +76,12 @@ jobs:
       - name: Build app
         run: yarn build
         env:
-          REACT_APP_API_URL: https://money-flow-backend-production.up.railway.app
-          REACT_APP_VERSION: 1.0.0
-          CI: false
+          VITE_API_URL: https://money-flow-backend-production.up.railway.app
+          VITE_VERSION: 1.0.0
       - name: Serve build and run Playwright E2E tests
         run: |
           npx serve -s build -l 3000 &
           SERVER_PID=$!
-          # Wait for server to be ready
           npx wait-on http://localhost:3000 --timeout 30000
           npx playwright test --reporter=github
           kill $SERVER_PID
@@ -152,11 +149,11 @@ jobs:
           CHORES=$(echo "$COMMITS" | grep -E '^[a-f0-9]+ chore:' | sed 's/^[a-f0-9]* chore: /- /' || true)
 
           NOTES="## What's in v${{ steps.version.outputs.version }}"$'\n'
-          [ -n "$FEATURES" ] && NOTES+=$'\n'"### ✨ New Features"$'\n'"$FEATURES"$'\n'
-          [ -n "$FIXES" ] && NOTES+=$'\n'"### 🐛 Bug Fixes"$'\n'"$FIXES"$'\n'
-          [ -n "$PERF" ] && NOTES+=$'\n'"### ⚡ Performance"$'\n'"$PERF"$'\n'
-          [ -n "$REFACTOR" ] && NOTES+=$'\n'"### 🔧 Improvements"$'\n'"$REFACTOR"$'\n'
-          [ -n "$CHORES" ] && NOTES+=$'\n'"### 🧹 Chores"$'\n'"$CHORES"$'\n'
+          [ -n "$FEATURES" ] && NOTES+=$'\n'"### New Features"$'\n'"$FEATURES"$'\n'
+          [ -n "$FIXES" ] && NOTES+=$'\n'"### Bug Fixes"$'\n'"$FIXES"$'\n'
+          [ -n "$PERF" ] && NOTES+=$'\n'"### Performance"$'\n'"$PERF"$'\n'
+          [ -n "$REFACTOR" ] && NOTES+=$'\n'"### Improvements"$'\n'"$REFACTOR"$'\n'
+          [ -n "$CHORES" ] && NOTES+=$'\n'"### Chores"$'\n'"$CHORES"$'\n'
           [ -n "$DIFF_LINE" ] && NOTES+=$'\n'"---"$'\n'"$DIFF_LINE"
 
           echo "$NOTES" > /tmp/release-notes.md
