@@ -761,9 +761,9 @@ const MainLayout: React.FC = () => {
                 </>
               ) : transactions.length === 0 ? (
                 <EmptyState
-                  heading="Track your first expense"
-                  subtext="Track your first expense to see insights"
-                  ctaLabel="Add first expense"
+                  heading="No transactions yet"
+                  subtext="Record your first expense to start tracking your spending"
+                  ctaLabel="Record your first expense"
                   onCta={() => setAddOpen(true)}
                 />
               ) : (<>

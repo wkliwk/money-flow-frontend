@@ -125,7 +125,7 @@ describe('BudgetsPage — non-zero spend rendering', () => {
     render(<BudgetsPage {...defaultProps} />);
 
     expect(screen.getByText('No budgets yet')).toBeInTheDocument();
-    expect(screen.getByText('Create Your First Budget')).toBeInTheDocument();
+    expect(screen.getByText('Create budget')).toBeInTheDocument();
   });
 
   it('applies warning color for 70-89% usage', async () => {

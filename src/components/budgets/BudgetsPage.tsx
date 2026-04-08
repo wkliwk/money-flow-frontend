@@ -24,6 +24,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 import NotificationsActiveIcon from '@mui/icons-material/NotificationsActive';
+import EmptyState from '../EmptyState';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
 import { getBudgetSummary, setBudgetAlerts, BudgetSummaryItem } from '../../services/api';
 import { PRESET_CATEGORIES } from '../expenses/CategorySelect';
@@ -142,18 +143,13 @@ const BudgetsPage: React.FC<Props> = ({ convert, symbol, categorySpend }) => {
       </Box>
 
       {entries.length === 0 && (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <AccountBalanceWalletIcon sx={{ fontSize: 56, color: 'text.secondary', opacity: 0.4, mb: 2 }} />
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>
-            No budgets yet
-          </Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-            Set monthly limits for your spending categories to stay on track
-          </Typography>
-          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
-            Create Your First Budget
-          </Button>
-        </Box>
+        <EmptyState
+          icon={<AccountBalanceWalletIcon />}
+          heading="No budgets yet"
+          subtext="Set a monthly budget to track your spending"
+          ctaLabel="Create budget"
+          onCta={() => setAddOpen(true)}
+        />
       )}
 
       <Box

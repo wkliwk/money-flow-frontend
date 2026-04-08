@@ -31,7 +31,7 @@ describe('GoalsPage', () => {
     render(<GoalsPage {...defaultProps} />);
     expect(screen.getByText('No goals yet')).toBeInTheDocument();
     expect(screen.getByText('Savings Goals')).toBeInTheDocument();
-    expect(screen.getByText('Add your first goal to start tracking your savings')).toBeInTheDocument();
+    expect(screen.getByText('Start saving towards a goal')).toBeInTheDocument();
   });
 
   it('renders header with Add Goal button', () => {
@@ -47,9 +47,8 @@ describe('GoalsPage', () => {
 
   it('opens add dialog from empty state button', () => {
     render(<GoalsPage {...defaultProps} />);
-    // Empty state has its own Add Goal button
-    const buttons = screen.getAllByText(/Add Goal/i);
-    fireEvent.click(buttons[buttons.length - 1]);
+    // Empty state has its own Create goal button
+    fireEvent.click(screen.getByText('Create goal'));
     expect(screen.getByText('New Savings Goal')).toBeInTheDocument();
   });
 

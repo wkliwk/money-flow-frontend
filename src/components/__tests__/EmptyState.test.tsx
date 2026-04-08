@@ -140,19 +140,19 @@ describe('Empty state on Home tab', () => {
   it('shows empty state card when no transactions exist', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Track your first expense')).toBeInTheDocument();
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
     });
-    expect(screen.getByText('Track your first expense to see insights')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add first expense/i })).toBeInTheDocument();
+    expect(screen.getByText('Record your first expense to start tracking your spending')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /record your first expense/i })).toBeInTheDocument();
   });
 
   it('empty state button opens AddExpenseModal', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /add first expense/i })).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /record your first expense/i })).toBeInTheDocument();
     });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /add first expense/i }));
+      fireEvent.click(screen.getByRole('button', { name: /record your first expense/i }));
     });
     await waitFor(() => {
       expect(screen.getByText('Record Transaction')).toBeInTheDocument();
@@ -167,7 +167,7 @@ describe('Empty state on Home tab', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/See all/).length).toBeGreaterThan(0);
     });
-    expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
   });
 });
 

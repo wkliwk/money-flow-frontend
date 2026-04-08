@@ -1,5 +1,5 @@
 import React from 'react';
-import { Box, Button, Typography } from '@mui/material';
+import { Box, Button, Typography, SvgIconProps } from '@mui/material';
 import AccountBalanceWalletIcon from '@mui/icons-material/AccountBalanceWallet';
 
 interface EmptyStateProps {
@@ -7,9 +7,10 @@ interface EmptyStateProps {
   subtext: string;
   ctaLabel?: string;
   onCta?: () => void;
+  icon?: React.ReactElement<SvgIconProps>;
 }
 
-const EmptyState: React.FC<EmptyStateProps> = ({ heading, subtext, ctaLabel, onCta }) => (
+const EmptyState: React.FC<EmptyStateProps> = ({ heading, subtext, ctaLabel, onCta, icon }) => (
   <Box
     sx={{
       display: 'flex',
@@ -21,7 +22,10 @@ const EmptyState: React.FC<EmptyStateProps> = ({ heading, subtext, ctaLabel, onC
       px: 3,
     }}
   >
-    <AccountBalanceWalletIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+    {icon
+      ? React.cloneElement(icon, { sx: { fontSize: 80, color: 'text.disabled', mb: 2, ...((icon.props as SvgIconProps).sx as Record<string, unknown>) } })
+      : <AccountBalanceWalletIcon sx={{ fontSize: 80, color: 'text.disabled', mb: 2 }} />
+    }
     <Typography variant="h6" fontWeight={700} mb={0.5}>
       {heading}
     </Typography>
