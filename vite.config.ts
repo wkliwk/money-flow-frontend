@@ -30,6 +30,15 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: 'build',
       sourcemap: true,
+      rollupOptions: {
+        output: {
+          manualChunks(id: string) {
+            if (id.includes('node_modules/@mui')) return 'vendor-mui';
+            if (id.includes('node_modules/recharts') || id.includes('node_modules/d3-')) return 'vendor-charts';
+            if (id.includes('node_modules/react-dom') || id.includes('node_modules/react-router')) return 'vendor-react';
+          },
+        },
+      },
     },
     define: processEnvDefines,
   };
