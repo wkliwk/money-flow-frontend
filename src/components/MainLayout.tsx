@@ -624,7 +624,7 @@ const MainLayout: React.FC = () => {
               variant="caption"
               sx={{ color: 'text.disabled', fontSize: '0.7rem', userSelect: 'none' }}
             >
-              v{process.env.REACT_APP_VERSION ?? '1.0.0'}
+              v{process.env.VITE_VERSION ?? '1.0.0'}
             </Typography>
           </Box>
         </Box>
