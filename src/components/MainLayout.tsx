@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   AppBar,
   Toolbar,
@@ -59,15 +59,15 @@ import QuickExpenseInput from './expenses/QuickExpenseInput';
 import { useFxRates } from '../hooks/useFxRates';
 import { Currency } from '../hooks/useFxRates';
 import { useRecurring } from '../hooks/useRecurring';
-import NetWorthPage from './networth/NetWorthPage';
-import SettingsPage from './settings/SettingsPage';
-import RecurringPage from './recurring/RecurringPage';
+const NetWorthPage = React.lazy(() => import('./networth/NetWorthPage'));
+const SettingsPage = React.lazy(() => import('./settings/SettingsPage'));
+const RecurringPage = React.lazy(() => import('./recurring/RecurringPage'));
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
-import SpendingInsightsPage from './insights/SpendingInsightsPage';
+const SpendingInsightsPage = React.lazy(() => import('./insights/SpendingInsightsPage'));
 import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
-import GoalsPage from './goals/GoalsPage';
+const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
 
 function getOwnerFromToken(): string {
   try {
@@ -932,30 +932,32 @@ const MainLayout: React.FC = () => {
             </>
           )}
 
-          {activeTab === 2 && (
-            <NetWorthPage convert={convert} symbol={symbol} />
-          )}
+          <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>}>
+            {activeTab === 2 && (
+              <NetWorthPage convert={convert} symbol={symbol} />
+            )}
 
-          {activeTab === 3 && (
-            <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />
-          )}
+            {activeTab === 3 && (
+              <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />
+            )}
 
-          {activeTab === 4 && (
-            <RecurringPage />
-          )}
+            {activeTab === 4 && (
+              <RecurringPage />
+            )}
 
-          {activeTab === 5 && (
-            <GoalsPage convert={convert} symbol={symbol} />
-          )}
+            {activeTab === 5 && (
+              <GoalsPage convert={convert} symbol={symbol} />
+            )}
 
-          {activeTab === 6 && (
-            <SettingsPage
-              currency={currency}
-              onCurrencyChange={(c: Currency) => setCurrency(c)}
-              categorySpend={categorySpend}
-              onTransactionsImported={fetchTransactions}
-            />
-          )}
+            {activeTab === 6 && (
+              <SettingsPage
+                currency={currency}
+                onCurrencyChange={(c: Currency) => setCurrency(c)}
+                categorySpend={categorySpend}
+                onTransactionsImported={fetchTransactions}
+              />
+            )}
+          </Suspense>
         </Container>
       </Box>
 
