@@ -46,8 +46,22 @@ const TrendsChart: React.FC<Props> = ({ transactions, onMonthSelect, convert, sy
     });
   }, [transactions, showYtd]);
 
-  const allZero = data.every((d) => d.income === 0 && d.expense === 0);
-  if (allZero) return null;
+  const monthsWithData = data.filter((d) => d.income > 0 || d.expense > 0).length;
+  if (monthsWithData === 0) return null;
+  if (monthsWithData < 2) {
+    return (
+      <Card sx={{ mb: 3 }}>
+        <CardContent sx={{ p: 3, textAlign: 'center' }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, fontSize: '0.7rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+            Trends
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            Keep tracking! Trends appear after 2 months of data.
+          </Typography>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const formatValue = (v: number) => {
     const c = convert(v);
