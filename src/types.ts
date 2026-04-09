@@ -30,6 +30,15 @@ export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
   other: 'Other',
 };
 
+export interface Tag {
+  _id: string;
+  owner: string;
+  name: string;
+  color?: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Transaction {
   _id: string;
   owner: string;
@@ -45,6 +54,7 @@ export interface Transaction {
   originalAmount?: number;
   exchangeRate?: number;
   notes?: string;
+  tags?: Tag[];
   date: string;
   createdAt: string;
   updatedAt: string;
@@ -64,6 +74,7 @@ export interface TransactionRequest {
   originalAmount?: number;
   exchangeRate?: number;
   notes?: string;
+  tags?: string[];
   date?: string;
 }
 
