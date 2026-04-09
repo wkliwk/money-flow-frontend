@@ -29,8 +29,9 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
-import { TransactionRequest, TransactionType, PaymentMethod } from '../../types';
+import { TransactionRequest, TransactionType, PaymentMethod, Tag } from '../../types';
 import { ReceiptConfidence } from '../../services/api';
+import TagPicker from './TagPicker';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
@@ -68,6 +69,8 @@ interface Props {
   amountsByDescription?: Record<string, number>;
   categoriesByDescription?: Record<string, string>;
   receiptPrefill?: ReceiptPrefill;
+  availableTags?: Tag[];
+  onCreateTag?: (name: string) => Promise<Tag>;
   /** Smart suggestions: participants ranked for current item */
   participantsForItem?: (item: string) => string[];
   /** Smart suggestions: time-relevant items for current hour */
@@ -83,7 +86,7 @@ const yesterday = () => {
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
 
-const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill, participantsForItem, timeRelevantItems = [] }) => {
+const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, descriptionsByItem = {}, knownParticipants = [], recentItems = [], amountsByDescription = {}, categoriesByDescription = {}, receiptPrefill, availableTags = [], onCreateTag, participantsForItem, timeRelevantItems = [] }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const { templates, addTemplate, deleteTemplate } = useTemplates();
@@ -106,6 +109,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
   const [isRecurring, setIsRecurring] = useState(false);
   const [frequency, setFrequency] = useState<RecurringFrequency>('monthly');
   const [notes, setNotes] = useState('');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false);
@@ -172,6 +176,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     setIsRecurring(false);
     setFrequency('monthly');
     setNotes('');
+    setSelectedTags([]);
     setError('');
     onClose();
   };
@@ -195,6 +200,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       splitBill: participants.length > 0 ? splitBillMode : undefined,
       paymentMethod: paymentMethod || undefined,
       notes: notes.trim() || undefined,
+      tags: selectedTags.length > 0 ? selectedTags.map((t) => t._id) : undefined,
       date: resolvedDate,
       ...(isForeign ? {
         currency: txCurrency,
@@ -224,6 +230,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
         setAmount('');
         setDescription('');
         setNotes('');
+        setSelectedTags([]);
         setError('');
       } else {
         handleClose();
@@ -505,6 +512,21 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
             />
           )}
         </Box>
+
+        {/* Tags */}
+        {onCreateTag && (
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Tags
+            </Typography>
+            <TagPicker
+              selectedTags={selectedTags}
+              availableTags={availableTags}
+              onChange={setSelectedTags}
+              onCreateTag={onCreateTag}
+            />
+          </Box>
+        )}
 
         {/* Collapsible secondary fields */}
         <Box

@@ -30,8 +30,9 @@ import WarningAmberIcon from '@mui/icons-material/WarningAmber';
 import CallSplitIcon from '@mui/icons-material/CallSplit';
 import CardGiftcardIcon from '@mui/icons-material/CardGiftcard';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
-import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../../types';
+import { Transaction, TransactionRequest, TransactionType, PaymentMethod, Tag } from '../../types';
 import { updateExpense } from '../../services/api';
+import TagPicker from './TagPicker';
 import NumPad from './NumPad';
 import ItemPicker, { ItemPreset, ITEM_PRESETS, ITEM_SUGGESTIONS } from './ItemPicker';
 import DescriptionPicker from './DescriptionPicker';
@@ -52,6 +53,8 @@ interface Props {
   descriptionsByItem?: Record<string, string[]>;
   knownParticipants?: string[];
   recentItems?: string[];
+  availableTags?: Tag[];
+  onCreateTag?: (name: string) => Promise<Tag>;
 }
 
 type QuickDate = 'today' | 'yesterday' | 'custom';
@@ -70,7 +73,7 @@ function classifyDate(dateStr: string): QuickDate {
   return 'custom';
 }
 
-const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], recentItems = [] }) => {
+const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved, onDelete, onDuplicate, descriptionsByItem = {}, knownParticipants = [], recentItems = [], availableTags = [], onCreateTag }) => {
   const { presets: itemPresets } = useItemPresets();
   const theme = useTheme();
   const isDark = theme.palette.mode === 'dark';
@@ -89,6 +92,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
   const [splitBillMode, setSplitBillMode] = useState<'treat' | 'split' | 'participate'>('treat');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [notes, setNotes] = useState('');
+  const [selectedTags, setSelectedTags] = useState<Tag[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [deleteConfirm, setDeleteConfirm] = useState(false);
@@ -116,6 +120,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
       setPaymentMethod((transaction.paymentMethod as PaymentMethod) || null);
       setTxCurrency((transaction.currency as Currency) || 'HKD');
       setNotes(transaction.notes || '');
+      setSelectedTags(transaction.tags ?? []);
       const raw = transaction.date ? transaction.date.split('T')[0] : todayStr();
       setQuickDate(classifyDate(raw));
       setCustomDate(raw);
@@ -158,6 +163,7 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
         splitBill: participants.length > 0 ? splitBillMode : undefined,
         paymentMethod: paymentMethod || undefined,
         notes: notes.trim() || undefined,
+        tags: selectedTags.map((t) => t._id),
         date: resolvedDate,
         owner: transaction.owner,
         ...(isForeign ? {
@@ -373,6 +379,21 @@ const EditExpenseModal: React.FC<Props> = ({ open, transaction, onClose, onSaved
             />
           )}
         </Box>
+
+        {/* Tags */}
+        {onCreateTag && (
+          <Box sx={{ mt: 1.5 }}>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.75, fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+              Tags
+            </Typography>
+            <TagPicker
+              selectedTags={selectedTags}
+              availableTags={availableTags}
+              onChange={setSelectedTags}
+              onCreateTag={onCreateTag}
+            />
+          </Box>
+        )}
 
         {/* Collapsible secondary fields */}
         <Box

@@ -40,6 +40,7 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
+import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
@@ -87,6 +88,7 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
+  const { tags, addTag } = useTags();
   const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
@@ -109,6 +111,7 @@ const MainLayout: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
+  const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -430,17 +433,19 @@ const MainLayout: React.FC = () => {
         (t.item || '').toLowerCase().includes(searchLow) ||
         (t.category || '').toLowerCase().includes(searchLow) ||
         (t.participants || []).some((p) => p.toLowerCase().includes(searchLow)) ||
-        (t.notes || '').toLowerCase().includes(searchLow);
+        (t.notes || '').toLowerCase().includes(searchLow) ||
+        (t.tags || []).some((tag) => tag.name.toLowerCase().includes(searchLow));
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
       const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
-      return matchesSearch && matchesType && matchesPayment && matchesCategory;
+      const matchesTag = tagFilter === 'all' || (t.tags || []).some((tag) => tag._id === tagFilter);
+      return matchesSearch && matchesType && matchesPayment && matchesCategory && matchesTag;
     });
     if (sortBy === 'amount') {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, sortBy]);
+  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy]);
 
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
@@ -884,7 +889,9 @@ const MainLayout: React.FC = () => {
                 typeFilter={typeFilter}
                 paymentMethodFilter={paymentMethodFilter}
                 categoryFilter={categoryFilter}
+                tagFilter={tagFilter}
                 categories={existingCategories}
+                availableTags={tags}
                 sortBy={sortBy}
                 total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
@@ -893,6 +900,7 @@ const MainLayout: React.FC = () => {
                 onTypeFilterChange={setTypeFilter}
                 onPaymentMethodFilterChange={setPaymentMethodFilter}
                 onCategoryFilterChange={setCategoryFilter}
+                onTagFilterChange={setTagFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
                 onExportJson={handleExportJson}
@@ -928,7 +936,7 @@ const MainLayout: React.FC = () => {
                 convert={convert}
                 symbol={symbol}
                 recurringLabels={recurringLabels}
-                filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all'}
+                filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all'}
                 onAddClick={() => setAddOpen(true)}
                 onRefresh={fetchTransactions}
               />
@@ -1062,6 +1070,8 @@ const MainLayout: React.FC = () => {
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
         receiptPrefill={receiptPrefill}
+        availableTags={tags}
+        onCreateTag={(name) => addTag(name)}
         participantsForItem={smartSuggestions.participantsForItem}
         timeRelevantItems={smartSuggestions.timeRelevantItems}
       />
@@ -1092,6 +1102,8 @@ const MainLayout: React.FC = () => {
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
         recentItems={recentItems}
+        availableTags={tags}
+        onCreateTag={(name) => addTag(name)}
       />
 
       <Snackbar

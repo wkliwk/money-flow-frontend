@@ -27,7 +27,8 @@ import GroupIcon from '@mui/icons-material/Group';
 import EmptyState from '../EmptyState';
 import PaymentIcon from '@mui/icons-material/Payment';
 import NoteIcon from '@mui/icons-material/Notes';
-import { Transaction, PAYMENT_METHOD_LABELS, PaymentMethod } from '../../types';
+import { Transaction, PAYMENT_METHOD_LABELS, PaymentMethod, Tag } from '../../types';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 import { CURRENCY_SYMBOLS, Currency } from '../../constants/currencies';
 
 interface Props {
@@ -79,6 +80,33 @@ function formatDateShort(dateStr: string | undefined, fallback?: string): string
     return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
   }
   return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+function TagChips({ tags }: { tags: Tag[] }) {
+  if (!tags || tags.length === 0) return null;
+  return (
+    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.375, mt: 0.375 }}>
+      {tags.map((tag) => (
+        <Chip
+          key={tag._id}
+          label={tag.name}
+          size="small"
+          icon={<LocalOfferIcon sx={{ fontSize: '10px !important', color: tag.color ? `${tag.color} !important` : undefined }} />}
+          sx={{
+            fontSize: '0.62rem',
+            height: 18,
+            px: 0,
+            bgcolor: tag.color ? `${tag.color}22` : 'rgba(148,163,184,0.08)',
+            color: tag.color ?? 'text.secondary',
+            border: '1px solid',
+            borderColor: tag.color ? `${tag.color}55` : 'rgba(148,163,184,0.15)',
+            fontWeight: 500,
+            '& .MuiChip-label': { px: 0.75 },
+          }}
+        />
+      ))}
+    </Box>
+  );
 }
 
 function fmtAmt(amount: number, convert: (n: number) => number, symbol: string) {
@@ -388,6 +416,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                                 {t.description}
                               </Typography>
                             )}
+                            {t.tags && t.tags.length > 0 && <TagChips tags={t.tags} />}
                             {t.participants && t.participants.length > 0 && (() => {
                               const mode = typeof t.splitBill === 'string' ? t.splitBill : t.splitBill === true ? 'split' : 'treat';
                               return (
@@ -520,6 +549,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                       </Tooltip>
                     )}
                   </Box>
+                  {t.tags && t.tags.length > 0 && <TagChips tags={t.tags} />}
                 </TableCell>
                 <TableCell sx={{ maxWidth: 140, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', color: 'text.secondary', fontSize: '0.8rem' }}>
                   {t.participants && t.participants.length > 0 ? (() => {
