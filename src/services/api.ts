@@ -1,5 +1,5 @@
 import axiosInstance from '../axiosInstance';
-import { Transaction, TransactionRequest } from '../types';
+import { Transaction, TransactionRequest, Tag } from '../types';
 import { setToken } from './auth';
 import { ThemePreference } from '../theme';
 
@@ -425,4 +425,24 @@ export const scanStatement = async (file: File): Promise<StatementScanResult> =>
 export const applyStatementImport = async (transactions: StatementTxn[]): Promise<{ imported: number }> => {
   const res = await axiosInstance.post('/api/import/statement/apply', { transactions });
   return res.data;
+};
+
+// Tags
+export const getTags = async (): Promise<Tag[]> => {
+  const res = await axiosInstance.get('/api/tags');
+  return res.data.tags;
+};
+
+export const createTag = async (data: { name: string; color?: string }): Promise<Tag> => {
+  const res = await axiosInstance.post('/api/tags', data);
+  return res.data;
+};
+
+export const updateTag = async (id: string, data: { name?: string; color?: string }): Promise<Tag> => {
+  const res = await axiosInstance.put(`/api/tags/${id}`, data);
+  return res.data;
+};
+
+export const deleteTag = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/tags/${id}`);
 };

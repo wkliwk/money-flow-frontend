@@ -24,14 +24,17 @@ import DataObjectIcon from '@mui/icons-material/DataObject';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import LabelIcon from '@mui/icons-material/Label';
-import { TransactionType, PAYMENT_METHODS, PaymentMethod } from '../../types';
+import { TransactionType, PAYMENT_METHODS, PaymentMethod, Tag } from '../../types';
+import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 interface Props {
   search: string;
   typeFilter: TransactionType | 'all';
   paymentMethodFilter: PaymentMethod | 'all';
   categoryFilter: string | 'all';
+  tagFilter?: string | 'all';
   categories: string[];
+  availableTags?: Tag[];
   sortBy: 'date' | 'amount';
   total: number;
   filtered: number;
@@ -40,6 +43,7 @@ interface Props {
   onTypeFilterChange: (v: TransactionType | 'all') => void;
   onPaymentMethodFilterChange: (v: PaymentMethod | 'all') => void;
   onCategoryFilterChange: (v: string | 'all') => void;
+  onTagFilterChange?: (v: string | 'all') => void;
   onSortChange: (v: 'date' | 'amount') => void;
   onExport: () => void;
   onExportJson: () => void;
@@ -50,7 +54,9 @@ const FilterBar: React.FC<Props> = ({
   typeFilter,
   paymentMethodFilter,
   categoryFilter,
+  tagFilter = 'all',
   categories,
+  availableTags = [],
   sortBy,
   total,
   filtered,
@@ -59,6 +65,7 @@ const FilterBar: React.FC<Props> = ({
   onTypeFilterChange,
   onPaymentMethodFilterChange,
   onCategoryFilterChange,
+  onTagFilterChange = () => {},
   onSortChange,
   onExport,
   onExportJson,
@@ -67,8 +74,9 @@ const FilterBar: React.FC<Props> = ({
   const isDark = theme.palette.mode === 'dark';
   const [showPaymentFilter, setShowPaymentFilter] = useState(paymentMethodFilter !== 'all');
   const [showCategoryFilter, setShowCategoryFilter] = useState(categoryFilter !== 'all');
+  const [showTagFilter, setShowTagFilter] = useState(tagFilter !== 'all');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
-  const isActive = search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all';
+  const isActive = search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all';
 
   return (
     <Box sx={{ mb: 2 }}>
@@ -139,6 +147,25 @@ const FilterBar: React.FC<Props> = ({
               }}
             >
               <LabelIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        )}
+        {availableTags.length > 0 && (
+          <Tooltip title="Filter by tag">
+            <IconButton
+              size="small"
+              aria-label="Filter by tag"
+              onClick={() => {
+                const next = !showTagFilter;
+                setShowTagFilter(next);
+                if (!next) onTagFilterChange('all');
+              }}
+              sx={{
+                color: tagFilter !== 'all' ? theme.palette.primary.main : 'text.secondary',
+                '&:hover': { color: 'text.primary' },
+              }}
+            >
+              <LocalOfferIcon fontSize="small" />
             </IconButton>
           </Tooltip>
         )}
@@ -268,6 +295,48 @@ const FilterBar: React.FC<Props> = ({
                 border: '1px solid',
                 borderColor: categoryFilter === cat ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
                 fontWeight: categoryFilter === cat ? 700 : 400,
+              }}
+            />
+          ))}
+        </Box>
+      </Collapse>
+      <Collapse in={showTagFilter && availableTags.length > 0}>
+        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 1.5 }}>
+          <Chip
+            label="All tags"
+            size="small"
+            clickable
+            onClick={() => onTagFilterChange('all')}
+            sx={{
+              fontSize: '0.72rem',
+              height: 26,
+              bgcolor: tagFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)') : 'rgba(148,163,184,0.08)',
+              color: tagFilter === 'all' ? theme.palette.primary.main : 'text.secondary',
+              border: '1px solid',
+              borderColor: tagFilter === 'all' ? (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)') : 'rgba(148,163,184,0.12)',
+              fontWeight: tagFilter === 'all' ? 700 : 400,
+            }}
+          />
+          {availableTags.map((tag) => (
+            <Chip
+              key={tag._id}
+              label={tag.name}
+              size="small"
+              clickable
+              icon={<LocalOfferIcon sx={{ fontSize: '11px !important', color: tag.color ? `${tag.color} !important` : undefined }} />}
+              onClick={() => onTagFilterChange(tagFilter === tag._id ? 'all' : tag._id)}
+              sx={{
+                fontSize: '0.72rem',
+                height: 26,
+                bgcolor: tagFilter === tag._id
+                  ? (tag.color ? `${tag.color}22` : (isDark ? 'rgba(129,140,248,0.18)' : 'rgba(99,102,241,0.22)'))
+                  : 'rgba(148,163,184,0.08)',
+                color: tagFilter === tag._id ? (tag.color ?? theme.palette.primary.main) : 'text.secondary',
+                border: '1px solid',
+                borderColor: tagFilter === tag._id
+                  ? (tag.color ? `${tag.color}55` : (isDark ? 'rgba(129,140,248,0.4)' : 'rgba(99,102,241,0.5)'))
+                  : 'rgba(148,163,184,0.12)',
+                fontWeight: tagFilter === tag._id ? 700 : 400,
               }}
             />
           ))}

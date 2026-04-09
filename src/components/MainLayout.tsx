@@ -40,6 +40,7 @@ import SavingsIcon from '@mui/icons-material/Savings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
+import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
@@ -68,6 +69,8 @@ const SpendingInsightsPage = React.lazy(() => import('./insights/SpendingInsight
 import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
+const MonthlyReportPage = React.lazy(() => import('./reports/MonthlyReportPage'));
+import AssessmentIcon from '@mui/icons-material/Assessment';
 
 function getOwnerFromToken(): string {
   try {
@@ -85,7 +88,8 @@ const MainLayout: React.FC = () => {
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6>(0);
+  const { tags, addTag } = useTags();
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -107,6 +111,7 @@ const MainLayout: React.FC = () => {
   const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
   const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
+  const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
@@ -428,17 +433,19 @@ const MainLayout: React.FC = () => {
         (t.item || '').toLowerCase().includes(searchLow) ||
         (t.category || '').toLowerCase().includes(searchLow) ||
         (t.participants || []).some((p) => p.toLowerCase().includes(searchLow)) ||
-        (t.notes || '').toLowerCase().includes(searchLow);
+        (t.notes || '').toLowerCase().includes(searchLow) ||
+        (t.tags || []).some((tag) => tag.name.toLowerCase().includes(searchLow));
       const matchesType = typeFilter === 'all' || t.type === typeFilter;
       const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
       const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
-      return matchesSearch && matchesType && matchesPayment && matchesCategory;
+      const matchesTag = tagFilter === 'all' || (t.tags || []).some((tag) => tag._id === tagFilter);
+      return matchesSearch && matchesType && matchesPayment && matchesCategory && matchesTag;
     });
     if (sortBy === 'amount') {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, sortBy]);
+  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy]);
 
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
@@ -502,6 +509,7 @@ const MainLayout: React.FC = () => {
     { label: 'Insights', icon: <BarChartIcon /> },
     { label: 'Recurring', icon: <RepeatIcon /> },
     { label: 'Goals', icon: <SavingsIcon /> },
+    { label: 'Reports', icon: <AssessmentIcon /> },
     { label: 'Settings', icon: <SettingsIcon /> },
   ];
 
@@ -602,7 +610,7 @@ const MainLayout: React.FC = () => {
               <ListItemButton
                 key={item.label}
                 selected={activeTab === index}
-                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5 | 6)}
+                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)}
                 sx={{
                   '&.Mui-selected': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: 'primary.main' },
                   '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
@@ -881,7 +889,9 @@ const MainLayout: React.FC = () => {
                 typeFilter={typeFilter}
                 paymentMethodFilter={paymentMethodFilter}
                 categoryFilter={categoryFilter}
+                tagFilter={tagFilter}
                 categories={existingCategories}
+                availableTags={tags}
                 sortBy={sortBy}
                 total={search !== '' ? transactions.length : monthFiltered.length}
                 filtered={filteredTransactions.length}
@@ -890,6 +900,7 @@ const MainLayout: React.FC = () => {
                 onTypeFilterChange={setTypeFilter}
                 onPaymentMethodFilterChange={setPaymentMethodFilter}
                 onCategoryFilterChange={setCategoryFilter}
+                onTagFilterChange={setTagFilter}
                 onSortChange={setSortBy}
                 onExport={handleExport}
                 onExportJson={handleExportJson}
@@ -925,7 +936,7 @@ const MainLayout: React.FC = () => {
                 convert={convert}
                 symbol={symbol}
                 recurringLabels={recurringLabels}
-                filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all'}
+                filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all'}
                 onAddClick={() => setAddOpen(true)}
                 onRefresh={fetchTransactions}
               />
@@ -950,6 +961,10 @@ const MainLayout: React.FC = () => {
             )}
 
             {activeTab === 6 && (
+              <MonthlyReportPage transactions={transactions} convert={convert} symbol={symbol} />
+            )}
+
+            {activeTab === 7 && (
               <SettingsPage
                 currency={currency}
                 onCurrencyChange={(c: Currency) => setCurrency(c)}
@@ -985,6 +1000,7 @@ const MainLayout: React.FC = () => {
           <BottomNavigationAction label="Insights" icon={<BarChartIcon />} />
           <BottomNavigationAction label="Repeat" icon={<RepeatIcon />} />
           <BottomNavigationAction label="Goals" icon={<SavingsIcon />} />
+          <BottomNavigationAction label="Reports" icon={<AssessmentIcon />} />
           <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
         </BottomNavigation>
       </Box>
@@ -1054,6 +1070,8 @@ const MainLayout: React.FC = () => {
         amountsByDescription={amountsByDescription}
         categoriesByDescription={categoriesByDescription}
         receiptPrefill={receiptPrefill}
+        availableTags={tags}
+        onCreateTag={(name) => addTag(name)}
         participantsForItem={smartSuggestions.participantsForItem}
         timeRelevantItems={smartSuggestions.timeRelevantItems}
       />
@@ -1084,6 +1102,8 @@ const MainLayout: React.FC = () => {
         descriptionsByItem={descriptionsByItem}
         knownParticipants={knownParticipants}
         recentItems={recentItems}
+        availableTags={tags}
+        onCreateTag={(name) => addTag(name)}
       />
 
       <Snackbar

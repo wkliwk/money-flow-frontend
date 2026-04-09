@@ -35,6 +35,7 @@ import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
+import { useTags } from '../../hooks/useTags';
 
 interface Props {
   currency: string;
@@ -91,11 +92,15 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const { enabledCurrencies, toggleCurrency, isEnabled } = useCurrencyPreferences();
   const { budgets, setBudget } = useBudgets();
   const { presets, setPreset, deletePreset } = useItemPresets();
+  const { tags, renameTag, recolorTag, removeTag } = useTags();
   const [drafts, setDrafts] = useState<Record<string, string>>(() =>
     Object.fromEntries(BUDGET_CATEGORIES.map((c) => [c, budgets[c] ? String(budgets[c]) : '']))
   );
   const [editingItem, setEditingItem] = useState<string | null>(null);
   const [itemDraft, setItemDraft] = useState('');
+  const [editingTag, setEditingTag] = useState<string | null>(null);
+  const [tagNameDraft, setTagNameDraft] = useState('');
+  const [tagDeleteConfirm, setTagDeleteConfirm] = useState<string | null>(null);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
 
   const handleBudgetBlur = (category: string) => {
@@ -115,6 +120,20 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
       setEditingItem(null);
     }
   };
+
+  const startEditTag = (id: string, currentName: string) => {
+    setEditingTag(id);
+    setTagNameDraft(currentName);
+  };
+
+  const saveTagName = async () => {
+    if (editingTag && tagNameDraft.trim()) {
+      await renameTag(editingTag, tagNameDraft.trim());
+    }
+    setEditingTag(null);
+  };
+
+  const TAG_COLORS = ['#818cf8', '#f472b6', '#34d399', '#fb923c', '#60a5fa', '#a78bfa', '#f87171', '#facc15'];
 
   const handleLogout = () => {
     clearToken();
@@ -336,6 +355,98 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
       <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
         <Box sx={{ px: 2, py: 1.5 }}>
           <FriendsSection />
+        </Box>
+      </Box>
+
+      {/* Tags */}
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
+            Tags
+          </Typography>
+          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
+            Rename or delete tags. Create tags directly in the transaction form.
+          </Typography>
+          {tags.length === 0 && (
+            <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled', fontStyle: 'italic' }}>No tags yet</Typography>
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            {tags.map((tag) => (
+              <Box key={tag._id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                {editingTag === tag._id ? (
+                  <>
+                    <TextField
+                      size="small"
+                      autoFocus
+                      value={tagNameDraft}
+                      onChange={(e) => setTagNameDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') saveTagName();
+                        if (e.key === 'Escape') setEditingTag(null);
+                      }}
+                      sx={{ flex: 1, '& .MuiInputBase-input': { fontSize: '0.82rem', py: 0.75 } }}
+                    />
+                    <Box sx={{ display: 'flex', gap: 0.375, flexWrap: 'wrap', maxWidth: 160 }}>
+                      {TAG_COLORS.map((c) => (
+                        <Box
+                          key={c}
+                          onClick={() => recolorTag(tag._id, c)}
+                          sx={{
+                            width: 16, height: 16, borderRadius: '50%', bgcolor: c, cursor: 'pointer', flexShrink: 0,
+                            border: tag.color === c ? '2px solid white' : '2px solid transparent',
+                            boxShadow: tag.color === c ? `0 0 0 1px ${c}` : 'none',
+                          }}
+                        />
+                      ))}
+                    </Box>
+                    <IconButton size="small" onClick={saveTagName} sx={{ color: theme.palette.success.light }}>
+                      <CheckIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                    <IconButton size="small" onClick={() => setEditingTag(null)} sx={{ color: 'text.disabled' }}>
+                      <CloseIcon sx={{ fontSize: 16 }} />
+                    </IconButton>
+                  </>
+                ) : (
+                  <>
+                    <Box
+                      sx={{
+                        width: 10, height: 10, borderRadius: '50%', flexShrink: 0,
+                        bgcolor: tag.color ?? 'rgba(148,163,184,0.4)',
+                        border: '1px solid rgba(148,163,184,0.2)',
+                      }}
+                    />
+                    <Typography sx={{ fontSize: '0.85rem', flex: 1 }}>{tag.name}</Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => startEditTag(tag._id, tag.name)}
+                      sx={{ color: 'text.disabled', '&:hover': { color: theme.palette.primary.main } }}
+                    >
+                      <EditIcon sx={{ fontSize: 15 }} />
+                    </IconButton>
+                    {tagDeleteConfirm === tag._id ? (
+                      <>
+                        <Typography variant="caption" color="error" sx={{ fontSize: '0.7rem' }}>Delete?</Typography>
+                        <IconButton size="small" onClick={() => { removeTag(tag._id); setTagDeleteConfirm(null); }} sx={{ color: theme.palette.error.light }}>
+                          <CheckIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                        <IconButton size="small" onClick={() => setTagDeleteConfirm(null)} sx={{ color: 'text.disabled' }}>
+                          <CloseIcon sx={{ fontSize: 15 }} />
+                        </IconButton>
+                      </>
+                    ) : (
+                      <IconButton
+                        size="small"
+                        onClick={() => setTagDeleteConfirm(tag._id)}
+                        sx={{ color: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.4)' : 'rgba(244,63,94,0.5)', '&:hover': { color: theme.palette.error.light } }}
+                      >
+                        <DeleteIcon sx={{ fontSize: 15 }} />
+                      </IconButton>
+                    )}
+                  </>
+                )}
+              </Box>
+            ))}
+          </Box>
         </Box>
       </Box>
 
