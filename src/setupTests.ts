@@ -4,6 +4,15 @@
 // learn more: https://github.com/testing-library/jest-dom
 import '@testing-library/jest-dom';
 
+// jsdom (used by jest) does not provide a global fetch. Tests should mock fetch
+// per-test, but provide a default no-op stub so unrelated code paths (e.g.
+// useFxRates fallback) don't throw ReferenceError during render.
+if (typeof (globalThis as { fetch?: unknown }).fetch === 'undefined') {
+  (globalThis as { fetch: jest.Mock }).fetch = jest.fn(() =>
+    Promise.reject(new Error('fetch not mocked'))
+  );
+}
+
 window.matchMedia = window.matchMedia || function matchMediaMock(query: string) {
   return {
     matches: query === '(prefers-color-scheme: dark)',
