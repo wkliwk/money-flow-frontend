@@ -70,7 +70,7 @@ const SpendingInsightsPage = React.lazy(() => import('./insights/SpendingInsight
 import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
-const MonthlyReportPage = React.lazy(() => import('./reports/MonthlyReportPage'));
+const ReportsPage = React.lazy(() => import('./reports/ReportsPage'));
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
 function getOwnerFromToken(): string {
@@ -83,14 +83,18 @@ function getOwnerFromToken(): string {
   }
 }
 
-const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+  initialTab?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
   const { tags, addTag } = useTags();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(initialTab);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -960,7 +964,13 @@ const MainLayout: React.FC = () => {
             )}
 
             {activeTab === 6 && (
-              <MonthlyReportPage transactions={transactions} convert={convert} symbol={symbol} />
+              <ReportsPage
+                transactions={transactions}
+                convert={convert}
+                symbol={symbol}
+                loading={initialLoading}
+                onAddTransaction={() => setAddOpen(true)}
+              />
             )}
 
             {activeTab === 7 && (
