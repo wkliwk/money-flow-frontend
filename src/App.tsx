@@ -9,6 +9,7 @@ const LoginPage = lazy(() => import('./components/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./components/auth/RegisterPage'));
 const PrivacyPolicy = lazy(() => import('./components/PrivacyPolicy'));
 const MainLayout = lazy(() => import('./components/MainLayout'));
+const ComponentsPage = lazy(() => import('./pages/dev/ComponentsPage'));
 
 const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID ?? '';
 
@@ -28,6 +29,7 @@ const App: React.FC = () => {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
           <Route path="/privacy" element={<PrivacyPolicy />} />
+          <Route path="/dev/components" element={<ComponentsPage />} />
           <Route
             path="/"
             element={
