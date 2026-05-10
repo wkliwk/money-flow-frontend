@@ -26,8 +26,15 @@ const NlpInput: React.FC<Props> = ({ onParsed }) => {
       setText('');
     } catch (err: any) {
       const status = err?.response?.status;
+      const serverMsg = err?.response?.data?.error;
       if (status === 429) {
         setError('Too many requests — try again in a minute');
+      } else if (status === 401) {
+        setError('Session expired — please log in again');
+      } else if (serverMsg) {
+        setError(serverMsg);
+      } else if (err?.message?.includes('Network Error')) {
+        setError('Network error — check your connection');
       } else {
         setError('Could not parse — try entering manually');
       }
