@@ -1,6 +1,6 @@
 {
   "name": "money-flow-frontend",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
