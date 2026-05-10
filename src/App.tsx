@@ -36,6 +36,14 @@ const App: React.FC = () => {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <MainLayout initialTab={6} />
+              </ProtectedRoute>
+            }
+          />
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
         </Suspense>
