@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import ToastProvider from '../Toast/ToastProvider';
 import { Transaction } from '../../types';
 import dayjs from 'dayjs';
 
@@ -109,7 +110,9 @@ jest.mock('../../components/settings/FriendsSection', () => () => null);
 const renderMainLayout = () =>
   render(
     <MemoryRouter>
-      <MainLayout />
+      <ToastProvider>
+        <MainLayout />
+      </ToastProvider>
     </MemoryRouter>
   );
 

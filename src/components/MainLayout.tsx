@@ -6,9 +6,6 @@ import {
   Typography,
   Box,
   Container,
-  Snackbar,
-  SnackbarContent,
-  Alert,
   CircularProgress,
   Button,
   Fab,
@@ -27,6 +24,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
+import useToast from '../hooks/useToast';
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -133,12 +131,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-  const [undoSnackbar, setUndoSnackbar] = useState(false);
+  const toast = useToast();
   const pendingDelete = useRef<Transaction | null>(null);
   const [scanLoading, setScanLoading] = useState(false);
   const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
@@ -157,9 +150,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     setAddOpen(true);
   }, []);
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
+  const showSnackbar = useCallback(
+    (message: string, severity: 'success' | 'error' = 'success') => {
+      if (severity === 'error') toast.error(message);
+      else toast.success(message);
+    },
+    [toast]
+  );
 
   const fetchTransactions = async () => {
     try {
@@ -313,35 +310,51 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     }
   };
 
-  const handleDelete = useCallback((id: string) => {
-    setTransactions((prev) => {
-      const t = prev.find((tx) => tx._id === id);
-      if (!t) return prev;
-      pendingDelete.current = t;
-      return prev.filter((tx) => tx._id !== id);
-    });
-    setUndoSnackbar(true);
-  }, []);
+  const commitDelete = useCallback(
+    async (t: Transaction) => {
+      try {
+        await deleteExpense(t._id);
+      } catch {
+        setTransactions((prev) => [t, ...prev]);
+        toast.error('Failed to delete transaction');
+      }
+    },
+    [toast]
+  );
 
-  const commitDelete = useCallback(async () => {
-    const t = pendingDelete.current;
-    if (!t) return;
-    pendingDelete.current = null;
-    try {
-      await deleteExpense(t._id);
-    } catch {
-      setTransactions((prev) => [t, ...prev]);
-      showSnackbar('Failed to delete transaction', 'error');
-    }
-  }, []);
-
-  const handleUndo = useCallback(() => {
-    const t = pendingDelete.current;
-    if (!t) return;
-    pendingDelete.current = null;
-    setTransactions((prev) => [t, ...prev].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()));
-    setUndoSnackbar(false);
-  }, []);
+  const handleDelete = useCallback(
+    (id: string) => {
+      const tx = transactions.find((t) => t._id === id);
+      if (!tx) return;
+      setTransactions((prev) => prev.filter((t) => t._id !== id));
+      pendingDelete.current = tx;
+      const label = tx.item || tx.description || 'Transaction';
+      const sign = tx.type === 'income' ? '+' : '-';
+      const amount = `${symbol}${convert(tx.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      const message = `Deleted "${label}" (${sign}${amount})`;
+      toast.success(message, {
+        duration: 5000,
+        action: {
+          label: 'Undo',
+          onClick: () => {
+            if (pendingDelete.current?._id !== tx._id) return;
+            pendingDelete.current = null;
+            setTransactions((prev) =>
+              [tx, ...prev].sort(
+                (a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
+              )
+            );
+          },
+        },
+        onTimeout: () => {
+          if (pendingDelete.current?._id !== tx._id) return;
+          pendingDelete.current = null;
+          commitDelete(tx);
+        },
+      });
+    },
+    [toast, commitDelete, symbol, convert, transactions]
+  );
 
   const handleSaved = async (updated: Transaction) => {
     // Optimistic update for immediate UI feedback
@@ -1208,46 +1221,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
         onCreateTag={(name) => addTag(name)}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
-      >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-
       <OnboardingFlow
         open={onboardingOpen}
         onDismiss={handleOnboardingDismiss}
         onFabClick={handleOnboardingFab}
       />
-
-      <Snackbar
-        open={undoSnackbar}
-        autoHideDuration={5000}
-        onClose={(_, reason) => {
-          if (reason === 'timeout') {
-            setUndoSnackbar(false);
-            commitDelete();
-          }
-        }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
-      >
-        <SnackbarContent
-          sx={{ bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}`, borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
-          message={<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>Transaction deleted</Typography>}
-          action={
-            <Button size="small" onClick={handleUndo} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.8rem' }}>
-              Undo
-            </Button>
-          }
-        />
-      </Snackbar>
     </Box>
   );
 };

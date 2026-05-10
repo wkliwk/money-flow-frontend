@@ -5,6 +5,7 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import ToastProvider from '../Toast/ToastProvider';
 import { Transaction } from '../../types';
 import dayjs from 'dayjs';
 
@@ -93,7 +94,7 @@ jest.mock('../../hooks/useTemplates', () => ({
 jest.mock('../../components/settings/FriendsSection', () => () => null);
 
 
-const renderMainLayout = () => render(<MemoryRouter><MainLayout /></MemoryRouter>);
+const renderMainLayout = () => render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
 
 jest.setTimeout(30000);
 
