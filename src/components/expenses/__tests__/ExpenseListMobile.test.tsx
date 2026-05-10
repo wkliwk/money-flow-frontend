@@ -175,8 +175,7 @@ describe('ExpenseList (mobile pull-to-refresh)', () => {
   });
 
   afterEach(() => {
-    // @ts-expect-error resetting touch simulation
-    delete window.ontouchstart;
+    delete (window as { ontouchstart?: () => void }).ontouchstart;
   });
 
   it('calls onRefresh after pull past threshold', async () => {
@@ -269,8 +268,7 @@ describe('ExpenseList (mobile swipe-to-delete)', () => {
 
   afterEach(() => {
     // Clean up touch simulation
-    // @ts-expect-error resetting touch simulation
-    delete window.ontouchstart;
+    delete (window as { ontouchstart?: () => void }).ontouchstart;
   });
 
   it('calls onDelete after swiping left past threshold', () => {

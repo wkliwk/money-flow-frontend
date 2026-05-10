@@ -134,7 +134,7 @@ describe('ExpenseList (desktop)', () => {
   });
 
   it('shows payment method when set', () => {
-    const transactions = [makeTransaction({ paymentMethod: 'Octopus' })];
+    const transactions = [makeTransaction({ paymentMethod: 'octopus' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Octopus')).toBeInTheDocument();
   });
