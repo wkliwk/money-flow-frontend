@@ -38,6 +38,21 @@ describe('ExpenseList (desktop)', () => {
     expect(screen.getByText(/tap \+ to record/i)).toBeInTheDocument();
   });
 
+  it('shows "No matches for <month>" when a month filter is active and result is empty', () => {
+    render(<ExpenseList {...defaultProps} monthLabel="May 2026" />);
+    expect(screen.getByText('No matches for May 2026')).toBeInTheDocument();
+  });
+
+  it('shows "No matches for <month>" when filters are active with a month label', () => {
+    render(<ExpenseList {...defaultProps} filtersActive monthLabel="April 2026" />);
+    expect(screen.getByText('No matches for April 2026')).toBeInTheDocument();
+  });
+
+  it('falls back to "No results" when filters are active without a month label', () => {
+    render(<ExpenseList {...defaultProps} filtersActive />);
+    expect(screen.getByText('No results')).toBeInTheDocument();
+  });
+
   it('renders transaction descriptions in desktop table', () => {
     const transactions = [
       makeTransaction({ _id: '1', description: 'Coffee', amount: 50 }),

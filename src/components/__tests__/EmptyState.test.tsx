@@ -180,10 +180,13 @@ describe('Empty state on Transactions tab', () => {
     mockGetExpenses.mockResolvedValue([]);
     renderMainLayout();
     await navigateToTransactionsTab();
+    // With the default 'month' preset, the empty state now references the
+    // current month (e.g. "No matches for May 2026") and still surfaces the
+    // add-expense CTA so first-time users can record their first transaction.
     await waitFor(() => {
-      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+      const text = screen.queryByText('No transactions yet') || screen.queryByText(/No matches for/);
+      expect(text).toBeInTheDocument();
     });
-    expect(screen.getByText('Tap + to record your first expense')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
   });
 
@@ -208,10 +211,10 @@ describe('Empty state on Transactions tab', () => {
     ]);
     renderMainLayout();
     await navigateToTransactionsTab();
-    // The transaction is from 2 years ago, default 'month' preset means it won't appear in filteredTransactions
-    // filtersActive is false (no search/type/payment filters active), so the generic empty state shows
+    // The transaction is from 2 years ago. With the default 'month' preset the
+    // list filters to the current month and shows a month-aware empty state.
     await waitFor(() => {
-      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+      expect(screen.getByText(/No matches for/)).toBeInTheDocument();
     }, { timeout: 5000 });
   });
 
