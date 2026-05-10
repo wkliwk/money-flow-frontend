@@ -39,6 +39,7 @@ interface Props {
   symbol: string;
   recurringLabels?: Set<string>;
   filtersActive?: boolean;
+  monthLabel?: string;
   onAddClick?: () => void;
   onRefresh?: () => Promise<void>;
 }
@@ -126,7 +127,7 @@ const PULL_THRESHOLD_PX = 65;
 const PULL_MAX_PX = 80;
 const PULL_DEBOUNCE_MS = 2000;
 
-const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, onAddClick, onRefresh }) => {
+const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, monthLabel, onAddClick, onRefresh }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const isDark = theme.palette.mode === 'dark';
@@ -238,8 +239,18 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
     if (filtersActive) {
       return (
         <EmptyState
-          heading="No results"
+          heading={monthLabel ? `No matches for ${monthLabel}` : 'No results'}
           subtext="Try adjusting your filters"
+        />
+      );
+    }
+    if (monthLabel) {
+      return (
+        <EmptyState
+          heading={`No matches for ${monthLabel}`}
+          subtext="Try a different month or add a transaction"
+          ctaLabel="Add expense"
+          onCta={onAddClick}
         />
       );
     }

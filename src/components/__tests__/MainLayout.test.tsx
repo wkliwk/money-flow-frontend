@@ -195,7 +195,7 @@ describe('MainLayout', () => {
     });
   });
 
-  it('shows No transactions yet when list is empty on Transactions tab', async () => {
+  it('shows empty state when list is empty on Transactions tab', async () => {
     mockGetExpenses.mockResolvedValue([]);
     renderMainLayout();
     await waitFor(() => screen.getAllByText('Home').length > 0);
@@ -203,8 +203,12 @@ describe('MainLayout', () => {
     await act(async () => {
       fireEvent.click(transactionsLabels[transactionsLabels.length - 1]);
     });
+    // Default 'month' preset → empty state references the current month
+    // (e.g. "No matches for May 2026"). When no month is active, falls back to
+    // "No transactions yet".
     await waitFor(() => {
-      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+      const text = screen.queryByText('No transactions yet') || screen.queryByText(/No matches for/);
+      expect(text).toBeInTheDocument();
     });
   });
 

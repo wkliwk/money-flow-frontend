@@ -1,4 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
@@ -105,11 +106,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
   }, []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [datePreset, setDatePreset] = useState<DatePreset>(() => {
     const saved = localStorage.getItem('mf_date_preset') as DatePreset | null;
     return saved ?? 'month';
   });
-  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(() => {
+    const monthParam = searchParams.get('month');
+    if (monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) {
+      const parsed = dayjs(`${monthParam}-01`);
+      if (parsed.isValid()) return parsed.startOf('month');
+    }
+    return dayjs();
+  });
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [search, setSearch] = useState('');
@@ -164,6 +173,40 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   useEffect(() => {
     fetchTransactions();
   }, []);
+
+  // Sync selectedMonth -> URL (?month=YYYY-MM) for back/forward + shareable links.
+  useEffect(() => {
+    const current = searchParams.get('month');
+    if (datePreset === 'month' && selectedMonth) {
+      const next = selectedMonth.format('YYYY-MM');
+      if (current !== next) {
+        const params = new URLSearchParams(searchParams);
+        params.set('month', next);
+        setSearchParams(params, { replace: true });
+      }
+    } else if (current) {
+      const params = new URLSearchParams(searchParams);
+      params.delete('month');
+      setSearchParams(params, { replace: true });
+    }
+  }, [selectedMonth, datePreset, searchParams, setSearchParams]);
+
+  // Sync URL -> selectedMonth (handles browser back/forward).
+  useEffect(() => {
+    const monthParam = searchParams.get('month');
+    if (!monthParam || !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) return;
+    const parsed = dayjs(`${monthParam}-01`);
+    if (!parsed.isValid()) return;
+    const normalised = parsed.startOf('month');
+    if (!selectedMonth || !selectedMonth.isSame(normalised, 'month')) {
+      setSelectedMonth(normalised);
+      if (datePreset !== 'month') {
+        setDatePreset('month');
+        localStorage.setItem('mf_date_preset', 'month');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -940,6 +983,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 symbol={symbol}
                 recurringLabels={recurringLabels}
                 filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all'}
+                monthLabel={datePreset === 'month' && selectedMonth && search === '' ? selectedMonth.format('MMMM YYYY') : undefined}
                 onAddClick={() => setAddOpen(true)}
                 onRefresh={fetchTransactions}
               />
