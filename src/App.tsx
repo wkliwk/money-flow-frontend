@@ -4,6 +4,7 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AppThemeProvider } from './ThemeContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import { CircularProgress, Box } from '@mui/material';
+import ToastProvider from './components/Toast/ToastProvider';
 
 const LoginPage = lazy(() => import('./components/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./components/auth/RegisterPage'));
@@ -23,33 +24,35 @@ const App: React.FC = () => {
   return (
     <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
     <AppThemeProvider>
-      <BrowserRouter>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/privacy" element={<PrivacyPolicy />} />
-          <Route path="/dev/components" element={<ComponentsPage />} />
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <MainLayout />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/reports"
-            element={
-              <ProtectedRoute>
-                <MainLayout initialTab={6} />
-              </ProtectedRoute>
-            }
-          />
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </BrowserRouter>
+      <ToastProvider>
+        <BrowserRouter>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/register" element={<RegisterPage />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/dev/components" element={<ComponentsPage />} />
+            <Route
+              path="/"
+              element={
+                <ProtectedRoute>
+                  <MainLayout />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                <ProtectedRoute>
+                  <MainLayout initialTab={6} />
+                </ProtectedRoute>
+              }
+            />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </BrowserRouter>
+      </ToastProvider>
     </AppThemeProvider>
     </GoogleOAuthProvider>
   );

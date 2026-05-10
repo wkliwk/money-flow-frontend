@@ -6,6 +6,7 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter, useLocation } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import ToastProvider from '../Toast/ToastProvider';
 import { Transaction } from '../../types';
 import dayjs from 'dayjs';
 
@@ -105,7 +106,9 @@ const LocationProbe: React.FC = () => {
 const renderAt = (initialEntry: string) =>
   render(
     <MemoryRouter initialEntries={[initialEntry]}>
-      <MainLayout />
+      <ToastProvider>
+        <MainLayout />
+      </ToastProvider>
       <LocationProbe />
     </MemoryRouter>
   );
