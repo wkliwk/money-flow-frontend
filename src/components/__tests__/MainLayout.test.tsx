@@ -582,7 +582,7 @@ describe('MainLayout', () => {
       expect(mockGetExpenses).toHaveBeenCalled();
     });
     await waitFor(() => {
-      expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+      expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
     });
   });
 

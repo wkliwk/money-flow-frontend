@@ -42,6 +42,7 @@ import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from 
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
 import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
+import DashboardSkeleton from './dashboard/DashboardSkeleton';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
@@ -651,14 +652,12 @@ const MainLayout: React.FC = () => {
           {activeTab === 0 && (
             <>
               {initialLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                  <CircularProgress size={32} />
-                </Box>
+                <DashboardSkeleton />
               ) : transactions.length === 0 ? (
                 <EmptyState
-                  heading="Track your first expense"
-                  subtext="Track your first expense to see insights"
-                  ctaLabel="Add first expense"
+                  heading="No transactions yet"
+                  subtext="Track your first expense to see your spending here."
+                  ctaLabel="Add transaction"
                   onCta={() => setAddOpen(true)}
                 />
               ) : (<>
