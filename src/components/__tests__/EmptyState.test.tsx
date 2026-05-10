@@ -140,23 +140,38 @@ describe('Empty state on Home tab', () => {
   it('shows empty state card when no transactions exist', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Track your first expense')).toBeInTheDocument();
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
     });
-    expect(screen.getByText('Track your first expense to see insights')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /add first expense/i })).toBeInTheDocument();
+    expect(
+      screen.getByText('Track your first expense to see your spending here.')
+    ).toBeInTheDocument();
+    expect(screen.getAllByRole('button', { name: /add transaction/i }).length).toBeGreaterThan(0);
   });
 
   it('empty state button opens AddExpenseModal', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /add first expense/i })).toBeInTheDocument();
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
     });
+    // The dashboard EmptyState CTA is "Add transaction"; pick the one inside the EmptyState card
+    const ctaButtons = screen.getAllByRole('button', { name: /add transaction/i });
     await act(async () => {
-      fireEvent.click(screen.getByRole('button', { name: /add first expense/i }));
+      fireEvent.click(ctaButtons[0]);
     });
     await waitFor(() => {
       expect(screen.getByText('Record Transaction')).toBeInTheDocument();
     });
+  });
+
+  it('renders no hardcoded summary values when transactions are empty', async () => {
+    renderMainLayout();
+    await waitFor(() => {
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+    });
+    // Guard against regressions where mock placeholder amounts like "3,500" / "+3500"
+    // accidentally reappear in the dashboard summary.
+    expect(screen.queryByText(/\b3,?500\b/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/\+\s*3\s*500/)).not.toBeInTheDocument();
   });
 
   it('hides empty state when transactions exist', async () => {
@@ -167,7 +182,28 @@ describe('Empty state on Home tab', () => {
     await waitFor(() => {
       expect(screen.getAllByText(/See all/).length).toBeGreaterThan(0);
     });
-    expect(screen.queryByText('Track your first expense')).not.toBeInTheDocument();
+    expect(screen.queryByText('No transactions yet')).not.toBeInTheDocument();
+  });
+
+  it('shows DashboardSkeleton while transactions are loading', async () => {
+    // Delay the API resolution so the loading state is observable in render.
+    let resolveFn: (value: unknown[]) => void = () => {};
+    mockGetExpenses.mockReturnValueOnce(
+      new Promise((resolve) => {
+        resolveFn = resolve;
+      })
+    );
+    renderMainLayout();
+    // Skeleton is rendered while initialLoading=true
+    expect(await screen.findByTestId('dashboard-skeleton')).toBeInTheDocument();
+    await act(async () => {
+      resolveFn([]);
+    });
+    // Once loaded with no data, EmptyState should appear and skeleton should go away
+    await waitFor(() => {
+      expect(screen.getByText('No transactions yet')).toBeInTheDocument();
+    });
+    expect(screen.queryByTestId('dashboard-skeleton')).not.toBeInTheDocument();
   });
 });
 
