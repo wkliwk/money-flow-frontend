@@ -148,7 +148,7 @@ describe('Empty state on Home tab', () => {
     expect(screen.getAllByRole('button', { name: /add transaction/i }).length).toBeGreaterThan(0);
   });
 
-  it('empty state button opens AddExpenseModal', async () => {
+  it('empty state button opens AddTransactionSheet', async () => {
     renderMainLayout();
     await waitFor(() => {
       expect(screen.getByText('No transactions yet')).toBeInTheDocument();
@@ -159,7 +159,7 @@ describe('Empty state on Home tab', () => {
       fireEvent.click(ctaButtons[0]);
     });
     await waitFor(() => {
-      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+      expect(screen.getByText('Add transaction')).toBeInTheDocument();
     });
   });
 
@@ -226,7 +226,7 @@ describe('Empty state on Transactions tab', () => {
     expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
   });
 
-  it('onboarding CTA button opens AddExpenseModal', async () => {
+  it('onboarding CTA button opens AddTransactionSheet', async () => {
     mockGetExpenses.mockResolvedValue([]);
     renderMainLayout();
     await navigateToTransactionsTab();
@@ -237,7 +237,7 @@ describe('Empty state on Transactions tab', () => {
       fireEvent.click(screen.getByRole('button', { name: /add expense/i }));
     });
     await waitFor(() => {
-      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+      expect(screen.getByText('Add transaction')).toBeInTheDocument();
     });
   });
 

@@ -228,7 +228,7 @@ describe('MainLayout', () => {
     });
   });
 
-  it('FAB click opens AddExpenseModal', async () => {
+  it('FAB click opens AddTransactionSheet', async () => {
     renderMainLayout();
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
@@ -236,7 +236,7 @@ describe('MainLayout', () => {
       await act(async () => { fireEvent.click(fabBtn); });
     }
     await waitFor(() => {
-      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+      expect(screen.getByText('Add transaction')).toBeInTheDocument();
     });
   });
 
@@ -296,14 +296,14 @@ describe('MainLayout', () => {
     });
   });
 
-  it('pressing N key opens AddExpenseModal', async () => {
+  it('pressing N key opens AddTransactionSheet', async () => {
     renderMainLayout();
     await waitFor(() => screen.getAllByText('Home').length > 0);
     await act(async () => {
       fireEvent.keyDown(window, { key: 'n' });
     });
     await waitFor(() => {
-      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+      expect(screen.getByText('Add transaction')).toBeInTheDocument();
     });
   });
 
@@ -315,33 +315,34 @@ describe('MainLayout', () => {
     });
   });
 
-  it('FAB click adds transaction via AddExpenseModal submit', async () => {
+  it('FAB click adds transaction via AddTransactionSheet submit', async () => {
     renderMainLayout();
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
-    await waitFor(() => screen.getByText('Record Transaction'));
-    // Verify modal opens without crashing
-    expect(screen.getByText('Record Transaction')).toBeInTheDocument();
+    await waitFor(() => screen.getByText('Add transaction'));
+    // Verify sheet opens without crashing
+    expect(screen.getByText('Add transaction')).toBeInTheDocument();
   });
 
-  it('submitting AddExpenseModal calls createExpense and updates transactions', async () => {
-    mockCreateExpense.mockResolvedValueOnce(makeTransaction({ _id: 'new1', description: 'New Coffee' }));
+  it('submitting AddTransactionSheet calls createExpense and updates transactions', async () => {
+    mockCreateExpense.mockResolvedValueOnce(makeTransaction({ _id: 'new1', description: 'Food & Drink' }));
     renderMainLayout();
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
-    await waitFor(() => screen.getByText('Record Transaction'));
-    // Fill description and amount
-    const descInput = screen.getByPlaceholderText(/McDonald/i) as HTMLInputElement;
-    await act(async () => { fireEvent.change(descInput, { target: { value: 'New Coffee' } }); });
-    await act(async () => { fireEvent.keyDown(descInput, { key: 'Enter' }); });
-    fireEvent.click(screen.getByText('100'));
-    await act(async () => { fireEvent.click(screen.getByRole('button', { name: /^save$/i })); });
+    await waitFor(() => screen.getByText('Add transaction'));
+    const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
+    await act(async () => { fireEvent.change(amountInput, { target: { value: '12.5' } }); });
+    const categorySelect = screen.getByLabelText('Category') as HTMLSelectElement;
+    await act(async () => { fireEvent.change(categorySelect, { target: { value: 'Food & Drink' } }); });
+    const enabledSave = screen.getAllByRole('button', { name: /^save$/i }).find((b) => !(b as HTMLButtonElement).disabled);
+    expect(enabledSave).toBeTruthy();
+    await act(async () => { fireEvent.click(enabledSave!); });
     await waitFor(() => {
       expect(mockCreateExpense).toHaveBeenCalled();
     });
