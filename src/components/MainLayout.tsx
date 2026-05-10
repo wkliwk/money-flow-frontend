@@ -54,6 +54,7 @@ import ExpenseList from './expenses/ExpenseList';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
+import AddTransactionSheet from './expenses/AddTransactionSheet';
 import ReceiptScanButton from './expenses/ReceiptScanButton';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import QuickExpenseInput from './expenses/QuickExpenseInput';
@@ -115,6 +116,7 @@ const MainLayout: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
@@ -168,7 +170,7 @@ const MainLayout: React.FC = () => {
       // Cmd+K / Ctrl+K for quick expense
       if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
         e.preventDefault();
-        if (!addOpen && !editTransaction && !quickExpenseOpen) {
+        if (!addOpen && !addReceiptOpen && !editTransaction && !quickExpenseOpen) {
           setQuickExpenseOpen(true);
         }
         return;
@@ -176,12 +178,12 @@ const MainLayout: React.FC = () => {
 
       // 'n' for normal add expense
       if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (addOpen || editTransaction) return;
+      if (addOpen || addReceiptOpen || editTransaction) return;
       setAddOpen(true);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [addOpen, editTransaction, quickExpenseOpen]);
+  }, [addOpen, addReceiptOpen, editTransaction, quickExpenseOpen]);
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
@@ -194,6 +196,46 @@ const MainLayout: React.FC = () => {
     }
     setReceiptPrefill(undefined);
     showSnackbar('Transaction added');
+  };
+
+  // Optimistic insert for the redesigned AddTransactionSheet (issue #286).
+  // Inserts a temporary transaction immediately, then replaces with the
+  // server-returned record on success, or rolls back on error.
+  const handleAddOptimistic = async (data: Omit<TransactionRequest, 'owner'>) => {
+    const owner = getOwnerFromToken();
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const nowIso = new Date().toISOString();
+    const optimistic: Transaction = {
+      _id: tempId,
+      owner,
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category: data.category,
+      item: data.item,
+      participants: data.participants,
+      splitBill: data.splitBill,
+      paymentMethod: data.paymentMethod ?? null,
+      currency: data.currency,
+      originalAmount: data.originalAmount,
+      exchangeRate: data.exchangeRate,
+      notes: data.notes,
+      tags: [],
+      date: data.date || new Date().toISOString().split('T')[0],
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    setTransactions((prev) => [optimistic, ...prev]);
+    try {
+      const created = await createExpense({ ...data, owner });
+      setTransactions((prev) => prev.map((t) => (t._id === tempId ? created : t)));
+      showSnackbar('Transaction added');
+    } catch (err) {
+      // Rollback
+      setTransactions((prev) => prev.filter((t) => t._id !== tempId));
+      showSnackbar('Failed to add transaction', 'error');
+      throw err;
+    }
   };
 
   const handleScanReceipt = async (file: File) => {
@@ -211,13 +253,13 @@ const MainLayout: React.FC = () => {
         confidence: result.confidence,
         imagePreviewUrl: previewUrl,
       });
-      setAddOpen(true);
+      setAddReceiptOpen(true);
     } catch {
       URL.revokeObjectURL(previewUrl);
       receiptImageUrlRef.current = null;
       showSnackbar('Could not read receipt — fill in manually', 'error');
       setReceiptPrefill(undefined);
-      setAddOpen(true);
+      setAddReceiptOpen(true);
     } finally {
       setScanLoading(false);
     }
@@ -1052,10 +1094,17 @@ const MainLayout: React.FC = () => {
         </Fab>
       </Box>
 
-      <AddExpenseModal
+      <AddTransactionSheet
         open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSubmit={handleAddOptimistic}
+        existingCategories={existingCategories}
+      />
+
+      <AddExpenseModal
+        open={addReceiptOpen}
         onClose={() => {
-          setAddOpen(false);
+          setAddReceiptOpen(false);
           if (receiptImageUrlRef.current) {
             URL.revokeObjectURL(receiptImageUrlRef.current);
             receiptImageUrlRef.current = null;

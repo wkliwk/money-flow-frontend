@@ -120,14 +120,14 @@ describe('MainLayout — extended coverage', () => {
     expect(document.body).toBeTruthy();
   });
 
-  it('pressing N key when AddExpenseModal is already open does not cause crash', async () => {
+  it('pressing N key when AddTransactionSheet is already open does not cause crash', async () => {
     renderMainLayout();
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
     if (fabBtn) { await act(async () => { fireEvent.click(fabBtn); }); }
-    await waitFor(() => screen.getByText('Record Transaction'));
+    await waitFor(() => screen.getByText('Add transaction'));
     await act(async () => { fireEvent.keyDown(window, { key: 'n' }); });
-    expect(screen.getAllByText('Record Transaction').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Add transaction').length).toBeGreaterThan(0);
   });
 
   it('handles commitDelete error — restores transaction on failure', async () => {
