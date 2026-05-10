@@ -1,3 +1,6 @@
 {
-  "buildCommand": "CI=false yarn build"
+  "buildCommand": "CI=false yarn build",
+  "rewrites": [
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ]
 }
