@@ -100,6 +100,13 @@
     "setupFilesAfterEnv": [
       "<rootDir>/src/setupTests.ts"
     ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/.claude/",
+      "<rootDir>/e2e/",
+      "<rootDir>/build/",
+      "<rootDir>/coverage/"
+    ],
     "coveragePathIgnorePatterns": [
       "src/index.tsx",
       "src/reportWebVitals.ts",

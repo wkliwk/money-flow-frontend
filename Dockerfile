@@ -3,22 +3,24 @@ FROM node:20-alpine AS base
 WORKDIR /app
 COPY package.json yarn.lock ./
 
-# ---- Dev (hot-reload with react-scripts) ----
+# ---- Dev (hot-reload with Vite) ----
 FROM base AS dev
 RUN yarn install --frozen-lockfile
-COPY tsconfig.json ./
+COPY tsconfig.json vite.config.ts index.html ./
 # src/ and public/ are volume-mounted in docker-compose for hot-reload
 EXPOSE 3000
-CMD ["yarn", "start"]
+CMD ["yarn", "dev", "--host", "0.0.0.0", "--port", "3000"]
 
 # ---- Build ----
 FROM base AS build
 RUN yarn install --frozen-lockfile
-COPY tsconfig.json ./
+COPY tsconfig.json vite.config.ts index.html ./
 COPY public ./public
 COPY src ./src
-ARG REACT_APP_API_URL
-ARG REACT_APP_VERSION
+ARG VITE_API_URL
+ARG VITE_VERSION
+ENV VITE_API_URL=${VITE_API_URL}
+ENV VITE_VERSION=${VITE_VERSION}
 RUN yarn build
 
 # ---- Production ----

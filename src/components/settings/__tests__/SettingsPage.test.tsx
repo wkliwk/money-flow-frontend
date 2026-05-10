@@ -29,11 +29,6 @@ jest.mock('../../../hooks/useFxRates', () => ({
   Currency: {},
 }));
 
-jest.mock('../../../hooks/useRecurring', () => ({
-  useRecurring: () => ({ items: [], addItem: jest.fn(), deleteItem: jest.fn() }),
-  RecurringItem: {},
-}));
-
 jest.mock('../../../hooks/useBudgets', () => ({
   useBudgets: () => ({ budgets: {}, setBudget: jest.fn() }),
   BUDGET_CATEGORIES: ['Food & Drink', 'Transport', 'Shopping'],
@@ -83,11 +78,6 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Sign Out')).toBeInTheDocument();
   });
 
-  it('shows Add recurring button', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    expect(screen.getByText('Add recurring')).toBeInTheDocument();
-  });
-
   it('calls onCurrencyChange when currency chip is clicked', () => {
     const onCurrencyChange = jest.fn();
     renderWithTheme(<SettingsPage {...defaultProps} onCurrencyChange={onCurrencyChange} />);
@@ -108,35 +98,10 @@ describe('SettingsPage', () => {
     expect(screen.getByText(/500/)).toBeInTheDocument();
   });
 
-  it('shows the recurring form when Add recurring is clicked', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Add recurring'));
-    expect(screen.getByLabelText(/Label/)).toBeInTheDocument();
-  });
-
-  it('hides the recurring form when Cancel is clicked', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Add recurring'));
-    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
-    expect(screen.queryByLabelText(/Label/)).not.toBeInTheDocument();
-  });
-
-  it('shows Monthly Recurring section', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    expect(screen.getByText('Monthly Recurring')).toBeInTheDocument();
-  });
-
   it('has budget input fields with placeholder "No limit"', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     const inputs = screen.getAllByPlaceholderText('No limit');
     expect(inputs.length).toBeGreaterThan(0);
-  });
-
-  it('shows the recurring form fields after clicking Add recurring', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Add recurring'));
-    expect(screen.getByLabelText(/Amount/)).toBeInTheDocument();
-    expect(screen.getByLabelText(/Description/)).toBeInTheDocument();
   });
 
   it('budget input change updates the field value', () => {
@@ -155,42 +120,15 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
-  it('switching type in recurring form shows Expense selected', () => {
+  it('Sign Out opens confirmation dialog with Cancel and confirm actions', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Add recurring'));
-    // Expense is selected by default
-    expect(screen.getAllByText('Expense').length).toBeGreaterThan(0);
-  });
-
-  it('recurring form shows item presets for expense type', () => {
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Add recurring'));
-    // Just verify the form rendered
-    expect(screen.getByLabelText(/Label/)).toBeInTheDocument();
-  });
-
-  it('Sign Out calls window.location change', () => {
-    // Mock window.location
-    const original = window.location;
-    // @ts-ignore
-    delete window.location;
-    // @ts-ignore
-    window.location = { href: '' };
-    renderWithTheme(<SettingsPage {...defaultProps} />);
-    fireEvent.click(screen.getByText('Sign Out'));
-    expect(window.location.href).toBe('/login');
-    // @ts-ignore
-    window.location = original;
-  });
-
-  it('shows recurring item and delete button when items exist', () => {
-    renderWithTheme(
-      <SettingsPage
-        {...defaultProps}
-      />
-    );
-    // Since items is [] from mock, verify the delete path is not shown
-    expect(screen.queryByTestId('DeleteIcon')).toBeNull();
+    // The trigger button has variant="outlined"; click it to open the dialog.
+    const trigger = screen.getByRole('button', { name: /sign out/i });
+    fireEvent.click(trigger);
+    // Dialog content should now be visible somewhere in the document.
+    expect(screen.getByText('Are you sure you want to sign out?')).toBeInTheDocument();
+    // Cancel dismisses the dialog without crashing.
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
   });
 
   it('shows My Currencies section', () => {

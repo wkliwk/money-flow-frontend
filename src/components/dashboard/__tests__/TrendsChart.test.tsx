@@ -30,6 +30,13 @@ const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
   ...overrides,
 });
 
+// TrendsChart hides the chart unless >= 2 months have data. Provide a default
+// fixture that spans this month and last month so the chart renders.
+const multiMonthTransactions = (): Transaction[] => [
+  makeTransaction({ _id: '1', amount: 500, date: dayjs().format('YYYY-MM-DD') }),
+  makeTransaction({ _id: '2', amount: 500, date: dayjs().subtract(1, 'month').format('YYYY-MM-DD') }),
+];
+
 describe('TrendsChart', () => {
   it('returns null when all transactions are zero', () => {
     const { container } = render(
@@ -44,10 +51,9 @@ describe('TrendsChart', () => {
   });
 
   it('renders chart with income/expense legend when data exists', () => {
-    const transactions = [makeTransaction({ amount: 500, type: 'expense' })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -57,10 +63,9 @@ describe('TrendsChart', () => {
   });
 
   it('shows YTD toggle', () => {
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -70,10 +75,9 @@ describe('TrendsChart', () => {
   });
 
   it('shows Income and Expense in legend', () => {
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -85,10 +89,9 @@ describe('TrendsChart', () => {
   });
 
   it('toggles to YTD view when YTD is clicked', () => {
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -99,10 +102,9 @@ describe('TrendsChart', () => {
   });
 
   it('toggles back to 6M when 6M is clicked', () => {
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -115,10 +117,9 @@ describe('TrendsChart', () => {
 
   it('calls onMonthSelect when chart is clicked', () => {
     const onMonthSelect = jest.fn();
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={onMonthSelect}
         convert={(n) => n}
         symbol="HK$"
@@ -132,10 +133,9 @@ describe('TrendsChart', () => {
   });
 
   it('shows "Tap a month to filter" hint', () => {
-    const transactions = [makeTransaction({ amount: 500 })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={jest.fn()}
         convert={(n) => n}
         symbol="HK$"
@@ -146,10 +146,9 @@ describe('TrendsChart', () => {
 
   it('calls onMonthSelect when chart bar is clicked with activeLabel', () => {
     const onMonthSelect = jest.fn();
-    const transactions = [makeTransaction({ amount: 500, date: dayjs().format('YYYY-MM-DD') })];
     render(
       <TrendsChart
-        transactions={transactions}
+        transactions={multiMonthTransactions()}
         onMonthSelect={onMonthSelect}
         convert={(n) => n}
         symbol="HK$"
@@ -162,7 +161,10 @@ describe('TrendsChart', () => {
   });
 
   it('formatValue shows k suffix for large values', () => {
-    const transactions = [makeTransaction({ amount: 5000, type: 'expense' })];
+    const transactions = [
+      makeTransaction({ _id: 'a', amount: 5000, type: 'expense', date: dayjs().format('YYYY-MM-DD') }),
+      makeTransaction({ _id: 'b', amount: 5000, type: 'expense', date: dayjs().subtract(1, 'month').format('YYYY-MM-DD') }),
+    ];
     render(
       <TrendsChart
         transactions={transactions}
@@ -176,10 +178,9 @@ describe('TrendsChart', () => {
   });
 
   it('renders with both income and expense transactions', () => {
-    const date = dayjs().format('YYYY-MM-DD');
     const transactions = [
-      makeTransaction({ amount: 5000, type: 'income', date }),
-      makeTransaction({ amount: 2000, type: 'expense', date }),
+      makeTransaction({ _id: 'a', amount: 5000, type: 'income', date: dayjs().format('YYYY-MM-DD') }),
+      makeTransaction({ _id: 'b', amount: 2000, type: 'expense', date: dayjs().subtract(1, 'month').format('YYYY-MM-DD') }),
     ];
     render(
       <TrendsChart

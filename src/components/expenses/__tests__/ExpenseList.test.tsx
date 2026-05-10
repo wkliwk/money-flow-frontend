@@ -149,7 +149,7 @@ describe('ExpenseList (desktop)', () => {
   });
 
   it('shows payment method when set', () => {
-    const transactions = [makeTransaction({ paymentMethod: 'Octopus' })];
+    const transactions = [makeTransaction({ paymentMethod: 'octopus' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Octopus')).toBeInTheDocument();
   });
@@ -204,15 +204,15 @@ describe('ExpenseList (desktop)', () => {
 
   it('shows transaction date in full format on desktop table (current year)', () => {
     const currentYear = new Date().getFullYear();
-    const currentYearDate = `${currentYear}-03-15`;
+    // Use noon UTC so the date renders as Mar 15 in any local timezone.
+    const currentYearDate = `${currentYear}-03-15T12:00:00Z`;
     const transactions = [makeTransaction({ date: currentYearDate })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    // Should show full format with day, month, and year
-    expect(screen.getByText('15 Mar 2026')).toBeInTheDocument();
+    expect(screen.getByText(`15 Mar ${currentYear}`)).toBeInTheDocument();
   });
 
   it('shows transaction date in full format on desktop table (past year)', () => {
-    const transactions = [makeTransaction({ date: '2025-03-15' })];
+    const transactions = [makeTransaction({ date: '2025-03-15T12:00:00Z' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('15 Mar 2025')).toBeInTheDocument();
   });
