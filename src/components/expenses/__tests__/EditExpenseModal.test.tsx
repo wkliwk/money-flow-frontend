@@ -235,7 +235,7 @@ describe('EditExpenseModal', () => {
     });
 
     it('auto-expands when transaction has payment method', () => {
-      const txWithPM = { ...transaction, paymentMethod: 'Cash' as const };
+      const txWithPM = { ...transaction, paymentMethod: 'cash' as const };
       render(<EditExpenseModal {...defaultProps} transaction={txWithPM} />);
       expect(screen.getByText('Less options')).toBeInTheDocument();
     });

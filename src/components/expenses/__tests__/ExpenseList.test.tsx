@@ -38,6 +38,21 @@ describe('ExpenseList (desktop)', () => {
     expect(screen.getByText(/tap \+ to record/i)).toBeInTheDocument();
   });
 
+  it('shows "No matches for <month>" when a month filter is active and result is empty', () => {
+    render(<ExpenseList {...defaultProps} monthLabel="May 2026" />);
+    expect(screen.getByText('No matches for May 2026')).toBeInTheDocument();
+  });
+
+  it('shows "No matches for <month>" when filters are active with a month label', () => {
+    render(<ExpenseList {...defaultProps} filtersActive monthLabel="April 2026" />);
+    expect(screen.getByText('No matches for April 2026')).toBeInTheDocument();
+  });
+
+  it('falls back to "No results" when filters are active without a month label', () => {
+    render(<ExpenseList {...defaultProps} filtersActive />);
+    expect(screen.getByText('No results')).toBeInTheDocument();
+  });
+
   it('renders transaction descriptions in desktop table', () => {
     const transactions = [
       makeTransaction({ _id: '1', description: 'Coffee', amount: 50 }),
@@ -134,7 +149,7 @@ describe('ExpenseList (desktop)', () => {
   });
 
   it('shows payment method when set', () => {
-    const transactions = [makeTransaction({ paymentMethod: 'Octopus' })];
+    const transactions = [makeTransaction({ paymentMethod: 'octopus' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Octopus')).toBeInTheDocument();
   });
@@ -189,15 +204,15 @@ describe('ExpenseList (desktop)', () => {
 
   it('shows transaction date in full format on desktop table (current year)', () => {
     const currentYear = new Date().getFullYear();
-    const currentYearDate = `${currentYear}-03-15`;
+    // Use noon UTC so the date renders as Mar 15 in any local timezone.
+    const currentYearDate = `${currentYear}-03-15T12:00:00Z`;
     const transactions = [makeTransaction({ date: currentYearDate })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
-    // Should show full format with day, month, and year
-    expect(screen.getByText('15 Mar 2026')).toBeInTheDocument();
+    expect(screen.getByText(`15 Mar ${currentYear}`)).toBeInTheDocument();
   });
 
   it('shows transaction date in full format on desktop table (past year)', () => {
-    const transactions = [makeTransaction({ date: '2025-03-15' })];
+    const transactions = [makeTransaction({ date: '2025-03-15T12:00:00Z' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('15 Mar 2025')).toBeInTheDocument();
   });

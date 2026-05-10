@@ -5,6 +5,7 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import ToastProvider from '../Toast/ToastProvider';
 import { Transaction } from '../../types';
 import dayjs from 'dayjs';
 
@@ -93,7 +94,7 @@ jest.mock('../../hooks/useTemplates', () => ({
 jest.mock('../../components/settings/FriendsSection', () => () => null);
 
 
-const renderMainLayout = () => render(<MemoryRouter><MainLayout /></MemoryRouter>);
+const renderMainLayout = () => render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
 
 jest.setTimeout(30000);
 
@@ -120,14 +121,14 @@ describe('MainLayout — extended coverage', () => {
     expect(document.body).toBeTruthy();
   });
 
-  it('pressing N key when AddExpenseModal is already open does not cause crash', async () => {
+  it('pressing N key when AddTransactionSheet is already open does not cause crash', async () => {
     renderMainLayout();
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
     if (fabBtn) { await act(async () => { fireEvent.click(fabBtn); }); }
-    await waitFor(() => screen.getByText('Record Transaction'));
+    await waitFor(() => screen.getByText('Add transaction'));
     await act(async () => { fireEvent.keyDown(window, { key: 'n' }); });
-    expect(screen.getAllByText('Record Transaction').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Add transaction').length).toBeGreaterThan(0);
   });
 
   it('handles commitDelete error — restores transaction on failure', async () => {

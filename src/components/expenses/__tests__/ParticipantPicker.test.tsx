@@ -51,7 +51,6 @@ describe('ParticipantPicker', () => {
   it('removes participant when chip delete is clicked', () => {
     const onChange = jest.fn();
     render(<ParticipantPicker value={['Alice']} onChange={onChange} />);
-    const deleteButton = screen.getByTestId ? screen.queryByTestId('cancel') : null;
     // Find the delete icon on the chip
     const chipDeleteIcons = document.querySelectorAll('.MuiChip-deleteIcon');
     if (chipDeleteIcons.length > 0) {

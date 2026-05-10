@@ -6,6 +6,7 @@ import React from 'react';
 import { render, screen, waitFor, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import MainLayout from '../MainLayout';
+import ToastProvider from '../Toast/ToastProvider';
 import { Transaction } from '../../types';
 import dayjs from 'dayjs';
 
@@ -130,7 +131,7 @@ describe('MainLayout — applyRecurring branch', () => {
   });
 
   it('renders pending recurring banner when items are pending', async () => {
-    render(<MemoryRouter><MainLayout /></MemoryRouter>);
+    render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
     await waitFor(() => screen.getAllByText('Home').length > 0);
     await waitFor(() => {
       const pendingBanners = screen.queryAllByText(/recurring transaction/i);
@@ -139,7 +140,7 @@ describe('MainLayout — applyRecurring branch', () => {
   });
 
   it('clicking Apply in recurring banner triggers applyRecurring — calls createExpense', async () => {
-    render(<MemoryRouter><MainLayout /></MemoryRouter>);
+    render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
     await waitFor(() => screen.getAllByText('Home').length > 0);
     const applyButtons = await screen.findAllByRole('button', { name: /apply/i });
     if (applyButtons.length > 0) {
@@ -156,7 +157,7 @@ describe('MainLayout — applyRecurring branch', () => {
   });
 
   it('applyRecurring calls markApplied after creating transactions', async () => {
-    render(<MemoryRouter><MainLayout /></MemoryRouter>);
+    render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
     await waitFor(() => screen.getAllByText('Home').length > 0);
     const applyButtons = screen.queryAllByRole('button', { name: /apply/i });
     if (applyButtons.length > 0) {
@@ -169,7 +170,7 @@ describe('MainLayout — applyRecurring branch', () => {
   });
 
   it('applyRecurring with single item shows singular snackbar message', async () => {
-    render(<MemoryRouter><MainLayout /></MemoryRouter>);
+    render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
     await waitFor(() => screen.getAllByText('Home').length > 0);
     const applyButtons = screen.queryAllByRole('button', { name: /apply/i });
     if (applyButtons.length > 0) {

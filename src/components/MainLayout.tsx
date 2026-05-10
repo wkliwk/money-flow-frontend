@@ -1,13 +1,11 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import {
   AppBar,
   Toolbar,
   Typography,
   Box,
   Container,
-  Snackbar,
-  SnackbarContent,
-  Alert,
   CircularProgress,
   Button,
   Fab,
@@ -26,6 +24,7 @@ import {
   Menu,
   MenuItem,
 } from '@mui/material';
+import useToast from '../hooks/useToast';
 import AddIcon from '@mui/icons-material/Add';
 import DashboardIcon from '@mui/icons-material/Dashboard';
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
@@ -42,6 +41,7 @@ import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from 
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
 import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
+import DashboardSkeleton from './dashboard/DashboardSkeleton';
 import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
@@ -54,6 +54,7 @@ import ExpenseList from './expenses/ExpenseList';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
+import AddTransactionSheet from './expenses/AddTransactionSheet';
 import ReceiptScanButton from './expenses/ReceiptScanButton';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import QuickExpenseInput from './expenses/QuickExpenseInput';
@@ -69,7 +70,7 @@ const SpendingInsightsPage = React.lazy(() => import('./insights/SpendingInsight
 import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
-const MonthlyReportPage = React.lazy(() => import('./reports/MonthlyReportPage'));
+const ReportsPage = React.lazy(() => import('./reports/ReportsPage'));
 import AssessmentIcon from '@mui/icons-material/Assessment';
 
 function getOwnerFromToken(): string {
@@ -82,14 +83,18 @@ function getOwnerFromToken(): string {
   }
 }
 
-const MainLayout: React.FC = () => {
+interface MainLayoutProps {
+  initialTab?: 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7;
+}
+
+const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
   const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
   const { tags, addTag } = useTags();
-  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(0);
+  const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(initialTab);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
 
   useEffect(() => {
@@ -100,11 +105,19 @@ const MainLayout: React.FC = () => {
     return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
   }, []);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [searchParams, setSearchParams] = useSearchParams();
   const [datePreset, setDatePreset] = useState<DatePreset>(() => {
     const saved = localStorage.getItem('mf_date_preset') as DatePreset | null;
     return saved ?? 'month';
   });
-  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(dayjs());
+  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(() => {
+    const monthParam = searchParams.get('month');
+    if (monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) {
+      const parsed = dayjs(`${monthParam}-01`);
+      if (parsed.isValid()) return parsed.startOf('month');
+    }
+    return dayjs();
+  });
   const [customStart, setCustomStart] = useState('');
   const [customEnd, setCustomEnd] = useState('');
   const [search, setSearch] = useState('');
@@ -115,14 +128,10 @@ const MainLayout: React.FC = () => {
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addOpen, setAddOpen] = useState(false);
+  const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
-  const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success',
-  });
-  const [undoSnackbar, setUndoSnackbar] = useState(false);
+  const toast = useToast();
   const pendingDelete = useRef<Transaction | null>(null);
   const [scanLoading, setScanLoading] = useState(false);
   const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
@@ -141,9 +150,13 @@ const MainLayout: React.FC = () => {
     setAddOpen(true);
   }, []);
 
-  const showSnackbar = (message: string, severity: 'success' | 'error' = 'success') => {
-    setSnackbar({ open: true, message, severity });
-  };
+  const showSnackbar = useCallback(
+    (message: string, severity: 'success' | 'error' = 'success') => {
+      if (severity === 'error') toast.error(message);
+      else toast.success(message);
+    },
+    [toast]
+  );
 
   const fetchTransactions = async () => {
     try {
@@ -160,6 +173,40 @@ const MainLayout: React.FC = () => {
     fetchTransactions();
   }, []);
 
+  // Sync selectedMonth -> URL (?month=YYYY-MM) for back/forward + shareable links.
+  useEffect(() => {
+    const current = searchParams.get('month');
+    if (datePreset === 'month' && selectedMonth) {
+      const next = selectedMonth.format('YYYY-MM');
+      if (current !== next) {
+        const params = new URLSearchParams(searchParams);
+        params.set('month', next);
+        setSearchParams(params, { replace: true });
+      }
+    } else if (current) {
+      const params = new URLSearchParams(searchParams);
+      params.delete('month');
+      setSearchParams(params, { replace: true });
+    }
+  }, [selectedMonth, datePreset, searchParams, setSearchParams]);
+
+  // Sync URL -> selectedMonth (handles browser back/forward).
+  useEffect(() => {
+    const monthParam = searchParams.get('month');
+    if (!monthParam || !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) return;
+    const parsed = dayjs(`${monthParam}-01`);
+    if (!parsed.isValid()) return;
+    const normalised = parsed.startOf('month');
+    if (!selectedMonth || !selectedMonth.isSame(normalised, 'month')) {
+      setSelectedMonth(normalised);
+      if (datePreset !== 'month') {
+        setDatePreset('month');
+        localStorage.setItem('mf_date_preset', 'month');
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
@@ -168,7 +215,7 @@ const MainLayout: React.FC = () => {
       // Cmd+K / Ctrl+K for quick expense
       if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
         e.preventDefault();
-        if (!addOpen && !editTransaction && !quickExpenseOpen) {
+        if (!addOpen && !addReceiptOpen && !editTransaction && !quickExpenseOpen) {
           setQuickExpenseOpen(true);
         }
         return;
@@ -176,12 +223,12 @@ const MainLayout: React.FC = () => {
 
       // 'n' for normal add expense
       if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (addOpen || editTransaction) return;
+      if (addOpen || addReceiptOpen || editTransaction) return;
       setAddOpen(true);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [addOpen, editTransaction, quickExpenseOpen]);
+  }, [addOpen, addReceiptOpen, editTransaction, quickExpenseOpen]);
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
@@ -194,6 +241,46 @@ const MainLayout: React.FC = () => {
     }
     setReceiptPrefill(undefined);
     showSnackbar('Transaction added');
+  };
+
+  // Optimistic insert for the redesigned AddTransactionSheet (issue #286).
+  // Inserts a temporary transaction immediately, then replaces with the
+  // server-returned record on success, or rolls back on error.
+  const handleAddOptimistic = async (data: Omit<TransactionRequest, 'owner'>) => {
+    const owner = getOwnerFromToken();
+    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    const nowIso = new Date().toISOString();
+    const optimistic: Transaction = {
+      _id: tempId,
+      owner,
+      description: data.description,
+      amount: data.amount,
+      type: data.type,
+      category: data.category,
+      item: data.item,
+      participants: data.participants,
+      splitBill: data.splitBill,
+      paymentMethod: data.paymentMethod ?? null,
+      currency: data.currency,
+      originalAmount: data.originalAmount,
+      exchangeRate: data.exchangeRate,
+      notes: data.notes,
+      tags: [],
+      date: data.date || new Date().toISOString().split('T')[0],
+      createdAt: nowIso,
+      updatedAt: nowIso,
+    };
+    setTransactions((prev) => [optimistic, ...prev]);
+    try {
+      const created = await createExpense({ ...data, owner });
+      setTransactions((prev) => prev.map((t) => (t._id === tempId ? created : t)));
+      showSnackbar('Transaction added');
+    } catch (err) {
+      // Rollback
+      setTransactions((prev) => prev.filter((t) => t._id !== tempId));
+      showSnackbar('Failed to add transaction', 'error');
+      throw err;
+    }
   };
 
   const handleScanReceipt = async (file: File) => {
@@ -211,47 +298,63 @@ const MainLayout: React.FC = () => {
         confidence: result.confidence,
         imagePreviewUrl: previewUrl,
       });
-      setAddOpen(true);
+      setAddReceiptOpen(true);
     } catch {
       URL.revokeObjectURL(previewUrl);
       receiptImageUrlRef.current = null;
       showSnackbar('Could not read receipt — fill in manually', 'error');
       setReceiptPrefill(undefined);
-      setAddOpen(true);
+      setAddReceiptOpen(true);
     } finally {
       setScanLoading(false);
     }
   };
 
-  const handleDelete = useCallback((id: string) => {
-    setTransactions((prev) => {
-      const t = prev.find((tx) => tx._id === id);
-      if (!t) return prev;
-      pendingDelete.current = t;
-      return prev.filter((tx) => tx._id !== id);
-    });
-    setUndoSnackbar(true);
-  }, []);
+  const commitDelete = useCallback(
+    async (t: Transaction) => {
+      try {
+        await deleteExpense(t._id);
+      } catch {
+        setTransactions((prev) => [t, ...prev]);
+        toast.error('Failed to delete transaction');
+      }
+    },
+    [toast]
+  );
 
-  const commitDelete = useCallback(async () => {
-    const t = pendingDelete.current;
-    if (!t) return;
-    pendingDelete.current = null;
-    try {
-      await deleteExpense(t._id);
-    } catch {
-      setTransactions((prev) => [t, ...prev]);
-      showSnackbar('Failed to delete transaction', 'error');
-    }
-  }, []);
-
-  const handleUndo = useCallback(() => {
-    const t = pendingDelete.current;
-    if (!t) return;
-    pendingDelete.current = null;
-    setTransactions((prev) => [t, ...prev].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()));
-    setUndoSnackbar(false);
-  }, []);
+  const handleDelete = useCallback(
+    (id: string) => {
+      const tx = transactions.find((t) => t._id === id);
+      if (!tx) return;
+      setTransactions((prev) => prev.filter((t) => t._id !== id));
+      pendingDelete.current = tx;
+      const label = tx.item || tx.description || 'Transaction';
+      const sign = tx.type === 'income' ? '+' : '-';
+      const amount = `${symbol}${convert(tx.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
+      const message = `Deleted "${label}" (${sign}${amount})`;
+      toast.success(message, {
+        duration: 5000,
+        action: {
+          label: 'Undo',
+          onClick: () => {
+            if (pendingDelete.current?._id !== tx._id) return;
+            pendingDelete.current = null;
+            setTransactions((prev) =>
+              [tx, ...prev].sort(
+                (a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
+              )
+            );
+          },
+        },
+        onTimeout: () => {
+          if (pendingDelete.current?._id !== tx._id) return;
+          pendingDelete.current = null;
+          commitDelete(tx);
+        },
+      });
+    },
+    [toast, commitDelete, symbol, convert, transactions]
+  );
 
   const handleSaved = async (updated: Transaction) => {
     // Optimistic update for immediate UI feedback
@@ -651,14 +754,12 @@ const MainLayout: React.FC = () => {
           {activeTab === 0 && (
             <>
               {initialLoading ? (
-                <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-                  <CircularProgress size={32} />
-                </Box>
+                <DashboardSkeleton />
               ) : transactions.length === 0 ? (
                 <EmptyState
-                  heading="Track your first expense"
-                  subtext="Track your first expense to see insights"
-                  ctaLabel="Add first expense"
+                  heading="No transactions yet"
+                  subtext="Track your first expense to see your spending here."
+                  ctaLabel="Add transaction"
                   onCta={() => setAddOpen(true)}
                 />
               ) : (<>
@@ -937,6 +1038,7 @@ const MainLayout: React.FC = () => {
                 symbol={symbol}
                 recurringLabels={recurringLabels}
                 filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all'}
+                monthLabel={datePreset === 'month' && selectedMonth && search === '' ? selectedMonth.format('MMMM YYYY') : undefined}
                 onAddClick={() => setAddOpen(true)}
                 onRefresh={fetchTransactions}
               />
@@ -961,7 +1063,13 @@ const MainLayout: React.FC = () => {
             )}
 
             {activeTab === 6 && (
-              <MonthlyReportPage transactions={transactions} convert={convert} symbol={symbol} />
+              <ReportsPage
+                transactions={transactions}
+                convert={convert}
+                symbol={symbol}
+                loading={initialLoading}
+                onAddTransaction={() => setAddOpen(true)}
+              />
             )}
 
             {activeTab === 7 && (
@@ -1052,10 +1160,17 @@ const MainLayout: React.FC = () => {
         </Fab>
       </Box>
 
-      <AddExpenseModal
+      <AddTransactionSheet
         open={addOpen}
+        onClose={() => setAddOpen(false)}
+        onSubmit={handleAddOptimistic}
+        existingCategories={existingCategories}
+      />
+
+      <AddExpenseModal
+        open={addReceiptOpen}
         onClose={() => {
-          setAddOpen(false);
+          setAddReceiptOpen(false);
           if (receiptImageUrlRef.current) {
             URL.revokeObjectURL(receiptImageUrlRef.current);
             receiptImageUrlRef.current = null;
@@ -1106,46 +1221,11 @@ const MainLayout: React.FC = () => {
         onCreateTag={(name) => addTag(name)}
       />
 
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={3000}
-        onClose={() => setSnackbar((s) => ({ ...s, open: false }))}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
-      >
-        <Alert severity={snackbar.severity} onClose={() => setSnackbar((s) => ({ ...s, open: false }))}>
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
-
       <OnboardingFlow
         open={onboardingOpen}
         onDismiss={handleOnboardingDismiss}
         onFabClick={handleOnboardingFab}
       />
-
-      <Snackbar
-        open={undoSnackbar}
-        autoHideDuration={5000}
-        onClose={(_, reason) => {
-          if (reason === 'timeout') {
-            setUndoSnackbar(false);
-            commitDelete();
-          }
-        }}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        sx={{ bottom: { xs: 'calc(56px + env(safe-area-inset-bottom) + 8px) !important', sm: 24 } }}
-      >
-        <SnackbarContent
-          sx={{ bgcolor: 'background.paper', border: `1px solid ${theme.palette.divider}`, borderRadius: 2, boxShadow: '0 8px 32px rgba(0,0,0,0.4)' }}
-          message={<Typography sx={{ fontSize: '0.85rem', color: 'text.primary' }}>Transaction deleted</Typography>}
-          action={
-            <Button size="small" onClick={handleUndo} sx={{ color: 'primary.main', fontWeight: 700, fontSize: '0.8rem' }}>
-              Undo
-            </Button>
-          }
-        />
-      </Snackbar>
     </Box>
   );
 };

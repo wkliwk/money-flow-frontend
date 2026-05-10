@@ -1,6 +1,6 @@
 {
   "name": "money-flow-frontend",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "private": true,
   "dependencies": {
     "@emotion/react": "^11.11.1",
@@ -54,6 +54,7 @@
     ]
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.11.3",
     "@babel/core": "^7.29.0",
     "@babel/preset-env": "^7.29.2",
     "@babel/preset-react": "^7.28.5",
@@ -98,6 +99,13 @@
     },
     "setupFilesAfterEnv": [
       "<rootDir>/src/setupTests.ts"
+    ],
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "<rootDir>/.claude/",
+      "<rootDir>/e2e/",
+      "<rootDir>/build/",
+      "<rootDir>/coverage/"
     ],
     "coveragePathIgnorePatterns": [
       "src/index.tsx",

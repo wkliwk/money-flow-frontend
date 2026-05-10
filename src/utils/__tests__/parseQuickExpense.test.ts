@@ -22,38 +22,38 @@ describe('parseQuickExpense', () => {
 describe('parseQuickExpense payment method', () => {
   test('octopus keyword', () => {
     const result = parseQuickExpense('lunch 85 octopus');
-    expect(result?.paymentMethod).toBe('Octopus');
+    expect(result?.paymentMethod).toBe('octopus');
     expect(result?.amount).toBe(85);
   });
 
   test('payme keyword', () => {
     const result = parseQuickExpense('dinner 200 payme');
-    expect(result?.paymentMethod).toBe('PayMe');
+    expect(result?.paymentMethod).toBe('payme');
   });
 
   test('cash keyword', () => {
     const result = parseQuickExpense('coffee 40 cash');
-    expect(result?.paymentMethod).toBe('Cash');
+    expect(result?.paymentMethod).toBe('cash');
   });
 
   test('fps keyword', () => {
     const result = parseQuickExpense('rent 5000 fps');
-    expect(result?.paymentMethod).toBe('FPS');
+    expect(result?.paymentMethod).toBe('fps');
   });
 
   test('credit keyword', () => {
     const result = parseQuickExpense('shopping 300 credit');
-    expect(result?.paymentMethod).toBe('Credit Card');
+    expect(result?.paymentMethod).toBe('credit_card');
   });
 
   test('wechat keyword', () => {
     const result = parseQuickExpense('milk tea 25 wechat');
-    expect(result?.paymentMethod).toBe('WeChat Pay');
+    expect(result?.paymentMethod).toBe('wechat_pay');
   });
 
   test('alipay keyword', () => {
     const result = parseQuickExpense('snack 15 alipay');
-    expect(result?.paymentMethod).toBe('AlipayHK');
+    expect(result?.paymentMethod).toBe('alipay_hk');
   });
 
   test('no payment method by default', () => {
@@ -64,7 +64,7 @@ describe('parseQuickExpense payment method', () => {
   test('payment method with category', () => {
     const result = parseQuickExpense('uber 150 transport octopus');
     expect(result?.category).toBe('Transport');
-    expect(result?.paymentMethod).toBe('Octopus');
+    expect(result?.paymentMethod).toBe('octopus');
     expect(result?.description).toBe('uber');
   });
 });
@@ -136,7 +136,7 @@ describe('parseQuickExpense currency', () => {
     expect(result?.amount).toBe(1500);
     expect(result?.currency).toBe('JPY');
     expect(result?.category).toBe('Food');
-    expect(result?.paymentMethod).toBe('Cash');
+    expect(result?.paymentMethod).toBe('cash');
   });
 
   test('EUR currency code', () => {
