@@ -521,7 +521,7 @@ const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert,
                 recurringLabels.has(t.description)
               );
               return (
-              <TableRow key={t._id} hover>
+              <TableRow key={t._id} hover data-testid="swipeable-row">
                 <TableCell sx={{ whiteSpace: 'nowrap' }}>{formatDate(t.date, t.createdAt)}</TableCell>
                 <TableCell sx={{ maxWidth: 280 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>

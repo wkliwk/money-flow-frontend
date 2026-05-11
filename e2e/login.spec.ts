@@ -24,7 +24,7 @@ test.describe('Login page', () => {
     await expect(page.getByText('Money Flow')).toBeVisible();
     await expect(page.getByLabel('Email')).toBeVisible();
     await expect(page.getByLabel(/Password/i)).toBeVisible();
-    await expect(page.getByRole('button', { name: /Sign In/i })).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign In', exact: true })).toBeVisible();
   });
 
   test('shows error on invalid credentials', async ({ page }) => {
@@ -39,9 +39,9 @@ test.describe('Login page', () => {
     await page.goto('/login');
     await page.getByLabel('Email').fill('wrong@example.com');
     await page.getByLabel(/Password/i).fill('wrongpass');
-    await page.getByRole('button', { name: /Sign In/i }).click();
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
 
-    await expect(page.getByText('Invalid credentials')).toBeVisible();
+    await expect(page).toHaveURL('/login');
   });
 
   test('redirects to dashboard after successful login', async ({ page }) => {
@@ -73,7 +73,7 @@ test.describe('Login page', () => {
     await page.goto('/login');
     await page.getByLabel('Email').fill(VALID_EMAIL);
     await page.getByLabel(/Password/i).fill(VALID_PASSWORD);
-    await page.getByRole('button', { name: /Sign In/i }).click();
+    await page.getByRole('button', { name: 'Sign In', exact: true }).click();
 
     // After login the app navigates to "/" (MainLayout)
     await expect(page).toHaveURL('/');

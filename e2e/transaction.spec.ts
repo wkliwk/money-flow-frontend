@@ -20,6 +20,9 @@ test.describe('Transaction list', () => {
     await stubSideEffects(page);
     await mockExpensesList(page, [FAKE_TRANSACTION, FAKE_TRANSACTION_2]);
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.MuiListItemButton-root').filter({ hasText: 'Transactions' }).click();
+    await page.waitForLoadState('networkidle');
     // Wait for the transaction list to be populated
     await page.waitForSelector('[data-testid="swipeable-row"]', { timeout: 10000 });
   });
@@ -47,16 +50,8 @@ test.describe('Add transaction', () => {
     // Wait for dashboard to load
     await page.waitForLoadState('networkidle');
 
-    const fab = page.locator('button[aria-label="add"], button:has(svg[data-testid="AddIcon"])').first();
-    // Fall back: find FAB by the Add icon rendered on screen
-    const addButton = page.locator('button').filter({ has: page.locator('svg') }).filter({ hasText: '' }).last();
-    // Use the visible FAB — it's the floating action button at bottom right
-    await page.locator('[class*="Fab"], button[aria-label="Add"]').first().click().catch(async () => {
-      // If specific selector fails, use keyboard shortcut 'n' to open add modal
-      await page.keyboard.press('n');
-    });
-
-    await expect(page.getByText('Record Transaction')).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /^Record$/i }).click();
+    await expect(page.getByRole('heading', { name: 'Add transaction' })).toBeVisible({ timeout: 5000 });
   });
 
   test('adds a new transaction and it appears in the list', async ({ page }) => {
@@ -86,26 +81,25 @@ test.describe('Add transaction', () => {
     await page.goto('/');
     await page.waitForLoadState('networkidle');
 
-    // Open add modal via keyboard shortcut
-    await page.keyboard.press('n');
-    await expect(page.getByText('Record Transaction')).toBeVisible({ timeout: 5000 });
+    await page.getByRole('button', { name: /^Record$/i }).click();
+    await expect(page.getByRole('heading', { name: 'Add transaction' })).toBeVisible({ timeout: 5000 });
 
-    // Select item "早餐" (Breakfast)
-    await page.getByText('早餐').click();
+    await page.getByLabel('Category').selectOption('Food & Drink');
 
-    // Fill in description using the description input
-    const descInput = page.getByPlaceholder(/McDonald|Custom|e\.g\./i).first();
-    await descInput.fill('Starbucks');
+    // Fill in the note field so the transaction shows a custom label in the list.
+    const noteInput = page.getByLabel('Note');
+    await noteInput.fill('Starbucks');
 
     // Enter amount via the compact number input (placeholder "0")
     const amountInput = page.getByPlaceholder('0');
     await amountInput.fill('65');
 
     // Submit
-    await page.getByRole('button', { name: /^Add$/i }).click();
+    await page.getByRole('button', { name: /^Save$/i }).first().click();
 
     // New transaction should appear in the list
-    await expect(page.getByText('Starbucks')).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('heading', { name: 'Add transaction' })).not.toBeVisible();
+    await expect(page.getByRole('button', { name: /Starbucks/ }).first()).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -132,10 +126,13 @@ test.describe('Edit transaction', () => {
     });
 
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.MuiListItemButton-root').filter({ hasText: 'Transactions' }).click();
+    await page.waitForLoadState('networkidle');
     await page.waitForSelector('[data-testid="swipeable-row"]', { timeout: 10000 });
 
-    // Click the transaction card to open edit modal
-    await page.locator('[data-testid="swipeable-row"]').first().click();
+    // Click the edit icon in the first transaction row.
+    await page.locator('[data-testid="swipeable-row"]').first().locator('button').first().click();
     await expect(page.getByText('Edit Transaction')).toBeVisible({ timeout: 5000 });
 
     // Change the description
@@ -147,7 +144,7 @@ test.describe('Edit transaction', () => {
     await page.getByRole('button', { name: /^Save$/i }).click();
 
     // Updated description should appear in the list
-    await expect(page.getByText('KFC')).toBeVisible({ timeout: 5000 });
+    await expect(page.locator('[data-testid="swipeable-row"]').first().getByText('KFC')).toBeVisible({ timeout: 5000 });
   });
 });
 
@@ -167,17 +164,20 @@ test.describe('Delete transaction', () => {
     });
 
     await page.goto('/');
+    await page.waitForLoadState('networkidle');
+    await page.locator('.MuiListItemButton-root').filter({ hasText: 'Transactions' }).click();
+    await page.waitForLoadState('networkidle');
     await page.waitForSelector('[data-testid="swipeable-row"]', { timeout: 10000 });
 
     // Confirm the transaction is visible before deletion
     await expect(page.getByText("McDonald's")).toBeVisible();
 
     // Open edit modal for first transaction, then use the delete button inside it
-    await page.locator('[data-testid="swipeable-row"]').first().click();
+    await page.locator('[data-testid="swipeable-row"]').first().locator('button').first().click();
     await expect(page.getByText('Edit Transaction')).toBeVisible({ timeout: 5000 });
 
     // Click the delete (trash) icon button inside the modal
-    await page.locator('button[aria-label*="delete"], button:has([data-testid="DeleteIcon"])').first().click();
+    await page.getByRole('button').filter({ has: page.locator('[data-testid="DeleteIcon"]') }).last().click({ force: true });
 
     // Confirm deletion in the confirmation dialog
     await page.getByRole('button', { name: /^Delete$/i }).click();
