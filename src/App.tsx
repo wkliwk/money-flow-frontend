@@ -3,8 +3,9 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { GoogleOAuthProvider } from '@react-oauth/google';
 import { AppThemeProvider } from './ThemeContext';
 import ProtectedRoute from './components/common/ProtectedRoute';
-import { CircularProgress, Box } from '@mui/material';
+import { Box } from '@mui/material';
 import ToastProvider from './components/Toast/ToastProvider';
+import DashboardSkeleton from './components/dashboard/DashboardSkeleton';
 
 const LoginPage = lazy(() => import('./components/auth/LoginPage'));
 const RegisterPage = lazy(() => import('./components/auth/RegisterPage'));
@@ -15,8 +16,8 @@ const ComponentsPage = lazy(() => import('./pages/dev/ComponentsPage'));
 const GOOGLE_CLIENT_ID = process.env.VITE_GOOGLE_CLIENT_ID ?? '';
 
 const PageLoader = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-    <CircularProgress />
+  <Box sx={{ minHeight: '100vh', py: 4 }}>
+    <DashboardSkeleton />
   </Box>
 );
 
