@@ -23,6 +23,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import SavingsIcon from '@mui/icons-material/Savings';
 import dayjs from 'dayjs';
 import { useGoals } from '../../hooks/useGoals';
+import EmptyState from '../ui/EmptyState';
 
 interface Props {
   convert: (hkd: number) => number;
@@ -86,16 +87,12 @@ const GoalsPage: React.FC<Props> = ({ convert, symbol }) => {
       </Box>
 
       {sortedGoals.length === 0 && (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <SavingsIcon sx={{ fontSize: 56, color: 'text.secondary', opacity: 0.4, mb: 2 }} />
-          <Typography variant="h6" sx={{ color: 'text.secondary', mb: 1 }}>No goals yet</Typography>
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 3 }}>
-            Add your first goal to start tracking your savings
-          </Typography>
-          <Button variant="outlined" startIcon={<AddIcon />} onClick={() => setAddOpen(true)}>
-            Add Goal
-          </Button>
-        </Box>
+        <EmptyState
+          icon={<SavingsIcon />}
+          title="No goals yet"
+          body="Add your first goal to start tracking your savings"
+          cta={{ label: 'Add Goal', onClick: () => setAddOpen(true) }}
+        />
       )}
 
       <Box sx={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(auto-fill, minmax(320px, 1fr))', gap: 2 }}>
