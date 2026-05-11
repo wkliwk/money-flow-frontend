@@ -21,6 +21,7 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Test with coverage gate
         run: |
+          set -o pipefail
           yarn test:ci --coverageReporters=json-summary 2>&1 | tee /tmp/test-output.txt
           COVERAGE=$(python3 -c "
           import json, sys
