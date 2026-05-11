@@ -45,6 +45,8 @@ describe('SettingsPage', () => {
   const defaultProps = {
     currency: 'HKD',
     onCurrencyChange: jest.fn(),
+    onExportCsv: jest.fn(),
+    onDeleteAllTransactions: jest.fn(),
   };
 
   beforeEach(() => {
@@ -76,6 +78,12 @@ describe('SettingsPage', () => {
   it('shows Sign Out button', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Sign Out')).toBeInTheDocument();
+  });
+
+  it('shows data actions buttons', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.getByRole('button', { name: /export csv/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /delete all/i })).toBeInTheDocument();
   });
 
   it('calls onCurrencyChange when currency chip is clicked', () => {
@@ -129,6 +137,22 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Are you sure you want to sign out?')).toBeInTheDocument();
     // Cancel dismisses the dialog without crashing.
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+  });
+
+  it('calls onExportCsv when Export CSV is clicked', () => {
+    const onExportCsv = jest.fn();
+    renderWithTheme(<SettingsPage {...defaultProps} onExportCsv={onExportCsv} />);
+    fireEvent.click(screen.getByRole('button', { name: /export csv/i }));
+    expect(onExportCsv).toHaveBeenCalled();
+  });
+
+  it('opens delete all dialog and confirms action', () => {
+    const onDeleteAllTransactions = jest.fn();
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    fireEvent.click(screen.getByRole('button', { name: /delete all/i }));
+    expect(screen.getByText('Delete every transaction in the account? This cannot be undone.')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Delete All' }));
+    expect(onDeleteAllTransactions).toHaveBeenCalled();
   });
 
   it('shows My Currencies section', () => {

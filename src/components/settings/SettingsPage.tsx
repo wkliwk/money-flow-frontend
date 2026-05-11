@@ -24,6 +24,7 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import { useTheme } from '@mui/material/styles';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -42,6 +43,8 @@ interface Props {
   onCurrencyChange: (c: Currency) => void;
   categorySpend?: Record<string, number>;
   onTransactionsImported?: () => void;
+  onExportCsv?: () => void;
+  onDeleteAllTransactions?: () => void | Promise<void>;
 }
 
 function getUserId(): string {
@@ -85,7 +88,14 @@ const ThemeToggle: React.FC = () => {
   );
 };
 
-const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {}, onTransactionsImported }) => {
+const SettingsPage: React.FC<Props> = ({
+  currency,
+  onCurrencyChange,
+  categorySpend = {},
+  onTransactionsImported,
+  onExportCsv,
+  onDeleteAllTransactions,
+}) => {
   const theme = useTheme();
   const userId = getUserId();
   const { symbol, convert } = useFxRates();
@@ -102,6 +112,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [tagNameDraft, setTagNameDraft] = useState('');
   const [tagDeleteConfirm, setTagDeleteConfirm] = useState<string | null>(null);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
+  const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -143,6 +154,13 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const confirmLogout = () => {
     setSignOutConfirm(false);
     handleLogout();
+  };
+
+  const confirmDeleteAll = async () => {
+    setDeleteAllConfirm(false);
+    if (onDeleteAllTransactions) {
+      await onDeleteAllTransactions();
+    }
   };
 
   const renderItemSection = (label: string, items: typeof ITEM_PRESETS) => (
@@ -469,6 +487,33 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Box>
       </Box>
 
+      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
+            Data Actions
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Button
+              variant="outlined"
+              startIcon={<FileDownloadIcon />}
+              onClick={() => onExportCsv?.()}
+              disabled={!onExportCsv}
+            >
+              Export CSV
+            </Button>
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={() => setDeleteAllConfirm(true)}
+              disabled={!onDeleteAllTransactions}
+            >
+              Delete All
+            </Button>
+          </Box>
+        </Box>
+      </Box>
+
       <Button
         variant="outlined"
         color="error"
@@ -488,6 +533,19 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
           <Button onClick={() => setSignOutConfirm(false)}>Cancel</Button>
           <Button color="error" variant="contained" onClick={confirmLogout}>
             Sign Out
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteAllConfirm} onClose={() => setDeleteAllConfirm(false)}>
+        <DialogTitle>Delete All Transactions</DialogTitle>
+        <DialogContent>
+          <Typography>Delete every transaction in the account? This cannot be undone.</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteAllConfirm(false)}>Cancel</Button>
+          <Button color="error" variant="contained" onClick={confirmDeleteAll} disabled={!onDeleteAllTransactions}>
+            Delete All
           </Button>
         </DialogActions>
       </Dialog>
