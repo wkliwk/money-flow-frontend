@@ -605,6 +605,19 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     URL.revokeObjectURL(url);
   };
 
+  const handleDeleteAllTransactions = useCallback(async () => {
+    const toDelete = [...transactions];
+    if (toDelete.length === 0) return;
+
+    try {
+      await Promise.all(toDelete.map((t) => deleteExpense(t._id)));
+      setTransactions([]);
+      showSnackbar('All transactions deleted');
+    } catch {
+      showSnackbar('Failed to delete transactions', 'error');
+    }
+  }, [transactions, showSnackbar]);
+
   const navItems = [
     { label: 'Home', icon: <DashboardIcon /> },
     { label: 'Transactions', icon: <ReceiptLongIcon /> },
@@ -1078,6 +1091,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 onCurrencyChange={(c: Currency) => setCurrency(c)}
                 categorySpend={categorySpend}
                 onTransactionsImported={fetchTransactions}
+                onExportCsv={handleExport}
+                onDeleteAllTransactions={handleDeleteAllTransactions}
               />
             )}
           </Suspense>
