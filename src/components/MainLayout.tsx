@@ -89,7 +89,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
@@ -621,7 +621,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       <AppBar
         position="sticky"
         elevation={0}
-        sx={{ ml: { sm: '220px' }, width: { sm: 'calc(100% - 220px)' } }}
+        sx={{ ml: { lg: '220px' }, width: { lg: 'calc(100% - 220px)' } }}
       >
         <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
           <Typography
@@ -694,7 +694,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       <Drawer
         variant="permanent"
         sx={{
-          display: { xs: 'none', sm: 'block' },
+          display: { xs: 'none', lg: 'block' },
           width: 220,
           flexShrink: 0,
           '& .MuiDrawer-paper': {
@@ -742,7 +742,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       </Drawer>
 
       {/* Main content offset by drawer on desktop */}
-      <Box sx={{ ml: { sm: '220px' } }}>
+      <Box sx={{ ml: { lg: '220px' } }}>
         <Container
           maxWidth="lg"
           sx={{
@@ -808,7 +808,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
               <SpendingPulse />
 
               {/* Mobile: preset chips + hero card */}
-              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+              <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
                 <Box sx={{ mb: 1.5 }}>
                   <DateRangeControl
                     preset={datePreset}
@@ -878,7 +878,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
               </Box>
 
               {/* Desktop: date range control + summary cards + chart */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+              <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
                 <Box sx={{ mb: 2 }}>
                   <DateRangeControl
                     preset={datePreset}
@@ -1085,7 +1085,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       </Box>
 
       {/* Mobile bottom navigation */}
-      <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+      <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
         <BottomNavigation
           value={activeTab}
           onChange={(_, v) => setActiveTab(v)}
