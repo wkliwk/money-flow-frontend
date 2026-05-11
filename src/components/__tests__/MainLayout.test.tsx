@@ -239,7 +239,9 @@ describe('MainLayout', () => {
       await act(async () => { fireEvent.click(fabBtn); });
     }
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Add transaction' }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -306,7 +308,9 @@ describe('MainLayout', () => {
       fireEvent.keyDown(window, { key: 'n' });
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(
+        screen.getByRole('heading', { name: 'Add transaction' }),
+      ).toBeInTheDocument();
     });
   });
 
@@ -325,9 +329,13 @@ describe('MainLayout', () => {
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
-    await waitFor(() => screen.getByText('Add transaction'));
+    await waitFor(() =>
+      screen.getByRole('heading', { name: 'Add transaction' }),
+    );
     // Verify sheet opens without crashing
-    expect(screen.getByText('Add transaction')).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Add transaction' }),
+    ).toBeInTheDocument();
   });
 
   it('submitting AddTransactionSheet calls createExpense and updates transactions', async () => {
@@ -338,7 +346,9 @@ describe('MainLayout', () => {
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
-    await waitFor(() => screen.getByText('Add transaction'));
+    await waitFor(() =>
+      screen.getByRole('heading', { name: 'Add transaction' }),
+    );
     const amountInput = screen.getByLabelText('Amount') as HTMLInputElement;
     await act(async () => { fireEvent.change(amountInput, { target: { value: '12.5' } }); });
     const categorySelect = screen.getByLabelText('Category') as HTMLSelectElement;

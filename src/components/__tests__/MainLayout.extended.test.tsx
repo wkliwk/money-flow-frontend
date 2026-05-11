@@ -126,9 +126,9 @@ describe('MainLayout — extended coverage', () => {
     await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
     const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
     if (fabBtn) { await act(async () => { fireEvent.click(fabBtn); }); }
-    await waitFor(() => screen.getByText('Add transaction'));
+    await waitFor(() => screen.getByRole('heading', { name: 'Add transaction' }));
     await act(async () => { fireEvent.keyDown(window, { key: 'n' }); });
-    expect(screen.getAllByText('Add transaction').length).toBeGreaterThan(0);
+    expect(screen.getAllByRole('heading', { name: 'Add transaction' }).length).toBeGreaterThan(0);
   });
 
   it('handles commitDelete error — restores transaction on failure', async () => {

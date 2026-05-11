@@ -2,7 +2,6 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import SummaryCards from '../SummaryCards';
 import { Transaction } from '../../../types';
-import dayjs from 'dayjs';
 
 const makeTransaction = (overrides: Partial<Transaction>): Transaction => ({
   _id: '1',
@@ -103,7 +102,7 @@ describe('SummaryCards', () => {
   });
 
   it('shows today expenses when transactions from today exist', () => {
-    const todayDate = dayjs().format('YYYY-MM-DD');
+    const todayDate = new Date().toISOString().split('T')[0];
     const transactions = [makeTransaction({ type: 'expense', amount: 100, date: todayDate })];
     render(<SummaryCards transactions={transactions} convert={(n) => n} symbol="HK$" />);
     expect(screen.getByText(/Today:/i)).toBeInTheDocument();

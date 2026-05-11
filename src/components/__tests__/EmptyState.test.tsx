@@ -162,7 +162,7 @@ describe('Empty state on Home tab', () => {
       fireEvent.click(ctaButtons[0]);
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Add transaction' })).toBeInTheDocument();
     });
   });
 
@@ -240,7 +240,7 @@ describe('Empty state on Transactions tab', () => {
       fireEvent.click(screen.getByRole('button', { name: /add expense/i }));
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByRole('heading', { name: 'Add transaction' })).toBeInTheDocument();
     });
   });
 
