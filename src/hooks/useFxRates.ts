@@ -24,6 +24,61 @@ const DEFAULT_RATES: Rates = {
 };
 
 const STORAGE_KEY = 'mf_currency';
+const DEFAULT_CURRENCY: Currency = 'USD';
+
+const REGION_CURRENCY_MAP: Record<string, Currency> = {
+  US: 'USD',
+  CA: 'CAD',
+  HK: 'HKD',
+  CN: 'CNY',
+  JP: 'JPY',
+  GB: 'GBP',
+  TW: 'TWD',
+  TH: 'THB',
+  KR: 'KRW',
+  FR: 'EUR',
+  DE: 'EUR',
+  ES: 'EUR',
+  IT: 'EUR',
+};
+
+const LANGUAGE_CURRENCY_MAP: Record<string, Currency> = {
+  EN: 'USD',
+  FR: 'EUR',
+  DE: 'EUR',
+  ES: 'EUR',
+  IT: 'EUR',
+  JA: 'JPY',
+  ZH: 'CNY',
+};
+
+function isSupportedCurrency(value: string | null): value is Currency {
+  return Object.prototype.hasOwnProperty.call(CURRENCY_SYMBOLS, value as Currency);
+}
+
+function normalizeLocale(value: string): string {
+  return value.trim().replace('_', '-').toUpperCase();
+}
+
+function detectBrowserCurrency(): Currency {
+  if (typeof navigator === 'undefined') return DEFAULT_CURRENCY;
+  const rawLocale = (navigator.languages?.[0] || navigator.language || '') as string;
+  const normalized = normalizeLocale(rawLocale);
+  if (!normalized) return DEFAULT_CURRENCY;
+
+  const parts = normalized.split('-');
+  const region = parts[1] || '';
+  const language = parts[0] || '';
+
+  return REGION_CURRENCY_MAP[region] || LANGUAGE_CURRENCY_MAP[language] || DEFAULT_CURRENCY;
+}
+
+function resolveStoredCurrency(): Currency {
+  const stored = localStorage.getItem(STORAGE_KEY);
+  if (stored === 'XAF') return DEFAULT_CURRENCY;
+  if (isSupportedCurrency(stored)) return stored;
+  return detectBrowserCurrency();
+}
 
 let cachedRates: Rates | null = null;
 let fetchPromise: Promise<Rates> | null = null;
@@ -67,7 +122,7 @@ function fetchRates(): Promise<Rates> {
 
 export function useFxRates() {
   const [currency, setCurrencyState] = useState<Currency>(
-    () => (localStorage.getItem(STORAGE_KEY) as Currency) || 'HKD'
+    () => resolveStoredCurrency()
   );
   const [rates, setRates] = useState<Rates>(cachedRates || DEFAULT_RATES);
   const [loading, setLoading] = useState(!cachedRates);
@@ -82,6 +137,16 @@ export function useFxRates() {
     setCurrencyState(c);
     localStorage.setItem(STORAGE_KEY, c);
   }, []);
+
+  useEffect(() => {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    const nextCurrency = resolveStoredCurrency();
+
+    if (stored === null || stored === 'XAF' || !isSupportedCurrency(stored) || stored !== nextCurrency) {
+      localStorage.setItem(STORAGE_KEY, nextCurrency);
+      if (stored === null || stored === 'XAF' || !isSupportedCurrency(stored)) setCurrencyState(nextCurrency);
+    }
+  }, [currency]);
 
   const convert = useCallback((hkdAmount: number) =>
     Math.round(hkdAmount * rates[currency] * 100) / 100,

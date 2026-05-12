@@ -10,6 +10,13 @@ import { getExchangeRates } from '../../services/api';
 const mockGetExchangeRates = getExchangeRates as jest.MockedFunction<typeof getExchangeRates>;
 
 describe('useFxRates', () => {
+  const setNavigatorLanguage = (value: string) => {
+    Object.defineProperty(global.navigator, 'language', {
+      value,
+      configurable: true,
+    });
+  };
+
   beforeEach(() => {
     localStorage.clear();
     resetFxCache();
@@ -32,15 +39,33 @@ describe('useFxRates', () => {
     jest.restoreAllMocks();
   });
 
-  it('defaults to HKD currency', async () => {
+  it('defaults to detected locale currency', async () => {
+    setNavigatorLanguage('en-CA');
     const { result } = renderHook(() => useFxRates());
-    expect(result.current.currency).toBe('HKD');
+    expect(result.current.currency).toBe('CAD');
   });
 
   it('loads currency from localStorage', () => {
+    setNavigatorLanguage('en-CA');
     localStorage.setItem('mf_currency', 'CAD');
     const { result } = renderHook(() => useFxRates());
     expect(result.current.currency).toBe('CAD');
+  });
+
+  it('migrates legacy XAF to detected locale currency', async () => {
+    setNavigatorLanguage('en-US');
+    localStorage.setItem('mf_currency', 'XAF');
+
+    const { result } = renderHook(() => useFxRates());
+    expect(result.current.currency).toBe('USD');
+
+    await waitFor(() => expect(localStorage.getItem('mf_currency')).toBe('USD'));
+  });
+
+  it('falls back to USD when locale is unmapped', () => {
+    setNavigatorLanguage('xx-XX');
+    const { result } = renderHook(() => useFxRates());
+    expect(result.current.currency).toBe('USD');
   });
 
   it('setCurrency persists to localStorage', async () => {
