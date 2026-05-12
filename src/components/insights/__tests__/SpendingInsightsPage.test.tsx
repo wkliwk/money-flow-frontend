@@ -11,7 +11,9 @@ jest.mock('../../../services/api', () => ({
 }));
 
 jest.mock('recharts', () => ({
-  BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
+  BarChart: ({ children, 'data-testid': testId }: { children: React.ReactNode; 'data-testid'?: string }) => (
+    <div data-testid={testId || 'bar-chart'}>{children}</div>
+  ),
   Bar: () => null,
   XAxis: () => null,
   YAxis: () => null,
@@ -93,8 +95,64 @@ describe('SpendingInsightsPage', () => {
     ]);
     renderComponent([makeTransaction()]);
     await waitFor(() => {
-      expect(screen.getByTestId('bar-chart')).toBeInTheDocument();
+      expect(screen.getByTestId('insights-chart')).toBeInTheDocument();
     });
+  });
+
+  it('renders spending forecast for categories with 3 months of history', async () => {
+    getMonthlyReport.mockResolvedValue([]);
+
+    const forecastCategoryTransactions = [
+      makeTransaction({
+        _id: 'current',
+        category: 'Groceries',
+        amount: 100,
+        date: dayjs().format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'm1',
+        category: 'Groceries',
+        amount: 120,
+        date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'm2',
+        category: 'Groceries',
+        amount: 150,
+        date: dayjs().subtract(2, 'month').format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'm3',
+        category: 'Groceries',
+        amount: 90,
+        date: dayjs().subtract(3, 'month').format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'other',
+        category: 'Coffee',
+        amount: 30,
+        date: dayjs().subtract(1, 'month').format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'other2',
+        category: 'Coffee',
+        amount: 20,
+        date: dayjs().subtract(2, 'month').format('YYYY-MM-DD'),
+      }),
+      makeTransaction({
+        _id: 'other3',
+        category: 'Coffee',
+        amount: 45,
+        date: dayjs().subtract(3, 'month').format('YYYY-MM-DD'),
+      }),
+    ];
+
+    renderComponent(forecastCategoryTransactions);
+
+    await waitFor(() => {
+      expect(screen.getByText('Spending Forecast')).toBeInTheDocument();
+    });
+    expect(screen.getByTestId('forecast-chart')).toBeInTheDocument();
   });
 
   it('shows top categories when expenses exist', async () => {
