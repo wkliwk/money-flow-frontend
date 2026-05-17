@@ -430,7 +430,7 @@ export const applyStatementImport = async (transactions: StatementTxn[]): Promis
 // Tags
 export const getTags = async (): Promise<Tag[]> => {
   const res = await axiosInstance.get('/api/tags');
-  return res.data.tags;
+  return res.data;
 };
 
 export const createTag = async (data: { name: string; color?: string }): Promise<Tag> => {
