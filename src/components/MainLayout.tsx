@@ -54,7 +54,6 @@ import ExpenseList from './expenses/ExpenseList';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
-import AddTransactionSheet from './expenses/AddTransactionSheet';
 import ReceiptScanButton from './expenses/ReceiptScanButton';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import QuickExpenseInput from './expenses/QuickExpenseInput';
@@ -127,7 +126,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
-  const [addOpen, setAddOpen] = useState(false);
   const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
   const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
@@ -147,7 +145,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const handleOnboardingFab = useCallback(() => {
     markOnboardingComplete();
     setOnboardingOpen(false);
-    setAddOpen(true);
+    setAddReceiptOpen(true);
   }, []);
 
   const showSnackbar = useCallback(
@@ -215,7 +213,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       // Cmd+K / Ctrl+K for quick expense
       if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
         e.preventDefault();
-        if (!addOpen && !addReceiptOpen && !editTransaction && !quickExpenseOpen) {
+        if (!addReceiptOpen && !editTransaction && !quickExpenseOpen) {
           setQuickExpenseOpen(true);
         }
         return;
@@ -223,12 +221,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
 
       // 'n' for normal add expense
       if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (addOpen || addReceiptOpen || editTransaction) return;
-      setAddOpen(true);
+      if (addReceiptOpen || editTransaction) return;
+      setAddReceiptOpen(true);
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [addOpen, addReceiptOpen, editTransaction, quickExpenseOpen]);
+  }, [addReceiptOpen, editTransaction, quickExpenseOpen]);
 
   const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
     const owner = getOwnerFromToken();
@@ -241,46 +239,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     }
     setReceiptPrefill(undefined);
     showSnackbar('Transaction added');
-  };
-
-  // Optimistic insert for the redesigned AddTransactionSheet (issue #286).
-  // Inserts a temporary transaction immediately, then replaces with the
-  // server-returned record on success, or rolls back on error.
-  const handleAddOptimistic = async (data: Omit<TransactionRequest, 'owner'>) => {
-    const owner = getOwnerFromToken();
-    const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-    const nowIso = new Date().toISOString();
-    const optimistic: Transaction = {
-      _id: tempId,
-      owner,
-      description: data.description,
-      amount: data.amount,
-      type: data.type,
-      category: data.category,
-      item: data.item,
-      participants: data.participants,
-      splitBill: data.splitBill,
-      paymentMethod: data.paymentMethod ?? null,
-      currency: data.currency,
-      originalAmount: data.originalAmount,
-      exchangeRate: data.exchangeRate,
-      notes: data.notes,
-      tags: [],
-      date: data.date || new Date().toISOString().split('T')[0],
-      createdAt: nowIso,
-      updatedAt: nowIso,
-    };
-    setTransactions((prev) => [optimistic, ...prev]);
-    try {
-      const created = await createExpense({ ...data, owner });
-      setTransactions((prev) => prev.map((t) => (t._id === tempId ? created : t)));
-      showSnackbar('Transaction added');
-    } catch (err) {
-      // Rollback
-      setTransactions((prev) => prev.filter((t) => t._id !== tempId));
-      showSnackbar('Failed to add transaction', 'error');
-      throw err;
-    }
   };
 
   const handleScanReceipt = async (file: File) => {
@@ -760,7 +718,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                   heading="No transactions yet"
                   subtext="Track your first expense to see your spending here."
                   ctaLabel="Add transaction"
-                  onCta={() => setAddOpen(true)}
+                  onCta={() => setAddReceiptOpen(true)}
                 />
               ) : (<>
               {/* Recurring prompt banner */}
@@ -1039,7 +997,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 recurringLabels={recurringLabels}
                 filtersActive={search !== '' || typeFilter !== 'all' || paymentMethodFilter !== 'all' || categoryFilter !== 'all' || tagFilter !== 'all'}
                 monthLabel={datePreset === 'month' && selectedMonth && search === '' ? selectedMonth.format('MMMM YYYY') : undefined}
-                onAddClick={() => setAddOpen(true)}
+                onAddClick={() => setAddReceiptOpen(true)}
                 onRefresh={fetchTransactions}
               />
             </>
@@ -1068,7 +1026,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 convert={convert}
                 symbol={symbol}
                 loading={initialLoading}
-                onAddTransaction={() => setAddOpen(true)}
+                onAddTransaction={() => setAddReceiptOpen(true)}
               />
             )}
 
@@ -1133,7 +1091,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
             if (onboardingOpen) {
               handleOnboardingFab();
             } else {
-              setAddOpen(true);
+              setAddReceiptOpen(true);
             }
           }}
           variant={isDesktop ? 'extended' : 'circular'}
@@ -1159,13 +1117,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
           {isDesktop && <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Record</span>}
         </Fab>
       </Box>
-
-      <AddTransactionSheet
-        open={addOpen}
-        onClose={() => setAddOpen(false)}
-        onSubmit={handleAddOptimistic}
-        existingCategories={existingCategories}
-      />
 
       <AddExpenseModal
         open={addReceiptOpen}
