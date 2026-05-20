@@ -38,9 +38,9 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('button', { name: /create account/i })).toBeInTheDocument();
   });
 
-  it('shows Money Flow heading', () => {
+  it('shows MoneyFlow heading', () => {
     renderPage();
-    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
   });
 
   it('navigates to / on successful registration', async () => {
