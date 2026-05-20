@@ -17,9 +17,9 @@ interface ThemeContextValue {
 }
 
 const ThemeContext = createContext<ThemeContextValue>({
-  preference: 'system',
+  preference: 'light',
   setPreference: () => {},
-  isDark: true,
+  isDark: false,
 });
 
 export const useThemePreference = (): ThemeContextValue => useContext(ThemeContext);
@@ -29,19 +29,10 @@ const DEBOUNCE_MS = 500;
 
 export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preference, setPreferenceState] = useState<ThemePreference>(getStoredThemePreference);
-  const [systemDark, setSystemDark] = useState(() => window.matchMedia(MEDIA_QUERY).matches);
+  const [systemDark] = useState(() => window.matchMedia(MEDIA_QUERY).matches);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const mql = window.matchMedia(MEDIA_QUERY);
-    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
-    mql.addEventListener('change', handler);
-    return () => mql.removeEventListener('change', handler);
-  }, []);
-
   // Fetch theme preference from backend on mount if user is authenticated.
-  // Backend value takes precedence over localStorage so preference follows
-  // the user across devices.
   useEffect(() => {
     if (!getToken()) return;
     getUserMe()
@@ -60,7 +51,6 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setPreferenceState(pref);
     storeThemePreference(pref);
 
-    // Debounce the PATCH call so rapid toggles don't hammer the API
     if (debounceTimerRef.current !== null) {
       clearTimeout(debounceTimerRef.current);
     }
@@ -72,7 +62,10 @@ export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }, DEBOUNCE_MS);
   }, []);
 
-  const isDark = preference === 'system' ? systemDark : preference === 'dark';
+  // isDark reflects the effective color mode based on user preference + system setting.
+  // resolveTheme always returns lightTheme (light-only design), but isDark is still
+  // computed accurately so consumers of ThemeContext get correct semantic state.
+  const isDark = preference === 'dark' || (preference === 'system' && systemDark);
   const theme = useMemo(() => resolveTheme(preference, systemDark), [preference, systemDark]);
 
   const value = useMemo(() => ({ preference, setPreference, isDark }), [preference, setPreference, isDark]);

@@ -1,11 +1,8 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-  AppBar,
-  Toolbar,
-  Typography,
   Box,
-  Container,
+  Typography,
   CircularProgress,
   Button,
   Fab,
@@ -16,26 +13,17 @@ import {
   Drawer,
   List,
   ListItemButton,
-  ListItemIcon,
   ListItemText,
+  Menu,
+  MenuItem,
+  ListItemIcon,
   Card,
   CardActionArea,
   CardContent,
-  Menu,
-  MenuItem,
 } from '@mui/material';
 import useToast from '../hooks/useToast';
-import AddIcon from '@mui/icons-material/Add';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import ReceiptLongIcon from '@mui/icons-material/ReceiptLong';
-import SettingsIcon from '@mui/icons-material/Settings';
-import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
-import BarChartIcon from '@mui/icons-material/BarChart';
-import FileDownloadIcon from '@mui/icons-material/FileDownload';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
-import RepeatIcon from '@mui/icons-material/Repeat';
-import SavingsIcon from '@mui/icons-material/Savings';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
 import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
@@ -70,13 +58,246 @@ import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
 const ReportsPage = React.lazy(() => import('./reports/ReportsPage'));
-import AssessmentIcon from '@mui/icons-material/Assessment';
+import { tokens } from '../theme';
 
+// ── Design token constants ─────────────────────────────────────────────────
+const SIDEBAR_WIDTH = 232;
+
+// ── SVG icon paths for sidebar nav ────────────────────────────────────────
+const NAV_ICON_PATHS: Record<string, string> = {
+  home: 'M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z',
+  txns: 'M4 6h16M4 12h16M4 18h10',
+  worth: 'M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5',
+  insights: 'M4 20V10m5 10V4m5 16v-6m5 6V8',
+  recurring: 'M1 4v6h6M23 20v-6h-6M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15',
+  goals: 'M12 22c5.52 0 10-4.48 10-10S17.52 2 12 2 2 6.48 2 12s4.48 10 10 10zm0-6a4 4 0 100-8 4 4 0 000 8z',
+  reports: 'M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2',
+  settings: 'M12 15a3 3 0 100-6 3 3 0 000 6zM19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z',
+};
+
+interface NavIconProps {
+  iconKey: string;
+  active: boolean;
+}
+
+const NavIcon: React.FC<NavIconProps> = ({ iconKey, active }) => (
+  <svg
+    width="20"
+    height="20"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={active ? '#A5A0F3' : 'rgba(255,255,255,0.4)'}
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d={NAV_ICON_PATHS[iconKey]} />
+  </svg>
+);
+
+// ── Dollar sign icon for logo ──────────────────────────────────────────────
+const DollarIcon: React.FC = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" />
+  </svg>
+);
+
+const PlusIcon: React.FC = () => (
+  <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" aria-hidden="true">
+    <path d="M8 1v14M1 8h14" />
+  </svg>
+);
+
+// ── Sidebar ────────────────────────────────────────────────────────────────
+const sideNavItems = [
+  { id: 'home', label: 'Home', tabIndex: 0 },
+  { id: 'txns', label: 'Transactions', tabIndex: 1 },
+  { id: 'worth', label: 'Net Worth', tabIndex: 2 },
+  { id: 'insights', label: 'Insights', tabIndex: 3 },
+  { id: 'recurring', label: 'Recurring', tabIndex: 4 },
+  { id: 'goals', label: 'Goals', tabIndex: 5 },
+  { id: 'reports', label: 'Reports', tabIndex: 6 },
+  { id: 'settings', label: 'Settings', tabIndex: 7 },
+];
+
+interface SidebarProps {
+  activeTab: number;
+  onTabChange: (tab: number) => void;
+  userName: string;
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, onTabChange, userName }) => {
+  const initial = userName ? userName[0].toUpperCase() : 'R';
+  return (
+    <Box
+      sx={{
+        width: SIDEBAR_WIDTH,
+        bgcolor: tokens.primaryDark,
+        display: 'flex',
+        flexDirection: 'column',
+        height: '100vh',
+        position: 'fixed',
+        left: 0,
+        top: 0,
+        zIndex: 1200,
+        py: '20px',
+        flexShrink: 0,
+      }}
+    >
+      {/* Logo */}
+      <Box sx={{ px: '20px', mb: '28px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Box
+          sx={{
+            width: 32,
+            height: 32,
+            borderRadius: '10px',
+            bgcolor: tokens.primary,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexShrink: 0,
+          }}
+        >
+          <DollarIcon />
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: `'Space Grotesk', sans-serif`,
+            fontSize: 18,
+            fontWeight: 700,
+            color: '#fff',
+            letterSpacing: '-0.3px',
+          }}
+        >
+          MoneyFlow
+        </Typography>
+      </Box>
+
+      {/* Nav items */}
+      <List sx={{ flex: 1, py: 0, px: 0 }}>
+        {sideNavItems.map((item) => {
+          const isActive = activeTab === item.tabIndex;
+          return (
+            <ListItemButton
+              key={item.id}
+              onClick={() => onTabChange(item.tabIndex)}
+              selected={isActive}
+              sx={{
+                borderRadius: '10px',
+                mx: '10px',
+                mb: '2px',
+                px: '12px',
+                py: '10px',
+                minHeight: 'unset',
+                gap: '12px',
+                background: isActive ? 'rgba(91,78,199,0.25)' : 'transparent',
+                '&:hover': {
+                  background: isActive ? 'rgba(91,78,199,0.3)' : 'rgba(255,255,255,0.06)',
+                },
+                '&.Mui-selected': {
+                  background: 'rgba(91,78,199,0.25)',
+                  '&:hover': { background: 'rgba(91,78,199,0.3)' },
+                },
+              }}
+            >
+              <NavIcon iconKey={item.id} active={isActive} />
+              <ListItemText
+                primary={item.label}
+                sx={{
+                  m: 0,
+                  '& .MuiListItemText-primary': {
+                    fontFamily: `'Plus Jakarta Sans', sans-serif`,
+                    fontSize: '0.875rem',
+                    fontWeight: isActive ? 600 : 400,
+                    color: isActive ? '#fff' : 'rgba(255,255,255,0.55)',
+                  },
+                }}
+              />
+            </ListItemButton>
+          );
+        })}
+      </List>
+
+      {/* User avatar */}
+      <Box sx={{ px: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <Box
+          sx={{
+            width: 34,
+            height: 34,
+            borderRadius: '10px',
+            bgcolor: 'rgba(255,255,255,0.1)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontFamily: `'Space Grotesk', sans-serif`,
+            fontSize: 14,
+            fontWeight: 600,
+            color: 'rgba(255,255,255,0.6)',
+            flexShrink: 0,
+          }}
+        >
+          {initial}
+        </Box>
+        <Box>
+          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: 13, fontWeight: 600, color: 'rgba(255,255,255,0.8)' }}>
+            {userName || 'User'}
+          </Typography>
+          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: 11, color: 'rgba(255,255,255,0.35)' }}>
+            Personal
+          </Typography>
+        </Box>
+      </Box>
+    </Box>
+  );
+};
+
+// ── Mobile nav icon SVG paths ──────────────────────────────────────────────
+const MOBILE_NAV_ICONS: Record<string, string> = {
+  home: 'M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1h-5v-6H9v6H4a1 1 0 01-1-1V9.5z',
+  txns: 'M4 6h16M4 12h16M4 18h10',
+  insights: 'M4 20V10m5 10V4m5 16v-6m5 6V8',
+  more: 'M12 5v.01M12 12v.01M12 19v.01',
+};
+
+interface MobileNavIconProps {
+  iconKey: string;
+  active: boolean;
+}
+
+const MobileNavIcon: React.FC<MobileNavIconProps> = ({ iconKey, active }) => (
+  <svg
+    width="22"
+    height="22"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke={active ? tokens.primary : tokens.text3}
+    strokeWidth="1.8"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true"
+  >
+    <path d={MOBILE_NAV_ICONS[iconKey]} />
+  </svg>
+);
+
+// ── Helpers ────────────────────────────────────────────────────────────────
 function getOwnerFromToken(): string {
   try {
     const token = localStorage.getItem('mf_token');
     if (!token) return '';
     return JSON.parse(atob(token.split('.')[1])).userId || '';
+  } catch {
+    return '';
+  }
+}
+
+function getUserNameFromToken(): string {
+  try {
+    const token = localStorage.getItem('mf_token');
+    if (!token) return '';
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    return payload.name || payload.email?.split('@')[0] || '';
   } catch {
     return '';
   }
@@ -95,6 +316,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const { tags, addTag } = useTags();
   const [activeTab, setActiveTab] = useState<0 | 1 | 2 | 3 | 4 | 5 | 6 | 7>(initialTab);
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
+  const userName = useMemo(() => getUserNameFromToken(), []);
 
   useEffect(() => {
     const goOffline = () => setIsOffline(true);
@@ -103,6 +325,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     window.addEventListener('online', goOnline);
     return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
   }, []);
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [datePreset, setDatePreset] = useState<DatePreset>(() => {
@@ -171,7 +394,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     fetchTransactions();
   }, []);
 
-  // Sync selectedMonth -> URL (?month=YYYY-MM) for back/forward + shareable links.
   useEffect(() => {
     const current = searchParams.get('month');
     if (datePreset === 'month' && selectedMonth) {
@@ -188,7 +410,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     }
   }, [selectedMonth, datePreset, searchParams, setSearchParams]);
 
-  // Sync URL -> selectedMonth (handles browser back/forward).
   useEffect(() => {
     const monthParam = searchParams.get('month');
     if (!monthParam || !/^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) return;
@@ -210,7 +431,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea') return;
 
-      // Cmd+K / Ctrl+K for quick expense
       if ((e.key === 'k' || e.key === 'K') && (e.ctrlKey || e.metaKey) && !e.altKey) {
         e.preventDefault();
         if (!addReceiptOpen && !editTransaction && !quickExpenseOpen) {
@@ -219,7 +439,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
         return;
       }
 
-      // 'n' for normal add expense
       if (e.key !== 'n' || e.ctrlKey || e.metaKey || e.altKey) return;
       if (addReceiptOpen || editTransaction) return;
       setAddReceiptOpen(true);
@@ -232,7 +451,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     const owner = getOwnerFromToken();
     const created = await createExpense({ ...data, owner });
     setTransactions((prev) => [created, ...prev]);
-    // Clean up receipt object URL if it was used
     if (receiptImageUrlRef.current) {
       URL.revokeObjectURL(receiptImageUrlRef.current);
       receiptImageUrlRef.current = null;
@@ -243,7 +461,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
 
   const handleScanReceipt = async (file: File) => {
     setScanLoading(true);
-    // Create object URL for image preview
     const previewUrl = URL.createObjectURL(file);
     receiptImageUrlRef.current = previewUrl;
     try {
@@ -315,10 +532,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   );
 
   const handleSaved = async (updated: Transaction) => {
-    // Optimistic update for immediate UI feedback
     setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
     showSnackbar('Transaction updated');
-    // Re-fetch from server to guarantee all fields (e.g. participants) are in sync
     try {
       const fresh = await getExpense(updated._id);
       setTransactions((prev) => prev.map((t) => (t._id === fresh._id ? fresh : t)));
@@ -332,7 +547,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
 
   const recentItems = useMemo(() => {
     const seen: string[] = [];
-    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
+    [...transactions]
+      .sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
       .forEach((t) => { if (t.item && !seen.includes(t.item)) seen.push(t.item); });
     return seen.slice(0, 5);
   }, [transactions]);
@@ -354,7 +570,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     return map;
   }, [transactions]);
 
-  // description/item → most recent amount (fetched from API for full history coverage)
   const [amountsByDescription, setAmountsByDescription] = useState<Record<string, number>>({});
   useEffect(() => {
     try {
@@ -367,11 +582,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     }
   }, [transactions.length]);
 
-  // description → most recent category used for that description (for smart categorization)
   const categoriesByDescription = useMemo(() => {
     const map: Record<string, string> = {};
-    // Sort newest first so first hit is most recent
-    [...transactions].sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
+    [...transactions]
+      .sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
       .forEach((t) => {
         const key = (t.description?.trim() || t.item || '').toLowerCase();
         if (key && t.category && !map[key]) map[key] = t.category;
@@ -416,7 +630,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
         return d.isValid() && !d.isBefore(start) && !d.isAfter(end);
       });
     }
-    // 'month' preset (or custom with no dates yet)
     if (!selectedMonth) return transactions;
     return transactions.filter((t) => {
       const d = dayjs(t.date || t.createdAt);
@@ -563,150 +776,171 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     URL.revokeObjectURL(url);
   };
 
-  const navItems = [
-    { label: 'Home', icon: <DashboardIcon /> },
-    { label: 'Transactions', icon: <ReceiptLongIcon /> },
-    { label: 'Net Worth', icon: <AccountBalanceIcon /> },
-    { label: 'Insights', icon: <BarChartIcon /> },
-    { label: 'Recurring', icon: <RepeatIcon /> },
-    { label: 'Goals', icon: <SavingsIcon /> },
-    { label: 'Reports', icon: <AssessmentIcon /> },
-    { label: 'Settings', icon: <SettingsIcon /> },
-  ];
+  // Page title per tab
+  const pageTitle = ['Dashboard', 'Transactions', 'Net Worth', 'Insights', 'Recurring', 'Goals', 'Reports', 'Settings'][activeTab] ?? 'Dashboard';
 
+  // ── Render ─────────────────────────────────────────────────────────────
   return (
-    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{ ml: { sm: '220px' }, width: { sm: 'calc(100% - 220px)' } }}
-      >
-        <Toolbar sx={{ px: { xs: 2, sm: 3 } }}>
-          <Typography
-            variant="h6"
-            sx={{
-              flexGrow: 1,
-              fontWeight: 700,
-              letterSpacing: '-0.01em',
-              color: 'primary.main',
-              background: `linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.success.main} 100%)`,
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-            }}
-          >
-            Money Flow
-          </Typography>
-          {isOffline && (
-            <Typography sx={{ fontSize: '0.68rem', color: 'warning.main', fontWeight: 600, letterSpacing: '0.04em', px: 1, py: 0.25, borderRadius: 1, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,191,36,0.1)' : 'rgba(245,158,11,0.12)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(245,158,11,0.25)' }}>
-              Offline
-            </Typography>
-          )}
-          <Button
-            startIcon={<FileDownloadIcon />}
-            onClick={(e) => setExportMenuAnchor(e.currentTarget)}
-            disabled={transactions.length === 0}
-            sx={{ ml: 2, fontSize: '0.75rem' }}
-            variant="outlined"
-            size="small"
-            aria-haspopup="true"
-            aria-expanded={Boolean(exportMenuAnchor)}
-          >
-            Export
-          </Button>
-          <Menu
-            anchorEl={exportMenuAnchor}
-            open={Boolean(exportMenuAnchor)}
-            onClose={() => setExportMenuAnchor(null)}
-            anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            transformOrigin={{ vertical: 'top', horizontal: 'right' }}
-          >
-            <MenuItem
-              onClick={() => {
-                setExportMenuAnchor(null);
-                handleExport();
-              }}
-              dense
-            >
-              <ListItemIcon>
-                <TableChartIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Export CSV</ListItemText>
-            </MenuItem>
-            <MenuItem
-              onClick={() => {
-                setExportMenuAnchor(null);
-                handleExportJson();
-              }}
-              dense
-            >
-              <ListItemIcon>
-                <DataObjectIcon fontSize="small" />
-              </ListItemIcon>
-              <ListItemText>Export JSON</ListItemText>
-            </MenuItem>
-          </Menu>
-        </Toolbar>
-      </AppBar>
+    <Box sx={{ minHeight: '100vh', bgcolor: tokens.bg, display: 'flex' }}>
+      {/* Desktop permanent sidebar */}
+      {isDesktop && (
+        <Drawer
+          variant="permanent"
+          sx={{
+            width: SIDEBAR_WIDTH,
+            flexShrink: 0,
+            '& .MuiDrawer-paper': {
+              width: SIDEBAR_WIDTH,
+              boxSizing: 'border-box',
+              bgcolor: tokens.primaryDark,
+              border: 'none',
+            },
+          }}
+        >
+          <Sidebar activeTab={activeTab} onTabChange={(t) => setActiveTab(t as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)} userName={userName} />
+        </Drawer>
+      )}
 
-      {/* Desktop permanent drawer */}
-      <Drawer
-        variant="permanent"
+      {/* Main content area */}
+      <Box
         sx={{
-          display: { xs: 'none', sm: 'block' },
-          width: 220,
-          flexShrink: 0,
-          '& .MuiDrawer-paper': {
-            width: 220,
-            boxSizing: 'border-box',
-            top: '64px',
-            height: 'calc(100% - 64px)',
-            bgcolor: 'background.paper',
-            borderRight: `1px solid ${theme.palette.mode === 'dark' ? 'rgba(148,163,184,0.1)' : 'rgba(148,163,184,0.15)'}`,
-          },
+          flex: 1,
+          display: 'flex',
+          flexDirection: 'column',
+          minWidth: 0,
+          ml: isDesktop ? 0 : 0,
         }}
       >
-        <Box sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-          <List>
-            {navItems.map((item, index) => (
-              <ListItemButton
-                key={item.label}
-                selected={activeTab === index}
-                onClick={() => setActiveTab(index as 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7)}
+        {/* Desktop header bar */}
+        {isDesktop && (
+          <Box
+            component="header"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 4,
+              py: '16px',
+              borderBottom: `1px solid ${tokens.border}`,
+              bgcolor: tokens.surface,
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+              <Typography
                 sx={{
-                  '&.Mui-selected': { bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)', color: 'primary.main' },
-                  '&.Mui-selected .MuiListItemIcon-root': { color: 'primary.main' },
+                  fontFamily: `'Space Grotesk', sans-serif`,
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: tokens.text1,
+                  letterSpacing: '-0.5px',
                 }}
               >
-                <ListItemIcon sx={{ minWidth: 40 }}>{item.icon}</ListItemIcon>
-                <ListItemText
-                  primary={item.label}
-                  primaryTypographyProps={{
-                    fontSize: '0.9rem',
-                    fontWeight: activeTab === index ? 700 : 400,
+                {pageTitle}
+              </Typography>
+              {isOffline && (
+                <Typography
+                  sx={{
+                    fontSize: '0.68rem',
+                    color: tokens.amber,
+                    fontWeight: 600,
+                    letterSpacing: '0.04em',
+                    px: 1,
+                    py: 0.25,
+                    borderRadius: 1,
+                    bgcolor: tokens.amberBg,
+                    border: `1px solid ${tokens.amber}40`,
                   }}
-                />
-              </ListItemButton>
-            ))}
-          </List>
-          <Box sx={{ mt: 'auto', px: 2, pb: 2 }}>
-            <Typography
-              variant="caption"
-              sx={{ color: 'text.disabled', fontSize: '0.7rem', userSelect: 'none' }}
-            >
-              v{process.env.VITE_VERSION ?? '1.0.0'}
-            </Typography>
+                >
+                  Offline
+                </Typography>
+              )}
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Button
+                size="small"
+                variant="outlined"
+                onClick={(e) => setExportMenuAnchor(e.currentTarget)}
+                disabled={transactions.length === 0}
+                sx={{ fontSize: '0.75rem', borderRadius: '10px' }}
+                aria-haspopup="true"
+                aria-expanded={Boolean(exportMenuAnchor)}
+              >
+                Export
+              </Button>
+              <Menu
+                anchorEl={exportMenuAnchor}
+                open={Boolean(exportMenuAnchor)}
+                onClose={() => setExportMenuAnchor(null)}
+                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                transformOrigin={{ vertical: 'top', horizontal: 'right' }}
+              >
+                <MenuItem onClick={() => { setExportMenuAnchor(null); handleExport(); }} dense>
+                  <ListItemIcon><TableChartIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText>Export CSV</ListItemText>
+                </MenuItem>
+                <MenuItem onClick={() => { setExportMenuAnchor(null); handleExportJson(); }} dense>
+                  <ListItemIcon><DataObjectIcon fontSize="small" /></ListItemIcon>
+                  <ListItemText>Export JSON</ListItemText>
+                </MenuItem>
+              </Menu>
+            </Box>
           </Box>
-        </Box>
-      </Drawer>
+        )}
 
-      {/* Main content offset by drawer on desktop */}
-      <Box sx={{ ml: { sm: '220px' } }}>
-        <Container
-          maxWidth="lg"
+        {/* Mobile header bar */}
+        {!isDesktop && (
+          <Box
+            component="header"
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              px: 2,
+              py: '12px',
+              borderBottom: `1px solid ${tokens.border}`,
+              bgcolor: tokens.surface,
+              flexShrink: 0,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: '8px',
+                  bgcolor: tokens.primary,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <DollarIcon />
+              </Box>
+              <Typography
+                sx={{
+                  fontFamily: `'Space Grotesk', sans-serif`,
+                  fontSize: 16,
+                  fontWeight: 700,
+                  color: tokens.text1,
+                  letterSpacing: '-0.3px',
+                }}
+              >
+                MoneyFlow
+              </Typography>
+            </Box>
+          </Box>
+        )}
+
+        {/* Content */}
+        <Box
           sx={{
+            flex: 1,
+            px: { xs: 2, sm: 4 },
             py: { xs: 2, sm: 4 },
-            px: { xs: 1.5, sm: 3 },
-            pb: { xs: 'calc(56px + 20px + env(safe-area-inset-bottom))', sm: 4 },
+            pb: { xs: 'calc(70px + 16px + env(safe-area-inset-bottom))', sm: 4 },
+            overflowY: 'auto',
           }}
         >
           {activeTab === 0 && (
@@ -720,209 +954,224 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                   ctaLabel="Add transaction"
                   onCta={() => setAddReceiptOpen(true)}
                 />
-              ) : (<>
-              {/* Recurring prompt banner */}
-              {pendingRecurring.length > 0 && (
-                <Box sx={{ mb: 2, py: 1.5, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(129,140,248,0.08)' : 'rgba(99,102,241,0.1)', border: theme.palette.mode === 'dark' ? '1px solid rgba(129,140,248,0.2)' : '1px solid rgba(99,102,241,0.25)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                  <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', flex: 1 }}>
-                    {pendingRecurring.length} recurring transaction{pendingRecurring.length > 1 ? 's' : ''} pending for {dayjs().format('MMMM')}
-                  </Typography>
-                  <Button size="small" variant="contained" onClick={applyRecurring} sx={{ fontSize: '0.75rem', px: 1.5, flexShrink: 0 }}>
-                    Apply
-                  </Button>
-                </Box>
+              ) : (
+                <>
+                  {/* Recurring prompt */}
+                  {pendingRecurring.length > 0 && (
+                    <Box
+                      sx={{
+                        mb: 2,
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: 2,
+                        bgcolor: tokens.primaryLight,
+                        border: `1px solid ${tokens.primaryBorder}`,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 1,
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '0.82rem', color: tokens.text2, flex: 1 }}>
+                        {pendingRecurring.length} recurring transaction{pendingRecurring.length > 1 ? 's' : ''} pending for {dayjs().format('MMMM')}
+                      </Typography>
+                      <Button size="small" variant="contained" onClick={applyRecurring} sx={{ fontSize: '0.75rem', px: 1.5, flexShrink: 0 }}>
+                        Apply
+                      </Button>
+                    </Box>
+                  )}
+
+                  {/* Budget alerts */}
+                  {(() => {
+                    const overBudget = Object.entries(budgets).filter(([cat, limit]) => limit > 0 && (categorySpend[cat] || 0) > limit);
+                    const nearBudget = Object.entries(budgets).filter(([cat, limit]) => {
+                      const spent = categorySpend[cat] || 0;
+                      return limit > 0 && spent >= limit * 0.8 && spent <= limit;
+                    });
+                    if (overBudget.length === 0 && nearBudget.length === 0) return null;
+                    return (
+                      <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+                        {overBudget.length > 0 && (
+                          <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: tokens.expenseBg, border: `1px solid ${tokens.expenseBorder}`, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography sx={{ fontSize: '0.82rem', color: tokens.expense, fontWeight: 600 }}>⚠</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', color: tokens.text2 }}>
+                              Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert((categorySpend[cat] || 0) - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
+                            </Typography>
+                          </Box>
+                        )}
+                        {nearBudget.length > 0 && (
+                          <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: tokens.amberBg, border: `1px solid ${tokens.amber}40`, display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Typography sx={{ fontSize: '0.82rem', color: tokens.amber, fontWeight: 600 }}>⚡</Typography>
+                            <Typography sx={{ fontSize: '0.82rem', color: tokens.text2 }}>
+                              Near limit: {nearBudget.map(([cat, limit]) => `${cat} (${Math.round(((categorySpend[cat] || 0) / limit) * 100)}%)`).join(', ')}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    );
+                  })()}
+
+                  <SpendingPulse />
+
+                  {/* Mobile dashboard */}
+                  <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                    <Box sx={{ mb: 1.5 }}>
+                      <DateRangeControl
+                        preset={datePreset}
+                        selectedMonth={selectedMonth}
+                        customStart={customStart}
+                        customEnd={customEnd}
+                        currency={currency}
+                        onPresetChange={handlePresetChange}
+                        onMonthChange={setSelectedMonth}
+                        onCustomChange={handleCustomChange}
+                        onCurrencyChange={setCurrency}
+                      />
+                    </Box>
+                    <MobileHero
+                      transactions={monthFiltered}
+                      prevMonthTransactions={prevMonthFiltered}
+                      streak={streak}
+                      selectedMonth={selectedMonth}
+                      onChange={setSelectedMonth}
+                      currency={currency}
+                      onCurrencyChange={setCurrency}
+                      convert={convert}
+                      symbol={symbol}
+                    />
+                    <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
+                    <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
+                    <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                    <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                    {monthFiltered.length > 0 && (
+                      <Box sx={{ mt: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.65rem', color: tokens.text3, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Recent</Typography>
+                          <Typography onClick={() => setActiveTab(1)} sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.72rem', color: tokens.primary, cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {monthFiltered.slice(0, 5).map((t) => (
+                            <Card key={t._id} sx={{ border: `1px solid ${tokens.border}`, bgcolor: tokens.surface }}>
+                              <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
+                                <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                                      <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem', color: tokens.text1 }}>
+                                        {t.item || t.description}
+                                      </Typography>
+                                      {t.item && t.description && t.description !== t.item && (
+                                        <Typography sx={{ fontSize: '0.7rem', color: tokens.text3, lineHeight: 1.2 }}>{t.description}</Typography>
+                                      )}
+                                      {t.participants && t.participants.length > 0 && (
+                                        <Typography sx={{ fontSize: '0.63rem', color: tokens.text3, mt: 0.25 }}>
+                                          {t.splitBill === true && t.type === 'expense'
+                                            ? `÷${t.participants.length + 1} · ${symbol}${convert(t.amount / (t.participants.length + 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}/person`
+                                            : `🎁 ${t.participants.join(', ')}`}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                    <Typography fontWeight={700} sx={{ color: t.type === 'income' ? tokens.income : tokens.expense, fontSize: '0.9rem', flexShrink: 0 }}>
+                                      {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    </Typography>
+                                  </Box>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+
+                  {/* Desktop dashboard */}
+                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                    <Box sx={{ mb: 2 }}>
+                      <DateRangeControl
+                        preset={datePreset}
+                        selectedMonth={selectedMonth}
+                        customStart={customStart}
+                        customEnd={customEnd}
+                        currency={currency}
+                        onPresetChange={handlePresetChange}
+                        onMonthChange={setSelectedMonth}
+                        onCustomChange={handleCustomChange}
+                        onCurrencyChange={setCurrency}
+                      />
+                    </Box>
+                    <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
+                    <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
+                    {(() => {
+                      const weekStart = dayjs().startOf('week');
+                      const lastWeekStart = weekStart.subtract(1, 'week');
+                      const thisWeek = transactions.filter((t) => {
+                        const d = dayjs(t.date || t.createdAt);
+                        return d.isValid() && !d.isBefore(weekStart);
+                      });
+                      const lastWeek = transactions.filter((t) => {
+                        const d = dayjs(t.date || t.createdAt);
+                        return d.isValid() && !d.isBefore(lastWeekStart) && d.isBefore(weekStart);
+                      });
+                      const weekExp = thisWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                      const lastWeekExp = lastWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+                      const weekInc = thisWeek.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+                      if (weekExp === 0 && weekInc === 0) return null;
+                      const delta = lastWeekExp > 0 ? weekExp - lastWeekExp : null;
+                      return (
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, px: 2, py: 1.25, borderRadius: 2, bgcolor: tokens.surfaceAlt, border: `1px solid ${tokens.border}` }}>
+                          <Typography sx={{ fontSize: '0.68rem', color: tokens.text3, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>This week</Typography>
+                          {weekExp > 0 && <Typography sx={{ fontSize: '0.78rem', color: tokens.expense, fontWeight: 600 }}>-{symbol}{convert(weekExp).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                          {weekInc > 0 && <Typography sx={{ fontSize: '0.78rem', color: tokens.income, fontWeight: 600 }}>+{symbol}{convert(weekInc).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
+                          <Typography sx={{ fontSize: '0.72rem', color: tokens.text3 }}>{thisWeek.length} txn{thisWeek.length !== 1 ? 's' : ''}</Typography>
+                          {delta !== null && <Typography sx={{ fontSize: '0.72rem', color: delta > 0 ? tokens.expense : tokens.income, fontWeight: 600, ml: 'auto' }}>{delta > 0 ? '↑' : '↓'} {symbol}{convert(Math.abs(delta)).toLocaleString(undefined, { maximumFractionDigits: 0 })} vs last week</Typography>}
+                        </Box>
+                      );
+                    })()}
+                    <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} convert={convert} symbol={symbol} />
+                    <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
+                    <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
+                    <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                    <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
+                    {monthFiltered.length > 0 && (
+                      <Box sx={{ mt: 3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.65rem', color: tokens.text3, fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Recent Transactions</Typography>
+                          <Typography onClick={() => setActiveTab(1)} sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.72rem', color: tokens.primary, cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          {monthFiltered.slice(0, 5).map((t) => (
+                            <Card key={t._id} sx={{ border: `1px solid ${tokens.border}`, bgcolor: tokens.surface, borderRadius: '14px' }}>
+                              <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
+                                <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+                                    <Box sx={{ minWidth: 0, flex: 1 }}>
+                                      <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem', color: tokens.text1 }}>
+                                        {t.item || t.description}
+                                      </Typography>
+                                      {t.item && t.description && t.description !== t.item && (
+                                        <Typography sx={{ fontSize: '0.7rem', color: tokens.text3, lineHeight: 1.2 }}>{t.description}</Typography>
+                                      )}
+                                      {t.participants && t.participants.length > 0 && (
+                                        <Typography sx={{ fontSize: '0.63rem', color: tokens.text3, mt: 0.25 }}>
+                                          {t.splitBill === true && t.type === 'expense'
+                                            ? `÷${t.participants.length + 1} · ${symbol}${convert(t.amount / (t.participants.length + 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}/person`
+                                            : `🎁 ${t.participants.join(', ')}`}
+                                        </Typography>
+                                      )}
+                                    </Box>
+                                    <Typography fontWeight={700} sx={{ color: t.type === 'income' ? tokens.income : tokens.expense, fontSize: '0.9rem', flexShrink: 0 }}>
+                                      {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                    </Typography>
+                                  </Box>
+                                </CardContent>
+                              </CardActionArea>
+                            </Card>
+                          ))}
+                        </Box>
+                      </Box>
+                    )}
+                  </Box>
+                </>
               )}
-
-              {/* Budget alerts — over limit + approaching limit */}
-              {(() => {
-                const overBudget = Object.entries(budgets).filter(([cat, limit]) => limit > 0 && (categorySpend[cat] || 0) > limit);
-                const nearBudget = Object.entries(budgets).filter(([cat, limit]) => {
-                  const spent = categorySpend[cat] || 0;
-                  return limit > 0 && spent >= limit * 0.8 && spent <= limit;
-                });
-                if (overBudget.length === 0 && nearBudget.length === 0) return null;
-                return (
-                  <Box sx={{ mb: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-                    {overBudget.length > 0 && (
-                      <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,113,133,0.07)' : 'rgba(244,63,94,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,113,133,0.2)' : '1px solid rgba(244,63,94,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography sx={{ fontSize: '0.82rem', color: 'error.light', fontWeight: 600 }}>⚠</Typography>
-                        <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
-                          Over budget: {overBudget.map(([cat, limit]) => `${cat} (+${symbol}${convert((categorySpend[cat] || 0) - limit).toLocaleString(undefined, { maximumFractionDigits: 0 })})`).join(', ')}
-                        </Typography>
-                      </Box>
-                    )}
-                    {nearBudget.length > 0 && (
-                      <Box sx={{ py: 1.25, px: 2, borderRadius: 2, bgcolor: theme.palette.mode === 'dark' ? 'rgba(251,191,36,0.07)' : 'rgba(245,158,11,0.08)', border: theme.palette.mode === 'dark' ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(245,158,11,0.25)', display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Typography sx={{ fontSize: '0.82rem', color: 'warning.main', fontWeight: 600 }}>⚡</Typography>
-                        <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
-                          Near limit: {nearBudget.map(([cat, limit]) => `${cat} (${Math.round(((categorySpend[cat] || 0) / limit) * 100)}%)`).join(', ')}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                );
-              })()}
-
-              <SpendingPulse />
-
-              {/* Mobile: preset chips + hero card */}
-              <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
-                <Box sx={{ mb: 1.5 }}>
-                  <DateRangeControl
-                    preset={datePreset}
-                    selectedMonth={selectedMonth}
-                    customStart={customStart}
-                    customEnd={customEnd}
-                    currency={currency}
-                    onPresetChange={handlePresetChange}
-                    onMonthChange={setSelectedMonth}
-                    onCustomChange={handleCustomChange}
-                    onCurrencyChange={setCurrency}
-                  />
-                </Box>
-                <MobileHero
-                  transactions={monthFiltered}
-                  prevMonthTransactions={prevMonthFiltered}
-                  streak={streak}
-                  selectedMonth={selectedMonth}
-                  onChange={setSelectedMonth}
-                  currency={currency}
-                  onCurrencyChange={setCurrency}
-                  convert={convert}
-                  symbol={symbol}
-                />
-                <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
-                <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
-                <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                {monthFiltered.length > 0 && (
-                  <Box sx={{ mt: 2 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent</Typography>
-                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: 'primary.main', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {monthFiltered.slice(0, 5).map((t) => (
-                        <Card key={t._id} sx={{ border: `1px solid ${theme.palette.divider}`, background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>
-                          <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
-                            <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                                <Box sx={{ minWidth: 0, flex: 1 }}>
-                                  <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
-                                    {t.item || t.description}
-                                  </Typography>
-                                  {t.item && t.description && t.description !== t.item && (
-                                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
-                                  )}
-                                  {t.participants && t.participants.length > 0 && (
-                                    <Typography sx={{ fontSize: '0.63rem', color: 'text.disabled', mt: 0.25 }}>
-                                      {t.splitBill === true && t.type === 'expense'
-                                        ? `÷${t.participants.length + 1} · ${symbol}${convert(t.amount / (t.participants.length + 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}/person`
-                                        : `🎁 ${t.participants.join(', ')}`}
-                                    </Typography>
-                                  )}
-                                </Box>
-                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light, fontSize: '0.9rem', flexShrink: 0 }}>
-                                  {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                </Typography>
-                              </Box>
-                            </CardContent>
-                          </CardActionArea>
-                        </Card>
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-
-              {/* Desktop: date range control + summary cards + chart */}
-              <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
-                <Box sx={{ mb: 2 }}>
-                  <DateRangeControl
-                    preset={datePreset}
-                    selectedMonth={selectedMonth}
-                    customStart={customStart}
-                    customEnd={customEnd}
-                    currency={currency}
-                    onPresetChange={handlePresetChange}
-                    onMonthChange={setSelectedMonth}
-                    onCustomChange={handleCustomChange}
-                    onCurrencyChange={setCurrency}
-                  />
-                </Box>
-                <SummaryCards transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
-                <SpendingInsights transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} />
-                {(() => {
-                  const weekStart = dayjs().startOf('week');
-                  const lastWeekStart = weekStart.subtract(1, 'week');
-                  const thisWeek = transactions.filter((t) => {
-                    const d = dayjs(t.date || t.createdAt);
-                    return d.isValid() && !d.isBefore(weekStart);
-                  });
-                  const lastWeek = transactions.filter((t) => {
-                    const d = dayjs(t.date || t.createdAt);
-                    return d.isValid() && !d.isBefore(lastWeekStart) && d.isBefore(weekStart);
-                  });
-                  const weekExp = thisWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-                  const lastWeekExp = lastWeek.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
-                  const weekInc = thisWeek.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
-                  if (weekExp === 0 && weekInc === 0) return null;
-                  const delta = lastWeekExp > 0 ? weekExp - lastWeekExp : null;
-                  return (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, px: 0.5, py: 1, borderRadius: 1.5, bgcolor: theme.palette.mode === 'dark' ? 'rgba(148,163,184,0.04)' : 'rgba(148,163,184,0.06)', border: theme.palette.mode === 'dark' ? '1px solid rgba(148,163,184,0.08)' : '1px solid rgba(148,163,184,0.12)' }}>
-                      <Typography sx={{ fontSize: '0.68rem', color: 'text.disabled', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', flexShrink: 0 }}>This week</Typography>
-                      {weekExp > 0 && <Typography sx={{ fontSize: '0.78rem', color: 'error.light', fontWeight: 600 }}>-{symbol}{convert(weekExp).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
-                      {weekInc > 0 && <Typography sx={{ fontSize: '0.78rem', color: 'success.light', fontWeight: 600 }}>+{symbol}{convert(weekInc).toLocaleString(undefined, { maximumFractionDigits: 0 })}</Typography>}
-                      <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled' }}>{thisWeek.length} txn{thisWeek.length !== 1 ? 's' : ''}</Typography>
-                      {delta !== null && <Typography sx={{ fontSize: '0.72rem', color: delta > 0 ? theme.palette.error.light : theme.palette.success.light, fontWeight: 600, ml: 'auto' }}>{delta > 0 ? '↑' : '↓'} {symbol}{convert(Math.abs(delta)).toLocaleString(undefined, { maximumFractionDigits: 0 })} vs last week</Typography>}
-                    </Box>
-                  );
-                })()}
-                <TrendsChart transactions={transactions} onMonthSelect={setSelectedMonth} convert={convert} symbol={symbol} />
-                <CategoryChart transactions={monthFiltered} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
-                <BudgetProgress budgets={budgets} categorySpend={categorySpend} convert={convert} symbol={symbol} onCategoryClick={(cat) => { setSearch(cat); setActiveTab(1); }} />
-                <SpendingBreakdown transactions={monthFiltered} prevMonthTransactions={prevMonthFiltered} convert={convert} symbol={symbol} onItemClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                <PeopleBreakdown transactions={monthFiltered} convert={convert} symbol={symbol} onPersonClick={(name) => { setSearch(name); setActiveTab(1); }} />
-                {monthFiltered.length > 0 && (
-                  <Box sx={{ mt: 3 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                      <Typography variant="caption" sx={{ color: 'text.disabled', fontSize: '0.65rem', letterSpacing: '0.06em', textTransform: 'uppercase', fontWeight: 700 }}>Recent Transactions</Typography>
-                      <Typography variant="caption" onClick={() => setActiveTab(1)} sx={{ color: 'primary.main', fontSize: '0.72rem', cursor: 'pointer', fontWeight: 600 }}>See all →</Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                      {monthFiltered.slice(0, 5).map((t) => (
-                        <Card key={t._id} sx={{ border: `1px solid ${theme.palette.divider}`, background: theme.palette.mode === 'dark' ? 'rgba(30,41,59,0.5)' : 'rgba(255,255,255,0.85)', backdropFilter: 'blur(8px)' }}>
-                          <CardActionArea onClick={() => setEditTransaction(t)} sx={{ p: 0 }}>
-                            <CardContent sx={{ p: '12px 16px', '&:last-child': { pb: '12px' } }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                                <Box sx={{ minWidth: 0, flex: 1 }}>
-                                  <Typography fontWeight={600} sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontSize: '0.88rem' }}>
-                                    {t.item || t.description}
-                                  </Typography>
-                                  {t.item && t.description && t.description !== t.item && (
-                                    <Typography sx={{ fontSize: '0.7rem', color: 'text.disabled', lineHeight: 1.2 }}>{t.description}</Typography>
-                                  )}
-                                  {t.participants && t.participants.length > 0 && (
-                                    <Typography sx={{ fontSize: '0.63rem', color: 'text.disabled', mt: 0.25 }}>
-                                      {t.splitBill === true && t.type === 'expense'
-                                        ? `÷${t.participants.length + 1} · ${symbol}${convert(t.amount / (t.participants.length + 1)).toLocaleString(undefined, { maximumFractionDigits: 0 })}/person`
-                                        : `🎁 ${t.participants.join(', ')}`}
-                                    </Typography>
-                                  )}
-                                </Box>
-                                <Typography fontWeight={700} sx={{ color: t.type === 'income' ? theme.palette.success.light : theme.palette.error.light, fontSize: '0.9rem', flexShrink: 0 }}>
-                                  {t.type === 'income' ? '+' : '-'}{symbol}{convert(t.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}
-                                </Typography>
-                              </Box>
-                            </CardContent>
-                          </CardActionArea>
-                        </Card>
-                      ))}
-                    </Box>
-                  </Box>
-                )}
-              </Box>
-              </>)}
             </>
           )}
 
@@ -971,17 +1220,17 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 return (
                   <Box sx={{ display: 'flex', gap: 2, mb: 1.5, px: 0.5 }}>
                     {fIncome > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: 'success.light', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: tokens.income, fontWeight: 600 }}>
                         +{symbol}{convert(fIncome).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     )}
                     {fExpense > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: 'error.light', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: tokens.expense, fontWeight: 600 }}>
                         -{symbol}{convert(fExpense).toLocaleString(undefined, { maximumFractionDigits: 0 })}
                       </Typography>
                     )}
                     {fIncome > 0 && fExpense > 0 && (
-                      <Typography sx={{ fontSize: '0.75rem', color: fNet >= 0 ? 'primary.main' : 'text.secondary', fontWeight: 600, ml: 'auto' }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: fNet >= 0 ? tokens.primary : tokens.text2, fontWeight: 600, ml: 'auto' }}>
                         {fNet >= 0 ? '+' : ''}{symbol}{convert(fNet).toLocaleString(undefined, { maximumFractionDigits: 0 })} net
                       </Typography>
                     )}
@@ -1004,22 +1253,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
           )}
 
           <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>}>
-            {activeTab === 2 && (
-              <NetWorthPage convert={convert} symbol={symbol} />
-            )}
-
-            {activeTab === 3 && (
-              <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />
-            )}
-
-            {activeTab === 4 && (
-              <RecurringPage />
-            )}
-
-            {activeTab === 5 && (
-              <GoalsPage convert={convert} symbol={symbol} />
-            )}
-
+            {activeTab === 2 && <NetWorthPage convert={convert} symbol={symbol} />}
+            {activeTab === 3 && <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />}
+            {activeTab === 4 && <RecurringPage />}
+            {activeTab === 5 && <GoalsPage convert={convert} symbol={symbol} />}
             {activeTab === 6 && (
               <ReportsPage
                 transactions={transactions}
@@ -1029,7 +1266,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 onAddTransaction={() => setAddReceiptOpen(true)}
               />
             )}
-
             {activeTab === 7 && (
               <SettingsPage
                 currency={currency}
@@ -1039,54 +1275,85 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
               />
             )}
           </Suspense>
-        </Container>
+        </Box>
       </Box>
 
       {/* Mobile bottom navigation */}
-      <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+      {!isDesktop && (
         <BottomNavigation
-          value={activeTab}
-          onChange={(_, v) => setActiveTab(v)}
+          value={activeTab <= 1 ? activeTab : activeTab === 3 ? 2 : 3}
+          onChange={(_, v) => {
+            if (v === 0) setActiveTab(0);
+            else if (v === 1) setActiveTab(1);
+            else if (v === 2) setActiveTab(3);
+            else setActiveTab(7);
+          }}
           sx={{
             position: 'fixed',
             bottom: 0,
             left: 0,
             right: 0,
             zIndex: 1100,
+            height: 'calc(60px + env(safe-area-inset-bottom))',
             pb: 'env(safe-area-inset-bottom)',
-            height: 'calc(56px + env(safe-area-inset-bottom))',
-            bgcolor: 'background.paper',
-            borderTop: '1px solid',
-            borderColor: 'divider',
+            bgcolor: tokens.surface,
+            borderTop: `1px solid ${tokens.border}`,
           }}
+          aria-label="Bottom navigation"
         >
-          <BottomNavigationAction label="Home" icon={<DashboardIcon />} />
-          <BottomNavigationAction label="Txns" icon={<ReceiptLongIcon />} />
-          <BottomNavigationAction label="Worth" icon={<AccountBalanceIcon />} />
-          <BottomNavigationAction label="Insights" icon={<BarChartIcon />} />
-          <BottomNavigationAction label="Repeat" icon={<RepeatIcon />} />
-          <BottomNavigationAction label="Goals" icon={<SavingsIcon />} />
-          <BottomNavigationAction label="Reports" icon={<AssessmentIcon />} />
-          <BottomNavigationAction label="Settings" icon={<SettingsIcon />} />
+          <BottomNavigationAction
+            label="Home"
+            icon={<MobileNavIcon iconKey="home" active={activeTab === 0} />}
+            sx={{
+              color: activeTab === 0 ? tokens.primary : tokens.text3,
+              '& .MuiBottomNavigationAction-label': { fontSize: '0.625rem !important', fontFamily: `'Plus Jakarta Sans', sans-serif` },
+            }}
+          />
+          <BottomNavigationAction
+            label="Transactions"
+            icon={<MobileNavIcon iconKey="txns" active={activeTab === 1} />}
+            sx={{
+              color: activeTab === 1 ? tokens.primary : tokens.text3,
+              '& .MuiBottomNavigationAction-label': { fontSize: '0.525rem !important', fontFamily: `'Plus Jakarta Sans', sans-serif` },
+            }}
+          />
+          <BottomNavigationAction
+            label="Insights"
+            icon={<MobileNavIcon iconKey="insights" active={activeTab === 3} />}
+            sx={{
+              color: activeTab === 3 ? tokens.primary : tokens.text3,
+              '& .MuiBottomNavigationAction-label': { fontSize: '0.625rem !important', fontFamily: `'Plus Jakarta Sans', sans-serif` },
+            }}
+          />
+          <BottomNavigationAction
+            label="Settings"
+            icon={<MobileNavIcon iconKey="more" active={[2, 4, 5, 6, 7].includes(activeTab)} />}
+            sx={{
+              color: [2, 4, 5, 6, 7].includes(activeTab) ? tokens.primary : tokens.text3,
+              '& .MuiBottomNavigationAction-label': { fontSize: '0.625rem !important', fontFamily: `'Plus Jakarta Sans', sans-serif` },
+            }}
+          />
         </BottomNavigation>
-      </Box>
+      )}
 
-      {/* Fixed FAB group — primary action + scan receipt */}
+      {/* FAB — elevated center on mobile, fixed bottom-right on desktop */}
       <Box
         sx={{
           position: 'fixed',
-          bottom: { xs: 'calc(56px + 20px + env(safe-area-inset-bottom))', sm: 32 },
-          right: { xs: 20, sm: 40 },
+          bottom: isDesktop ? 32 : 'calc(60px + env(safe-area-inset-bottom) - 26px)',
+          right: isDesktop ? 40 : '50%',
+          transform: isDesktop ? 'none' : 'translateX(50%)',
           zIndex: 1200,
           display: 'flex',
-          flexDirection: { xs: 'column-reverse', sm: 'row' },
-          alignItems: { xs: 'flex-end', sm: 'center' },
+          flexDirection: isDesktop ? 'row' : 'column',
+          alignItems: 'center',
           gap: 1,
         }}
       >
-        <ReceiptScanButton onFileSelected={handleScanReceipt} loading={scanLoading} />
+        {isDesktop && <ReceiptScanButton onFileSelected={handleScanReceipt} loading={scanLoading} />}
         <Fab
-          color="primary"
+          aria-label="Record transaction"
+          data-testid="fab-record"
           onClick={() => {
             if (onboardingOpen) {
               handleOnboardingFab();
@@ -1096,28 +1363,28 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
           }}
           variant={isDesktop ? 'extended' : 'circular'}
           sx={{
+            width: isDesktop ? 'auto' : 52,
+            height: isDesktop ? 'auto' : 52,
+            borderRadius: isDesktop ? '14px' : '16px',
             px: isDesktop ? 3 : undefined,
             gap: isDesktop ? 1 : undefined,
-            boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0.4)' : '0 0 0 0 rgba(99,102,241,0.4)',
-            '@media (prefers-reduced-motion: no-preference)': {
-              animation: 'fab-pulse 2.5s ease-in-out 3',
-              '@keyframes fab-pulse': {
-                '0%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0.4)' : '0 0 0 0 rgba(99,102,241,0.4)' },
-                '60%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 12px rgba(129,140,248,0)' : '0 0 0 12px rgba(99,102,241,0)' },
-                '100%': { boxShadow: theme.palette.mode === 'dark' ? '0 0 0 0 rgba(129,140,248,0)' : '0 0 0 0 rgba(99,102,241,0)' },
-              },
-            },
-            '&:hover': {
-              animation: 'none',
-              boxShadow: theme.palette.mode === 'dark' ? '0 0 28px rgba(129,140,248,0.5)' : '0 0 28px rgba(99,102,241,0.5)',
-            },
+            bgcolor: tokens.primary,
+            color: '#fff',
+            boxShadow: tokens.sFab,
+            '&:hover': { bgcolor: tokens.primaryHover, boxShadow: tokens.sFab },
           }}
         >
-          <AddIcon sx={{ fontSize: isDesktop ? 20 : 24 }} />
-          {isDesktop && <span style={{ fontWeight: 600, fontSize: '0.9rem' }}>Record</span>}
+          <PlusIcon />
+          {isDesktop && (
+            <Typography component="span" sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontWeight: 600, fontSize: '0.9rem' }}>
+              Record
+            </Typography>
+          )}
         </Fab>
+        {!isDesktop && <ReceiptScanButton onFileSelected={handleScanReceipt} loading={scanLoading} />}
       </Box>
 
+      {/* Modals */}
       <AddExpenseModal
         open={addReceiptOpen}
         onClose={() => {

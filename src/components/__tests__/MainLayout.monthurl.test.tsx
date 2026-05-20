@@ -139,7 +139,7 @@ describe('MainLayout — ?month URL sync', () => {
     renderAt('/?month=2026-04');
     // Wait for at least one render cycle so URL sync effects have a chance to run.
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
     // After mount, the URL still contains the requested month (state initialised from URL,
     // sync effect is a no-op because the param matches state).

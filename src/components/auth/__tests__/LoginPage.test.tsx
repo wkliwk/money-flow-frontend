@@ -45,7 +45,7 @@ describe('LoginPage', () => {
 
   it('shows Money Flow heading', () => {
     renderPage();
-    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
   });
 
   it('navigates to / on successful login', async () => {
@@ -68,13 +68,13 @@ describe('LoginPage', () => {
 
   it('renders without errors in light theme', () => {
     renderPage(lightTheme);
-    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
   });
 
   it('renders without errors in dark theme', () => {
     renderPage(darkTheme);
-    expect(screen.getByText('Money Flow')).toBeInTheDocument();
+    expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
   });
 
