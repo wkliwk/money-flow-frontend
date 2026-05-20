@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
-import { Box, Typography, IconButton, Divider } from '@mui/material';
-import { useTheme } from '@mui/material/styles';
+import { Box, Typography, IconButton } from '@mui/material';
 import ChevronLeftIcon from '@mui/icons-material/ChevronLeft';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import dayjs, { Dayjs } from 'dayjs';
@@ -8,6 +7,7 @@ import { AreaChart, Area, ResponsiveContainer } from 'recharts';
 import { Transaction } from '../../types';
 import { Currency } from '../../hooks/useFxRates';
 import CurrencyPicker from './CurrencyPicker';
+import { tokens } from '../../theme';
 
 interface Props {
   transactions: Transaction[];
@@ -35,14 +35,13 @@ const MobileHero: React.FC<Props> = ({
   convert,
   symbol,
 }) => {
-  const theme = useTheme();
-  const isDark = theme.palette.mode === 'dark';
-
   const income = transactions.filter((t) => t.type === 'income').reduce((s, t) => s + t.amount, 0);
   const expenses = transactions.filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const prevExpenses = (prevMonthTransactions ?? []).filter((t) => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
   const showDelta = selectedMonth && prevMonthTransactions && prevMonthTransactions.length > 0;
   const delta = expenses - prevExpenses;
+  const net = income - expenses;
+  const savingsRate = income > 0 ? Math.round((net / income) * 100) : null;
 
   const { avgPerDay, projectedTotal, topExpense } = (() => {
     if (!selectedMonth || expenses === 0) return { avgPerDay: null, projectedTotal: null, topExpense: null };
@@ -54,18 +53,14 @@ const MobileHero: React.FC<Props> = ({
       ? avg * selectedMonth.daysInMonth()
       : null;
 
-    // Top expense item this month
     const itemTotals: Record<string, number> = {};
     transactions.filter((t) => t.type === 'expense').forEach((t) => {
       const key = t.item || t.description || 'Other';
       itemTotals[key] = (itemTotals[key] || 0) + t.amount;
     });
     const top = Object.entries(itemTotals).sort((a, b) => b[1] - a[1])[0] ?? null;
-
     return { avgPerDay: avg, projectedTotal: projected, topExpense: top };
   })();
-  const net = income - expenses;
-  const isPositive = net >= 0;
 
   const dailySpend = useMemo(() => {
     if (!selectedMonth || expenses === 0) return [];
@@ -87,161 +82,156 @@ const MobileHero: React.FC<Props> = ({
   const handleNext = () => onChange((selectedMonth ?? dayjs()).add(1, 'month'));
 
   return (
-    <Box
-      sx={{
-        borderRadius: 3,
-        p: 3,
-        mb: 2,
-        background: isPositive
-          ? isDark
-            ? 'linear-gradient(135deg, rgba(129,140,248,0.18) 0%, rgba(52,211,153,0.08) 100%)'
-            : 'linear-gradient(135deg, rgba(99,102,241,0.22) 0%, rgba(16,185,129,0.1) 100%)'
-          : isDark
-            ? 'linear-gradient(135deg, rgba(251,113,133,0.18) 0%, rgba(251,113,133,0.06) 100%)'
-            : 'linear-gradient(135deg, rgba(244,63,94,0.22) 0%, rgba(244,63,94,0.08) 100%)',
-        border: `1px solid ${isPositive
-          ? isDark ? 'rgba(129,140,248,0.25)' : 'rgba(99,102,241,0.3)'
-          : isDark ? 'rgba(251,113,133,0.25)' : 'rgba(244,63,94,0.3)'}`,
-        boxShadow: `0 8px 32px ${isPositive
-          ? isDark ? 'rgba(129,140,248,0.1)' : 'rgba(99,102,241,0.12)'
-          : isDark ? 'rgba(251,113,133,0.1)' : 'rgba(244,63,94,0.12)'}`,
-      }}
-    >
-      {/* Streak badge */}
-      {streak && streak >= 2 && (
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
-          <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: theme.palette.warning.main, bgcolor: isDark ? 'rgba(251,191,36,0.1)' : 'rgba(251,191,36,0.12)', border: isDark ? '1px solid rgba(251,191,36,0.2)' : '1px solid rgba(251,191,36,0.25)', px: 1, py: 0.25, borderRadius: 1, letterSpacing: '0.03em' }}>
-            🔥 {streak} day streak
-          </Typography>
-        </Box>
-      )}
-
-      {/* Month navigator */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, mb: 2 }}>
-        <IconButton size="small" onClick={handlePrev} sx={{ p: 1.5, color: 'text.secondary' }}>
-          <ChevronLeftIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-        <Typography
-          variant="caption"
-          fontWeight={600}
-          onClick={() => selectedMonth ? onChange(null) : onChange(dayjs())}
-          sx={{
-            letterSpacing: '0.06em',
-            textTransform: 'uppercase',
-            fontSize: '0.72rem',
-            color: 'text.secondary',
-            cursor: 'pointer',
-            userSelect: 'none',
-          }}
-        >
-          {selectedMonth ? selectedMonth.format('MMMM YYYY') : 'All Time'}
-        </Typography>
-        <IconButton size="small" onClick={handleNext} sx={{ p: 1.5, color: 'text.secondary' }}>
-          <ChevronRightIcon sx={{ fontSize: 18 }} />
-        </IconButton>
-      </Box>
-
+    <Box sx={{ mb: 1.5 }}>
       {/* Currency picker */}
-      <Box sx={{ mb: 2 }}>
+      <Box sx={{ mb: 1.5 }}>
         <CurrencyPicker currency={currency} onChange={onCurrencyChange} />
       </Box>
 
-      {/* Big balance */}
-      <Box sx={{ textAlign: 'center', mb: 2.5 }}>
-        <Typography
-          variant="caption"
+      {/* Dark hero card */}
+      <Box
+        sx={{
+          borderRadius: '20px',
+          p: '20px',
+          mb: 1.5,
+          bgcolor: tokens.primaryDark,
+          position: 'relative',
+          overflow: 'hidden',
+        }}
+      >
+        {/* Decorative circle */}
+        <Box
           sx={{
-            color: 'text.secondary',
-            fontSize: '0.72rem',
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            display: 'block',
+            position: 'absolute',
+            top: -40,
+            right: -20,
+            width: 120,
+            height: 120,
+            borderRadius: '50%',
+            bgcolor: 'rgba(91,78,199,0.15)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Streak badge */}
+        {streak && streak >= 2 && (
+          <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 1 }}>
+            <Typography sx={{ fontSize: '0.65rem', fontWeight: 700, color: '#86EFAC', bgcolor: 'rgba(134,239,172,0.15)', px: 1, py: 0.25, borderRadius: '6px', letterSpacing: '0.03em' }}>
+              🔥 {streak} day streak
+            </Typography>
+          </Box>
+        )}
+
+        {/* Month navigator */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.75, position: 'relative' }}>
+          <IconButton size="small" onClick={handlePrev} sx={{ p: 0.5, color: 'rgba(255,255,255,0.5)', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
+            <ChevronLeftIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+          <Typography
+            sx={{
+              fontFamily: `'Space Grotesk', sans-serif`,
+              fontSize: '1.25rem',
+              fontWeight: 700,
+              color: '#fff',
+              letterSpacing: '-0.5px',
+              cursor: 'pointer',
+              userSelect: 'none',
+            }}
+            onClick={() => selectedMonth ? onChange(null) : onChange(dayjs())}
+          >
+            {selectedMonth ? selectedMonth.format('MMMM YYYY') : 'All Time'}
+          </Typography>
+          <IconButton size="small" onClick={handleNext} sx={{ p: 0.5, color: 'rgba(255,255,255,0.5)', '&:hover': { bgcolor: 'rgba(255,255,255,0.08)' } }}>
+            <ChevronRightIcon sx={{ fontSize: 18 }} />
+          </IconButton>
+        </Box>
+
+        {/* Net Balance label */}
+        <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.6875rem', fontWeight: 500, color: 'rgba(255,255,255,0.5)', textTransform: 'uppercase', letterSpacing: '1px', mb: 0.75 }}>
+          Net Balance
+        </Typography>
+
+        {/* Big number */}
+        <Typography
+          sx={{
+            fontFamily: `'Space Grotesk', sans-serif`,
+            fontSize: '2.25rem',
+            fontWeight: 700,
+            color: '#fff',
+            letterSpacing: '-1px',
+            lineHeight: 1.1,
             mb: 0.5,
           }}
         >
-          Net Balance
+          {net >= 0 ? '+' : '-'}{symbol}{fmt(convert(Math.abs(net)))}
         </Typography>
-        <Typography
-          variant="h3"
-          fontWeight={700}
-          sx={{
-            color: isPositive ? 'primary.main' : 'error.main',
-            letterSpacing: '-0.03em',
-            lineHeight: 1,
-          }}
-        >
-          {isPositive ? '+' : '-'}{symbol}{fmt(convert(Math.abs(net)))}
-        </Typography>
+
         {showDelta && (
-          <Typography sx={{ fontSize: '0.65rem', mt: 0.75, color: delta > 0 ? 'error.main' : 'success.main', fontWeight: 600 }}>
+          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.75rem', color: delta > 0 ? '#FCA5A5' : '#86EFAC', fontWeight: 600, mb: 1.5 }}>
             {delta > 0 ? '↑' : '↓'} {symbol}{fmt(convert(Math.abs(delta)))} spending vs last month
           </Typography>
         )}
-      </Box>
 
-      {/* Income / Expense row */}
-      <Divider sx={{ mb: 2, borderColor: 'rgba(148,163,184,0.1)' }} />
-      <Box sx={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center' }}>
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography
-            variant="caption"
-            sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
-          >
-            Income
-          </Typography>
-          <Typography fontWeight={700} sx={{ color: 'success.main', fontSize: '1rem', letterSpacing: '-0.01em' }}>
-            +{symbol}{fmt(convert(income))}
-          </Typography>
-        </Box>
-        <Divider orientation="vertical" flexItem sx={{ borderColor: 'rgba(148,163,184,0.15)' }} />
-        <Box sx={{ textAlign: 'center' }}>
-          <Typography
-            variant="caption"
-            sx={{ color: 'text.secondary', fontSize: '0.72rem', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'block', mb: 0.25 }}
-          >
-            Expenses
-          </Typography>
-          <Typography fontWeight={700} sx={{ color: 'error.main', fontSize: '1rem', letterSpacing: '-0.01em' }}>
-            -{symbol}{fmt(convert(expenses))}
-          </Typography>
-          {avgPerDay !== null && (
-            <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled', mt: 0.25 }}>
-              {symbol}{fmt(convert(avgPerDay))}/day
-              {projectedTotal !== null && ` · on pace for ${symbol}${fmt(convert(projectedTotal))}`}
+        {/* Sub-stats row */}
+        <Box sx={{ display: 'flex', gap: '20px', mt: '14px' }}>
+          <Box>
+            <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', mb: 0.25 }}>Income</Typography>
+            <Typography sx={{ fontFamily: `'Space Grotesk', sans-serif`, fontSize: '1rem', fontWeight: 600, color: '#86EFAC', letterSpacing: '-0.3px' }}>
+              +{symbol}{fmt(convert(income))}
             </Typography>
-          )}
-          {topExpense && (
-            <Typography sx={{ fontSize: '0.6rem', color: 'text.disabled', mt: 0.125 }}>
-              Top: {topExpense[0]} {symbol}{fmt(convert(topExpense[1]))}
+          </Box>
+          <Box>
+            <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', mb: 0.25 }}>Expenses</Typography>
+            <Typography sx={{ fontFamily: `'Space Grotesk', sans-serif`, fontSize: '1rem', fontWeight: 600, color: '#FCA5A5', letterSpacing: '-0.3px' }}>
+              -{symbol}{fmt(convert(expenses))}
             </Typography>
+            {avgPerDay !== null && (
+              <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', mt: 0.25 }}>
+                {symbol}{fmt(convert(avgPerDay))}/day{projectedTotal ? ` · pace ${symbol}${fmt(convert(projectedTotal))}` : ''}
+              </Typography>
+            )}
+          </Box>
+          {savingsRate !== null && (
+            <Box>
+              <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.625rem', color: 'rgba(255,255,255,0.4)', mb: 0.25 }}>Saving rate</Typography>
+              <Typography sx={{ fontFamily: `'Space Grotesk', sans-serif`, fontSize: '1rem', fontWeight: 600, color: '#fff', letterSpacing: '-0.3px' }}>
+                {Math.max(0, savingsRate)}%
+              </Typography>
+            </Box>
           )}
         </Box>
-      </Box>
 
-      {/* Daily spend sparkline */}
-      {dailySpend.length > 1 && (
-        <Box sx={{ mt: 2, mx: -1 }}>
-          <ResponsiveContainer width="100%" height={36}>
-            <AreaChart data={dailySpend} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={theme.palette.error.light} stopOpacity={0.3} />
-                  <stop offset="95%" stopColor={theme.palette.error.light} stopOpacity={0} />
-                </linearGradient>
-              </defs>
-              <Area
-                type="monotone"
-                dataKey="amount"
-                stroke={theme.palette.error.light}
-                strokeWidth={1.5}
-                fill="url(#sparkGrad)"
-                dot={false}
-                isAnimationActive={false}
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </Box>
-      )}
+        {topExpense && (
+          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: '0.6rem', color: 'rgba(255,255,255,0.3)', mt: 1 }}>
+            Top: {topExpense[0]} {symbol}{fmt(convert(topExpense[1]))}
+          </Typography>
+        )}
+
+        {/* Daily spend sparkline */}
+        {dailySpend.length > 1 && (
+          <Box sx={{ mt: 2, mx: -1 }}>
+            <ResponsiveContainer width="100%" height={36}>
+              <AreaChart data={dailySpend} margin={{ top: 2, right: 0, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="heroSparkGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#FCA5A5" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#FCA5A5" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <Area
+                  type="monotone"
+                  dataKey="amount"
+                  stroke="#FCA5A5"
+                  strokeWidth={1.5}
+                  fill="url(#heroSparkGrad)"
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </Box>
+        )}
+      </Box>
     </Box>
   );
 };

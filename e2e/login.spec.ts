@@ -21,7 +21,7 @@ test.describe('Login page', () => {
 
   test('renders the login form', async ({ page }) => {
     await page.goto('/login');
-    await expect(page.getByText('Money Flow')).toBeVisible();
+    await expect(page.getByText('MoneyFlow')).toBeVisible();
     await expect(page.getByLabel('Email')).toBeVisible();
     await expect(page.getByLabel(/Password/i)).toBeVisible();
     await expect(page.getByRole('button', { name: /Sign In/i })).toBeVisible();

@@ -142,14 +142,14 @@ describe('MainLayout', () => {
   it('renders without crashing', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
   });
 
   it('renders main content area', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
   });
 
@@ -194,7 +194,7 @@ describe('MainLayout', () => {
   it('shows FAB + button', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(document.querySelector('[data-testid="AddIcon"]')).toBeTruthy();
+      expect(document.querySelector('[data-testid="fab-record"]')).toBeTruthy();
     });
   });
 
@@ -233,8 +233,8 @@ describe('MainLayout', () => {
 
   it('FAB click opens AddTransactionSheet', async () => {
     renderMainLayout();
-    await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
-    const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
+    await waitFor(() => document.querySelector('[data-testid="fab-record"]'));
+    const fabBtn = document.querySelector('[data-testid="fab-record"]') as HTMLButtonElement | null;
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
@@ -320,8 +320,8 @@ describe('MainLayout', () => {
 
   it('FAB click adds transaction via AddTransactionSheet submit', async () => {
     renderMainLayout();
-    await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
-    const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
+    await waitFor(() => document.querySelector('[data-testid="fab-record"]'));
+    const fabBtn = document.querySelector('[data-testid="fab-record"]') as HTMLButtonElement | null;
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
@@ -333,8 +333,8 @@ describe('MainLayout', () => {
   it('submitting AddTransactionSheet calls createExpense and updates transactions', async () => {
     mockCreateExpense.mockResolvedValueOnce(makeTransaction({ _id: 'new1', description: 'Food & Drink' }));
     renderMainLayout();
-    await waitFor(() => document.querySelector('[data-testid="AddIcon"]'));
-    const fabBtn = document.querySelector('[data-testid="AddIcon"]')?.closest('button');
+    await waitFor(() => document.querySelector('[data-testid="fab-record"]'));
+    const fabBtn = document.querySelector('[data-testid="fab-record"]') as HTMLButtonElement | null;
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }

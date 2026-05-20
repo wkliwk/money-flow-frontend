@@ -137,7 +137,7 @@ describe('MainLayout (mobile)', () => {
   it('renders without crashing in mobile mode', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
   });
 
@@ -147,14 +147,14 @@ describe('MainLayout (mobile)', () => {
     ]);
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
   });
 
   it('handles recurring items prompt when items exist', async () => {
     renderMainLayout();
     await waitFor(() => {
-      expect(screen.getByText('Money Flow')).toBeInTheDocument();
+      expect(screen.getByText('MoneyFlow')).toBeInTheDocument();
     });
   });
 
