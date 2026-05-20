@@ -159,13 +159,6 @@ const LoginPage: React.FC = () => {
         {/* Google OAuth button */}
         <SSOButtons />
 
-        {/* Divider */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, my: 2.5 }}>
-          <Box sx={{ flex: 1, height: '1px', bgcolor: tokens.border }} />
-          <Typography sx={{ fontFamily: `'Plus Jakarta Sans', sans-serif`, fontSize: 12, color: tokens.text3 }}>or</Typography>
-          <Box sx={{ flex: 1, height: '1px', bgcolor: tokens.border }} />
-        </Box>
-
         {/* Email / password form */}
         <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Box>
