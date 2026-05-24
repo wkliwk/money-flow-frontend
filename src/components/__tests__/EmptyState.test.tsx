@@ -229,7 +229,7 @@ describe('Empty state on Transactions tab', () => {
     expect(screen.getByRole('button', { name: /add expense/i })).toBeInTheDocument();
   });
 
-  it('onboarding CTA button opens AddTransactionSheet', async () => {
+  it('onboarding CTA button opens AddExpenseModal', async () => {
     mockGetExpenses.mockResolvedValue([]);
     renderMainLayout();
     await navigateToTransactionsTab();
@@ -240,7 +240,7 @@ describe('Empty state on Transactions tab', () => {
       fireEvent.click(screen.getByRole('button', { name: /add expense/i }));
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
     });
   });
 
