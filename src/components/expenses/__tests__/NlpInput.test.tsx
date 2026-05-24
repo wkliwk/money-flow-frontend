@@ -71,3 +71,39 @@ describe('NlpInput error handling', () => {
     });
   });
 });
+
+describe('NlpInput hero visual', () => {
+  beforeEach(() => {
+    mockedParse.mockReset();
+  });
+
+  test('renders the Quick Entry hero label', () => {
+    render(<NlpInput onParsed={jest.fn()} />);
+    expect(screen.getByText('Quick Entry')).toBeInTheDocument();
+  });
+
+  test('does not render Scan button when onScanClick is not provided', () => {
+    render(<NlpInput onParsed={jest.fn()} />);
+    expect(screen.queryByRole('button', { name: /scan/i })).toBeNull();
+  });
+
+  test('renders Scan button and invokes onScanClick when provided', () => {
+    const onScanClick = jest.fn();
+    render(<NlpInput onParsed={jest.fn()} onScanClick={onScanClick} />);
+    const scan = screen.getByRole('button', { name: /scan/i });
+    expect(scan).toBeInTheDocument();
+    scan.click();
+    expect(onScanClick).toHaveBeenCalledTimes(1);
+  });
+
+  test('shows "Parsed ✓" indicator after a successful parse', async () => {
+    mockedParse.mockResolvedValueOnce({ amount: 65, category: 'Food' } as any);
+    const onParsed = jest.fn();
+    render(<NlpInput onParsed={onParsed} />);
+    await typeAndSubmit('lunch 65');
+    await waitFor(() => {
+      expect(screen.getByText(/Parsed ✓/)).toBeInTheDocument();
+    });
+    expect(onParsed).toHaveBeenCalledTimes(1);
+  });
+});
