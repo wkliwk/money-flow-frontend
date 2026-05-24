@@ -27,11 +27,12 @@ describe('GoalsPage', () => {
     mockGoals = [];
   });
 
-  it('renders empty state when no goals', () => {
+  it('renders shared EmptyState when no goals', () => {
     render(<GoalsPage {...defaultProps} />);
+    expect(screen.getByTestId('goals-empty-state')).toBeInTheDocument();
     expect(screen.getByText('No goals yet')).toBeInTheDocument();
     expect(screen.getByText('Savings Goals')).toBeInTheDocument();
-    expect(screen.getByText('Add your first goal to start tracking your savings')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Set your first goal/i })).toBeInTheDocument();
   });
 
   it('renders header with Add Goal button', () => {
