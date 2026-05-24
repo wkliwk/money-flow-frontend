@@ -24,7 +24,7 @@ import DataObjectIcon from '@mui/icons-material/DataObject';
 import SortIcon from '@mui/icons-material/Sort';
 import FilterListIcon from '@mui/icons-material/FilterList';
 import LabelIcon from '@mui/icons-material/Label';
-import { TransactionType, PAYMENT_METHODS, PaymentMethod, Tag } from '../../types';
+import { TransactionType, PAYMENT_METHODS, PAYMENT_METHOD_LABELS, PaymentMethod, Tag } from '../../types';
 import LocalOfferIcon from '@mui/icons-material/LocalOffer';
 
 interface Props {
@@ -246,7 +246,7 @@ const FilterBar: React.FC<Props> = ({
           {PAYMENT_METHODS.map((m) => (
             <Chip
               key={m}
-              label={m}
+              label={PAYMENT_METHOD_LABELS[m]}
               size="small"
               clickable
               onClick={() => onPaymentMethodFilterChange(paymentMethodFilter === m ? 'all' : m)}
