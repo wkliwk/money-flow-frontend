@@ -139,22 +139,22 @@ describe('FilterBar', () => {
     expect(document.querySelector('[data-testid="FilterListIcon"]')).toBeTruthy();
   });
 
-  it('shows payment method chips when filter toggle is clicked', () => {
+  it('shows payment method chips with display labels when filter toggle is clicked', () => {
     render(<FilterBar {...defaultProps} />);
     const filterBtn = document.querySelector('[data-testid="FilterListIcon"]')?.parentElement;
     if (filterBtn) fireEvent.click(filterBtn);
-    // FilterBar currently renders enum keys as labels (see #279 follow-up)
-    expect(screen.getByText('cash')).toBeInTheDocument();
-    expect(screen.getByText('octopus')).toBeInTheDocument();
-    expect(screen.getByText('payme')).toBeInTheDocument();
+    expect(screen.getByText('Cash')).toBeInTheDocument();
+    expect(screen.getByText('Octopus')).toBeInTheDocument();
+    expect(screen.getByText('PayMe')).toBeInTheDocument();
   });
 
-  it('calls onPaymentMethodFilterChange when payment chip clicked', () => {
+  it('calls onPaymentMethodFilterChange with enum key when payment chip clicked', () => {
     const onPaymentMethodFilterChange = jest.fn();
     render(<FilterBar {...defaultProps} onPaymentMethodFilterChange={onPaymentMethodFilterChange} />);
     const filterBtn = document.querySelector('[data-testid="FilterListIcon"]')?.parentElement;
     if (filterBtn) fireEvent.click(filterBtn);
-    fireEvent.click(screen.getByText('octopus'));
+    fireEvent.click(screen.getByText('Octopus'));
+    // Click hands back the enum key for filtering, not the display label
     expect(onPaymentMethodFilterChange).toHaveBeenCalledWith('octopus');
   });
 
