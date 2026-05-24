@@ -34,14 +34,11 @@ jobs:
             print(0)
           ")
           echo "Line coverage: ${COVERAGE}%"
-          # Baseline temporarily reduced from 85 to 80 (#278) to unblock CI while
-          # follow-up tests are added for RecurringPage, TagPicker,
-          # MonthlyReportPage, NlpInput, StatementReconciler. Tracking: #280.
-          if [ "${COVERAGE}" -lt 80 ]; then
-            echo "Coverage ${COVERAGE}% is below the 80% baseline. Add tests before merging."
+          if [ "${COVERAGE}" -lt 85 ]; then
+            echo "Coverage ${COVERAGE}% is below the 85% baseline. Add tests before merging."
             exit 1
           fi
-          echo "Coverage ${COVERAGE}% meets 80% baseline."
+          echo "Coverage ${COVERAGE}% meets 85% baseline."
       - name: Build
         run: yarn build
         env:
