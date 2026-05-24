@@ -32,12 +32,12 @@ describe('useFxRates', () => {
     jest.restoreAllMocks();
   });
 
-  it('defaults to HKD currency', async () => {
+  it('defaults to locale-detected currency (USD in jsdom default en-US)', async () => {
     const { result } = renderHook(() => useFxRates());
-    expect(result.current.currency).toBe('HKD');
+    expect(result.current.currency).toBe('USD');
   });
 
-  it('loads currency from localStorage', () => {
+  it('loads currency from localStorage (overriding locale detection)', () => {
     localStorage.setItem('mf_currency', 'CAD');
     const { result } = renderHook(() => useFxRates());
     expect(result.current.currency).toBe('CAD');
@@ -90,6 +90,7 @@ describe('useFxRates', () => {
   });
 
   it('convert for HKD returns same amount', async () => {
+    localStorage.setItem('mf_currency', 'HKD');
     const { result } = renderHook(() => useFxRates());
     await waitFor(() => expect(result.current.loading).toBe(false));
     expect(result.current.convert(500)).toBe(500);

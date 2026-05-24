@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getExchangeRates } from '../services/api';
 import { Currency, CURRENCY_SYMBOLS } from '../constants/currencies';
+import { detectCurrencyFromLocale } from '../utils/localeCurrency';
 
 export type { Currency };
 export { CURRENCY_SYMBOLS };
@@ -67,7 +68,7 @@ function fetchRates(): Promise<Rates> {
 
 export function useFxRates() {
   const [currency, setCurrencyState] = useState<Currency>(
-    () => (localStorage.getItem(STORAGE_KEY) as Currency) || 'HKD'
+    () => (localStorage.getItem(STORAGE_KEY) as Currency) || detectCurrencyFromLocale()
   );
   const [rates, setRates] = useState<Rates>(cachedRates || DEFAULT_RATES);
   const [loading, setLoading] = useState(!cachedRates);
