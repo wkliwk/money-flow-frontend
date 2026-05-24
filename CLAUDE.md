@@ -17,7 +17,7 @@ React + TypeScript SPA for personal finance tracking.
 - `.github/workflows/ci.yml` — build + Telegram notification
 
 ## Backend
-- Production: https://money-flow-backend-production.up.railway.app
+- Production: https://money-flow-backend.fly.dev
 - Dev: http://localhost:3001
 - Repo: /Users/ricky/Dev/money-flow-backend
 
@@ -49,7 +49,7 @@ Never ask "what should I work on?"
 ## Autonomous operation rules
 - You are running in a fully automated context with no human in the loop.
 - Do not ask for approval. Make decisions and proceed.
-- After completing a task: run `VITE_API_URL=https://money-flow-backend-production.up.railway.app yarn build` to verify, then commit and push.
+- After completing a task: run `VITE_API_URL=https://money-flow-backend.fly.dev yarn build` to verify, then commit and push.
 - Commit format: `type: short description` (feat, fix, refactor, chore)
 - If a build or lint fails, fix it before committing. Do not use `--no-verify`.
 - Do not add unnecessary comments, docstrings, or TODO markers.

@@ -21,6 +21,7 @@ jobs:
         run: yarn install --frozen-lockfile
       - name: Test with coverage gate
         run: |
+          set -o pipefail
           yarn test:ci --coverageReporters=json-summary 2>&1 | tee /tmp/test-output.txt
           COVERAGE=$(python3 -c "
           import json, sys
@@ -44,7 +45,7 @@ jobs:
       - name: Build
         run: yarn build
         env:
-          VITE_API_URL: https://money-flow-backend-production.up.railway.app
+          VITE_API_URL: https://money-flow-backend.fly.dev
           VITE_VERSION: 1.0.0
       - name: Notify Telegram on success
         if: success()
@@ -79,7 +80,7 @@ jobs:
       - name: Build app
         run: yarn build
         env:
-          VITE_API_URL: https://money-flow-backend-production.up.railway.app
+          VITE_API_URL: https://money-flow-backend.fly.dev
           VITE_VERSION: 1.0.0
       - name: Serve build and run Playwright E2E tests
         run: |
