@@ -41,6 +41,7 @@ import ParticipantPicker from './ParticipantPicker';
 import PaymentMethodPicker from './PaymentMethodPicker';
 import NlpInput from './NlpInput';
 import { ParsedTransaction } from '../../services/api';
+import ParsedPreview from './ParsedPreview';
 import { useTemplates, TransactionTemplate } from '../../hooks/useTemplates';
 import { useFxRates, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useItemPresets } from '../../hooks/useItemPresets';
@@ -144,6 +145,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
     if (t.defaultAmount) setAmount(String(t.defaultAmount));
   };
 
+  const [lastParsed, setLastParsed] = useState<ParsedTransaction | null>(null);
   const handleNlpParsed = (result: ParsedTransaction) => {
     if (result.amount) setAmount(String(result.amount));
     if (result.category) setCategory(result.category);
@@ -153,10 +155,7 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
       setQuickDate('custom');
       setCustomDate(result.date);
     }
-    // If amount exists, it's likely an expense unless explicitly income
-    if (result.missing_fields?.length) {
-      // Focus user's attention on missing fields — no-op for now, form is visible
-    }
+    setLastParsed(result);
   };
 
   const resolvedDate = quickDate === 'today' ? today() : quickDate === 'yesterday' ? yesterday() : customDate;
@@ -367,6 +366,14 @@ const AddExpenseModal: React.FC<Props> = ({ open, onClose, onSubmit, description
 
         {/* NLP quick entry */}
         {!receiptPrefill && <NlpInput onParsed={handleNlpParsed} />}
+        {lastParsed && (
+          <ParsedPreview
+            parsed={lastParsed}
+            type={type}
+            symbol={txCurrency === 'HKD' ? 'HK$' : CURRENCY_SYMBOLS[txCurrency]}
+            onEdit={() => setLastParsed(null)}
+          />
+        )}
 
         {/* Template quick-tap row */}
         <TemplateChips
