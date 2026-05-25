@@ -58,6 +58,7 @@ jest.mock('../../services/api', () => ({
   login: jest.fn().mockResolvedValue(undefined),
   loginWithGoogle: jest.fn().mockResolvedValue(undefined),
   loginWithApple: jest.fn().mockResolvedValue(undefined),
+  getContacts: jest.fn().mockResolvedValue([]),
 }));
 
 jest.mock('recharts', () => ({
@@ -91,7 +92,7 @@ jest.mock('../../hooks/useItemPresets', () => ({
 jest.mock('../../hooks/useTemplates', () => ({
   useTemplates: () => ({ templates: [], addTemplate: jest.fn(), deleteTemplate: jest.fn() }),
 }));
-jest.mock('../../components/settings/FriendsSection', () => () => null);
+jest.mock('../../components/settings/ContactsSection', () => () => null);
 
 
 const renderMainLayout = () => render(<MemoryRouter><ToastProvider><MainLayout /></ToastProvider></MemoryRouter>);
