@@ -26,7 +26,7 @@ import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
 import dayjs, { Dayjs } from 'dayjs';
 import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult } from '../services/api';
+import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult, getContacts } from '../services/api';
 import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
 import DashboardSkeleton from './dashboard/DashboardSkeleton';
@@ -327,6 +327,11 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     return () => { window.removeEventListener('offline', goOffline); window.removeEventListener('online', goOnline); };
   }, []);
 
+  const [contactNames, setContactNames] = useState<string[]>([]);
+  useEffect(() => {
+    getContacts().then((cs) => setContactNames(cs.map((c) => c.name))).catch(() => {});
+  }, []);
+
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
   const [datePreset, setDatePreset] = useState<DatePreset>(() => {
@@ -556,10 +561,10 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   }, [transactions]);
 
   const knownParticipants = useMemo(() => {
-    const seen = new Set<string>();
+    const seen = new Set<string>(contactNames);
     transactions.forEach((t) => (t.participants ?? []).forEach((p) => seen.add(p)));
-    return Array.from(seen).slice(0, 10);
-  }, [transactions]);
+    return Array.from(seen).slice(0, 20);
+  }, [transactions, contactNames]);
 
   const descriptionsByItem = useMemo(() => {
     const map: Record<string, string[]> = {};
