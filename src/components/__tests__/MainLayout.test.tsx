@@ -64,11 +64,12 @@ jest.mock('../../services/api', () => {
     login: jest.fn(resolvedUndef),
     loginWithGoogle: jest.fn(resolvedUndef),
     loginWithApple: jest.fn(resolvedUndef),
+    getContacts: jest.fn(resolvedArray),
   };
 });
 
-// Mock FriendsSection to avoid API dependency
-jest.mock('../../components/settings/FriendsSection', () => () => <div data-testid="friends-section">Friends</div>);
+// Mock ContactsSection to avoid API dependency
+jest.mock('../../components/settings/ContactsSection', () => () => <div data-testid="contacts-section">Contacts</div>);
 
 // Mock recharts
 jest.mock('recharts', () => ({
