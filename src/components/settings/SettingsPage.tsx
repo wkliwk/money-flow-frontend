@@ -36,6 +36,8 @@ import { ITEM_PRESETS } from '../expenses/ItemPicker';
 import { useThemePreference } from '../../ThemeContext';
 import { ThemePreference } from '../../theme';
 import { useTags } from '../../hooks/useTags';
+import SettingsSection from './SettingsSection';
+import SettingsProfile from './SettingsProfile';
 
 interface Props {
   currency: string;
@@ -52,6 +54,14 @@ function getUserId(): string {
   } catch { return ''; }
 }
 
+function getUserEmail(): string {
+  try {
+    const token = localStorage.getItem('mf_token');
+    if (!token) return '';
+    return JSON.parse(atob(token.split('.')[1])).email || '';
+  } catch { return ''; }
+}
+
 const THEME_OPTIONS: { value: ThemePreference; label: string; icon: React.ReactNode }[] = [
   { value: 'light', label: 'Light', icon: <LightModeIcon sx={{ fontSize: 16 }} /> },
   { value: 'system', label: 'System', icon: <SettingsBrightnessIcon sx={{ fontSize: 16 }} /> },
@@ -61,26 +71,21 @@ const THEME_OPTIONS: { value: ThemePreference; label: string; icon: React.ReactN
 const ThemeToggle: React.FC = () => {
   const { preference, setPreference } = useThemePreference();
   return (
-    <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
-      <Box sx={{ px: 2, py: 1.5 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
-          Appearance
-        </Typography>
-        <ToggleButtonGroup
-          value={preference}
-          exclusive
-          onChange={(_, val: ThemePreference | null) => { if (val) setPreference(val); }}
-          fullWidth
-          aria-label="Theme preference"
-        >
-          {THEME_OPTIONS.map((opt) => (
-            <ToggleButton key={opt.value} value={opt.value} aria-label={opt.label} sx={{ gap: 0.5 }}>
-              {opt.icon}
-              {opt.label}
-            </ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-      </Box>
+    <Box sx={{ px: 2, py: 1.5 }}>
+      <ToggleButtonGroup
+        value={preference}
+        exclusive
+        onChange={(_, val: ThemePreference | null) => { if (val) setPreference(val); }}
+        fullWidth
+        aria-label="Theme preference"
+      >
+        {THEME_OPTIONS.map((opt) => (
+          <ToggleButton key={opt.value} value={opt.value} aria-label={opt.label} sx={{ gap: 0.5 }}>
+            {opt.icon}
+            {opt.label}
+          </ToggleButton>
+        ))}
+      </ToggleButtonGroup>
     </Box>
   );
 };
@@ -88,6 +93,7 @@ const ThemeToggle: React.FC = () => {
 const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {}, onTransactionsImported }) => {
   const theme = useTheme();
   const userId = getUserId();
+  const userEmail = getUserEmail();
   const { symbol, convert } = useFxRates();
   const { enabledCurrencies, toggleCurrency, isEnabled } = useCurrencyPreferences();
   const { budgets, setBudget } = useBudgets();
@@ -225,17 +231,27 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
 
   return (
     <Box sx={{ maxWidth: 500, mx: 'auto' }}>
-      <Typography variant="h6" fontWeight={700} sx={{ mb: 3 }}>Settings</Typography>
+      <Typography
+        component="h1"
+        sx={{
+          fontFamily: '"Space Grotesk", sans-serif',
+          fontSize: '1.4rem',
+          fontWeight: 700,
+          letterSpacing: '-0.5px',
+          mb: 2.5,
+        }}
+      >
+        Settings
+      </Typography>
 
-      {/* Theme */}
-      <ThemeToggle />
+      <SettingsProfile email={userEmail} userId={userId} />
 
-      {/* Display Currency */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection title="Appearance">
+        <ThemeToggle />
+      </SettingsSection>
+
+      <SettingsSection title="Display Currency">
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
-            Display Currency
-          </Typography>
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => (
               <Chip
@@ -256,24 +272,13 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
             ))}
           </Box>
         </Box>
-        <Divider />
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            Account
-          </Typography>
-          <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary', fontFamily: 'monospace' }}>{userId || '\u2014'}</Typography>
-        </Box>
-      </Box>
+      </SettingsSection>
 
-      {/* My Currencies */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection
+        title="My Currencies"
+        description="Choose which currencies appear in the currency picker."
+      >
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            My Currencies
-          </Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
-            Choose which currencies appear in the currency picker.
-          </Typography>
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => {
               const enabled = isEnabled(c);
@@ -307,15 +312,14 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
             </Typography>
           )}
         </Box>
-      </Box>
+      </SettingsSection>
 
-      {/* Monthly Budgets */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection
+        title="Monthly Budgets"
+        description="Set limits per category — progress bars appear on the Home breakdown."
+      >
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            Monthly Budgets
-          </Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
+          <Typography sx={{ display: 'none' }}>
             Set limits per category — progress bars appear on the Home breakdown.
           </Typography>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -349,24 +353,19 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
             })}
           </Box>
         </Box>
-      </Box>
+      </SettingsSection>
 
-      {/* Friends */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection title="Friends">
         <Box sx={{ px: 2, py: 1.5 }}>
           <FriendsSection />
         </Box>
-      </Box>
+      </SettingsSection>
 
-      {/* Tags */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection
+        title="Tags"
+        description="Rename or delete tags. Create tags directly in the transaction form."
+      >
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 0.5 }}>
-            Tags
-          </Typography>
-          <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
-            Rename or delete tags. Create tags directly in the transaction form.
-          </Typography>
           {tags.length === 0 && (
             <Typography sx={{ fontSize: '0.8rem', color: 'text.disabled', fontStyle: 'italic' }}>No tags yet</Typography>
           )}
@@ -448,36 +447,37 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
             ))}
           </Box>
         </Box>
-      </Box>
+      </SettingsSection>
 
-      {/* Item Presets */}
-      <Box sx={{ mb: 2 }}>
-        <Typography variant="caption" color="text.secondary" sx={{ fontSize: '0.72rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block', mb: 1 }}>
-          Item Presets
-        </Typography>
-        <Typography sx={{ fontSize: '0.72rem', color: 'text.disabled', mb: 1.5 }}>
-          Set a default description for each item type — auto-filled when you pick that item in the add form.
-        </Typography>
-        {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
-        {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
-      </Box>
+      <SettingsSection
+        title="Item Presets"
+        description="Set a default description for each item type — auto-filled when you pick that item in the add form."
+      >
+        <Box sx={{ px: 2, py: 1.5 }}>
+          {renderItemSection('Expense Items', ITEM_PRESETS.filter((p) => p.type === 'expense'))}
+          {renderItemSection('Income Items', ITEM_PRESETS.filter((p) => p.type === 'income'))}
+        </Box>
+      </SettingsSection>
 
-      {/* Statement Reconciliation */}
-      <Box sx={{ borderRadius: 2, border: '1px solid', borderColor: 'divider', overflow: 'hidden', mb: 2 }}>
+      <SettingsSection title="Data">
         <Box sx={{ px: 2, py: 1.5 }}>
           <StatementReconciler onImported={onTransactionsImported} />
         </Box>
-      </Box>
+      </SettingsSection>
 
-      <Button
-        variant="outlined"
-        color="error"
-        startIcon={<LogoutIcon />}
-        onClick={() => setSignOutConfirm(true)}
-        fullWidth
-      >
-        Sign Out
-      </Button>
+      <SettingsSection title="Account">
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <Button
+            variant="outlined"
+            color="error"
+            startIcon={<LogoutIcon />}
+            onClick={() => setSignOutConfirm(true)}
+            fullWidth
+          >
+            Sign Out
+          </Button>
+        </Box>
+      </SettingsSection>
 
       <Dialog open={signOutConfirm} onClose={() => setSignOutConfirm(false)}>
         <DialogTitle>Sign Out</DialogTitle>
