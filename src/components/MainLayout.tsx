@@ -39,6 +39,7 @@ import SpendingInsights from './dashboard/SpendingInsights';
 import SpendingBreakdown from './dashboard/SpendingBreakdown';
 import PeopleBreakdown from './dashboard/PeopleBreakdown';
 import ExpenseList from './expenses/ExpenseList';
+import CalendarStrip from './expenses/CalendarStrip';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
 import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
@@ -348,6 +349,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
   const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
   const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
+  const [calendarFilterDate, setCalendarFilterDate] = useState<string | null>(null);
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
   const [addReceiptOpen, setAddReceiptOpen] = useState(false);
   const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
@@ -713,13 +715,14 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
       const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
       const matchesTag = tagFilter === 'all' || (t.tags || []).some((tag) => tag._id === tagFilter);
-      return matchesSearch && matchesType && matchesPayment && matchesCategory && matchesTag;
+      const matchesCalendar = !calendarFilterDate || (t.date || '').slice(0, 10) === calendarFilterDate;
+      return matchesSearch && matchesType && matchesPayment && matchesCategory && matchesTag && matchesCalendar;
     });
     if (sortBy === 'amount') {
       return [...filtered].sort((a, b) => b.amount - a.amount);
     }
     return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy]);
+  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy, calendarFilterDate]);
 
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
@@ -1192,6 +1195,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                   />
                 </Box>
               )}
+              <CalendarStrip
+                transactions={search !== '' ? transactions : monthFiltered}
+                selectedDate={calendarFilterDate}
+                onDayChange={setCalendarFilterDate}
+                symbol={symbol}
+                convert={convert}
+              />
               <FilterBar
                 search={search}
                 typeFilter={typeFilter}
