@@ -446,3 +446,31 @@ export const updateTag = async (id: string, data: { name?: string; color?: strin
 export const deleteTag = async (id: string): Promise<void> => {
   await axiosInstance.delete(`/api/tags/${id}`);
 };
+
+// Contacts
+export interface Contact {
+  _id: string;
+  name: string;
+  email?: string;
+  color?: string;
+  createdAt: string;
+}
+
+export const getContacts = async (): Promise<Contact[]> => {
+  const res = await axiosInstance.get('/api/contacts');
+  return res.data.contacts;
+};
+
+export const createContact = async (data: { name: string; email?: string; color?: string }): Promise<Contact> => {
+  const res = await axiosInstance.post('/api/contacts', data);
+  return res.data.contact;
+};
+
+export const updateContact = async (id: string, data: { name?: string; email?: string | null; color?: string | null }): Promise<Contact> => {
+  const res = await axiosInstance.patch(`/api/contacts/${id}`, data);
+  return res.data.contact;
+};
+
+export const deleteContact = async (id: string): Promise<void> => {
+  await axiosInstance.delete(`/api/contacts/${id}`);
+};

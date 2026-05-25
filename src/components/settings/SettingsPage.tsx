@@ -29,7 +29,7 @@ import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
 import { useCurrencyPreferences } from '../../hooks/useCurrencyPreferences';
 import { useBudgets, BUDGET_CATEGORIES } from '../../hooks/useBudgets';
-import FriendsSection from './FriendsSection';
+import ContactsSection from './ContactsSection';
 import StatementReconciler from './StatementReconciler';
 import { useItemPresets } from '../../hooks/useItemPresets';
 import { ITEM_PRESETS } from '../expenses/ItemPicker';
@@ -355,9 +355,9 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Box>
       </SettingsSection>
 
-      <SettingsSection title="Friends">
+      <SettingsSection title="Contacts">
         <Box sx={{ px: 2, py: 1.5 }}>
-          <FriendsSection />
+          <ContactsSection />
         </Box>
       </SettingsSection>
 
