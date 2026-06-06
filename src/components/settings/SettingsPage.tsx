@@ -24,6 +24,8 @@ import SettingsBrightnessIcon from '@mui/icons-material/SettingsBrightness';
 import EditIcon from '@mui/icons-material/Edit';
 import CheckIcon from '@mui/icons-material/Check';
 import CloseIcon from '@mui/icons-material/Close';
+import TableChartIcon from '@mui/icons-material/TableChart';
+import DataObjectIcon from '@mui/icons-material/DataObject';
 import { useTheme } from '@mui/material/styles';
 import { clearToken } from '../../services/auth';
 import { useFxRates, CURRENCIES, CURRENCY_SYMBOLS, Currency } from '../../hooks/useFxRates';
@@ -45,6 +47,9 @@ interface Props {
   onCurrencyChange: (c: Currency) => void;
   categorySpend?: Record<string, number>;
   onTransactionsImported?: () => void;
+  onExportCsv?: () => void;
+  onExportJson?: () => void;
+  onDeleteAllTransactions?: () => Promise<void>;
 }
 
 function getUserId(): string {
@@ -91,7 +96,15 @@ const ThemeToggle: React.FC = () => {
   );
 };
 
-const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpend = {}, onTransactionsImported }) => {
+const SettingsPage: React.FC<Props> = ({
+  currency,
+  onCurrencyChange,
+  categorySpend = {},
+  onTransactionsImported,
+  onExportCsv,
+  onExportJson,
+  onDeleteAllTransactions,
+}) => {
   const theme = useTheme();
   const userId = getUserId();
   const userEmail = getUserEmail();
@@ -109,6 +122,9 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [tagNameDraft, setTagNameDraft] = useState('');
   const [tagDeleteConfirm, setTagDeleteConfirm] = useState<string | null>(null);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
+  const [deleteAllConfirm, setDeleteAllConfirm] = useState(false);
+  const [deleteAllInput, setDeleteAllInput] = useState('');
+  const [deleteAllLoading, setDeleteAllLoading] = useState(false);
   const hasAnyBudget = Object.values(budgets).some((limit) => limit > 0);
   const budgetInputId = (category: string) => `budget-input-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
@@ -152,6 +168,23 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const confirmLogout = () => {
     setSignOutConfirm(false);
     handleLogout();
+  };
+
+  const openDeleteAll = () => {
+    setDeleteAllInput('');
+    setDeleteAllConfirm(true);
+  };
+
+  const confirmDeleteAll = async () => {
+    if (deleteAllInput !== 'DELETE') return;
+    setDeleteAllLoading(true);
+    try {
+      await onDeleteAllTransactions?.();
+    } finally {
+      setDeleteAllLoading(false);
+      setDeleteAllConfirm(false);
+      setDeleteAllInput('');
+    }
   };
 
   const renderItemSection = (label: string, items: typeof ITEM_PRESETS) => (
@@ -251,10 +284,11 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
 
       <SettingsSection title="Appearance">
         <ThemeToggle />
-      </SettingsSection>
-
-      <SettingsSection title="Display Currency">
+        <Divider />
         <Box sx={{ px: 2, py: 1.5 }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: 'text.secondary', mb: 1 }}>
+            Display Currency
+          </Typography>
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => (
               <Chip
@@ -277,10 +311,42 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Box>
       </SettingsSection>
 
-      <SettingsSection
-        title="My Currencies"
-        description="Choose which currencies appear in the currency picker."
-      >
+      <SettingsSection title="Data">
+        {(onExportCsv || onExportJson) && (
+          <>
+            <Box sx={{ px: 2, py: 1.5, display: 'flex', gap: 1.5 }}>
+              {onExportCsv && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<TableChartIcon sx={{ fontSize: 16 }} />}
+                  onClick={onExportCsv}
+                  sx={{ flex: 1, fontSize: '0.78rem' }}
+                >
+                  Export CSV
+                </Button>
+              )}
+              {onExportJson && (
+                <Button
+                  variant="outlined"
+                  size="small"
+                  startIcon={<DataObjectIcon sx={{ fontSize: 16 }} />}
+                  onClick={onExportJson}
+                  sx={{ flex: 1, fontSize: '0.78rem' }}
+                >
+                  Export JSON
+                </Button>
+              )}
+            </Box>
+            <Divider />
+          </>
+        )}
+        <Box sx={{ px: 2, py: 1.5 }}>
+          <StatementReconciler onImported={onTransactionsImported} />
+        </Box>
+      </SettingsSection>
+
+      <SettingsSection title="My Currencies" description="Choose which currencies appear in the currency picker.">
         <Box sx={{ px: 2, py: 1.5 }}>
           <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
             {CURRENCIES.map((c) => {
@@ -351,7 +417,7 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>{cat}</Typography>
                   {spent > 0 && (
                     <Typography sx={{ fontSize: '0.65rem', color: over ? 'error.main' : 'text.disabled', fontVariantNumeric: 'tabular-nums' }}>
-                      {symbol}{Math.round(convert(spent)).toLocaleString()} this month{over ? ' \u2014 over!' : ''}
+                      {symbol}{Math.round(convert(spent)).toLocaleString()} this month{over ? ' — over!' : ''}
                     </Typography>
                   )}
                 </Box>
@@ -477,14 +543,8 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
         </Box>
       </SettingsSection>
 
-      <SettingsSection title="Data">
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <StatementReconciler onImported={onTransactionsImported} />
-        </Box>
-      </SettingsSection>
-
       <SettingsSection title="Account">
-        <Box sx={{ px: 2, py: 1.5 }}>
+        <Box sx={{ px: 2, py: 1.5, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
           <Button
             variant="outlined"
             color="error"
@@ -494,6 +554,18 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
           >
             Sign Out
           </Button>
+          {onDeleteAllTransactions && (
+            <Button
+              variant="outlined"
+              color="error"
+              startIcon={<DeleteIcon />}
+              onClick={openDeleteAll}
+              fullWidth
+              sx={{ borderStyle: 'dashed' }}
+            >
+              Delete All Transactions
+            </Button>
+          )}
         </Box>
       </SettingsSection>
 
@@ -506,6 +578,38 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
           <Button onClick={() => setSignOutConfirm(false)}>Cancel</Button>
           <Button color="error" variant="contained" onClick={confirmLogout}>
             Sign Out
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={deleteAllConfirm} onClose={() => { if (!deleteAllLoading) setDeleteAllConfirm(false); }}>
+        <DialogTitle>Delete All Transactions</DialogTitle>
+        <DialogContent>
+          <Typography sx={{ mb: 2 }}>
+            This will permanently delete <strong>all</strong> your transactions. This action cannot be undone.
+          </Typography>
+          <Typography sx={{ mb: 1.5, fontSize: '0.85rem', color: 'text.secondary' }}>
+            Type <strong>DELETE</strong> to confirm:
+          </Typography>
+          <TextField
+            fullWidth
+            size="small"
+            value={deleteAllInput}
+            onChange={(e) => setDeleteAllInput(e.target.value)}
+            placeholder="DELETE"
+            autoFocus
+            inputProps={{ 'aria-label': 'Type DELETE to confirm' }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteAllConfirm(false)} disabled={deleteAllLoading}>Cancel</Button>
+          <Button
+            color="error"
+            variant="contained"
+            onClick={confirmDeleteAll}
+            disabled={deleteAllInput !== 'DELETE' || deleteAllLoading}
+          >
+            {deleteAllLoading ? 'Deleting…' : 'Delete All'}
           </Button>
         </DialogActions>
       </Dialog>

@@ -15,10 +15,6 @@ function initials(email?: string): string {
   return local.slice(0, 2).toUpperCase();
 }
 
-/**
- * iOS-style profile card per MoneyFlow Hi-Fi spec (#332 phase 5).
- * Sits at the top of the Settings page.
- */
 const SettingsProfile: React.FC<Props> = ({ email, userId, onClick }) => {
   const interactive = !!onClick;
   return (
@@ -36,12 +32,13 @@ const SettingsProfile: React.FC<Props> = ({ email, userId, onClick }) => {
         gap: 2,
         p: 2,
         mb: 2.5,
-        bgcolor: '#FFFFFF',
+        bgcolor: 'background.paper',
         borderRadius: '14px',
-        border: '1px solid #E6E3DC',
+        border: '1px solid',
+        borderColor: 'divider',
         cursor: interactive ? 'pointer' : 'default',
         transition: 'background 0.12s',
-        '&:hover': interactive ? { bgcolor: '#FAF9F6' } : undefined,
+        '&:hover': interactive ? { bgcolor: 'action.hover' } : undefined,
       }}
     >
       <Avatar
@@ -64,7 +61,6 @@ const SettingsProfile: React.FC<Props> = ({ email, userId, onClick }) => {
             fontFamily: '"Plus Jakarta Sans", sans-serif',
             fontWeight: 600,
             fontSize: '0.95rem',
-            color: '#1C1917',
             mb: 0.25,
             overflow: 'hidden',
             textOverflow: 'ellipsis',
@@ -78,7 +74,7 @@ const SettingsProfile: React.FC<Props> = ({ email, userId, onClick }) => {
             sx={{
               fontFamily: '"Plus Jakarta Sans", sans-serif',
               fontSize: '0.7rem',
-              color: '#A8A29E',
+              color: 'text.disabled',
               fontFeatureSettings: '"tnum"',
               overflow: 'hidden',
               textOverflow: 'ellipsis',
@@ -89,7 +85,7 @@ const SettingsProfile: React.FC<Props> = ({ email, userId, onClick }) => {
           </Typography>
         )}
       </Box>
-      {interactive && <ChevronRightIcon sx={{ color: '#A8A29E' }} />}
+      {interactive && <ChevronRightIcon sx={{ color: 'text.disabled' }} />}
     </Box>
   );
 };

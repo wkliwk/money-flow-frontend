@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import SettingsPage from '../SettingsPage';
 import { AppThemeProvider } from '../../../ThemeContext';
 
@@ -57,8 +57,9 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Settings')).toBeInTheDocument();
   });
 
-  it('shows Display Currency section', () => {
+  it('shows Appearance section with Display Currency inside it', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.getByText('Appearance')).toBeInTheDocument();
     expect(screen.getByText('Display Currency')).toBeInTheDocument();
   });
 
@@ -69,7 +70,7 @@ describe('SettingsPage', () => {
     expect(screen.getByText('Create your first budget')).toBeInTheDocument();
   });
 
-  it('shows currency chips', () => {
+  it('shows currency chips in Display Currency section', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getAllByText('HK$ HKD').length).toBeGreaterThanOrEqual(1);
     expect(screen.getAllByText('CA$ CAD').length).toBeGreaterThanOrEqual(1);
@@ -83,7 +84,6 @@ describe('SettingsPage', () => {
   it('calls onCurrencyChange when currency chip is clicked', () => {
     const onCurrencyChange = jest.fn();
     renderWithTheme(<SettingsPage {...defaultProps} onCurrencyChange={onCurrencyChange} />);
-    // Both Display Currency and My Currencies sections show CA$ CAD — click the first
     fireEvent.click(screen.getAllByText('CA$ CAD')[0]);
     expect(onCurrencyChange).toHaveBeenCalledWith('CAD');
   });
@@ -114,7 +114,6 @@ describe('SettingsPage', () => {
   });
 
   it('budget input blur triggers setBudget', () => {
-    // Can only verify no crash since setBudget comes from mock
     renderWithTheme(<SettingsPage {...defaultProps} />);
     const inputs = screen.getAllByPlaceholderText('No limit');
     fireEvent.change(inputs[0], { target: { value: '300' } });
@@ -124,12 +123,9 @@ describe('SettingsPage', () => {
 
   it('Sign Out opens confirmation dialog with Cancel and confirm actions', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
-    // The trigger button has variant="outlined"; click it to open the dialog.
     const trigger = screen.getByRole('button', { name: /sign out/i });
     fireEvent.click(trigger);
-    // Dialog content should now be visible somewhere in the document.
     expect(screen.getByText('Are you sure you want to sign out?')).toBeInTheDocument();
-    // Cancel dismisses the dialog without crashing.
     fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
   });
 
@@ -140,7 +136,6 @@ describe('SettingsPage', () => {
 
   it('shows all currencies in My Currencies section', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
-    // CURRENCIES from mock: HKD, CAD, USD, CNY — each appears twice (Display Currency + My Currencies)
     const hkdChips = screen.getAllByText('HK$ HKD');
     expect(hkdChips.length).toBeGreaterThanOrEqual(2);
   });
@@ -152,7 +147,6 @@ describe('SettingsPage', () => {
 
   it('toggles My Currencies chip when more than one currency is enabled', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
-    // My Currencies section uses the same labels; pick the second HKD chip which belongs to My Currencies
     const hkdChips = screen.getAllByText('HK$ HKD');
     const myCurrenciesHkdChip = hkdChips[hkdChips.length - 1];
     fireEvent.click(myCurrenciesHkdChip);
@@ -175,5 +169,83 @@ describe('SettingsPage', () => {
     expect(localStorage.getItem('mf_theme')).toBe('dark');
     fireEvent.click(screen.getByRole('button', { name: 'System' }));
     expect(localStorage.getItem('mf_theme')).toBe('system');
+  });
+
+  it('shows Export CSV and Export JSON buttons when handlers provided', () => {
+    const onExportCsv = jest.fn();
+    const onExportJson = jest.fn();
+    renderWithTheme(
+      <SettingsPage {...defaultProps} onExportCsv={onExportCsv} onExportJson={onExportJson} />
+    );
+    expect(screen.getByRole('button', { name: /export csv/i })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /export json/i })).toBeInTheDocument();
+  });
+
+  it('calls onExportCsv when Export CSV button is clicked', () => {
+    const onExportCsv = jest.fn();
+    renderWithTheme(<SettingsPage {...defaultProps} onExportCsv={onExportCsv} />);
+    fireEvent.click(screen.getByRole('button', { name: /export csv/i }));
+    expect(onExportCsv).toHaveBeenCalledTimes(1);
+  });
+
+  it('calls onExportJson when Export JSON button is clicked', () => {
+    const onExportJson = jest.fn();
+    renderWithTheme(<SettingsPage {...defaultProps} onExportJson={onExportJson} />);
+    fireEvent.click(screen.getByRole('button', { name: /export json/i }));
+    expect(onExportJson).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show export buttons when no handlers provided', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.queryByRole('button', { name: /export csv/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /export json/i })).not.toBeInTheDocument();
+  });
+
+  it('shows Delete All Transactions button when handler provided', () => {
+    const onDeleteAllTransactions = jest.fn().mockResolvedValue(undefined);
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    expect(screen.getByRole('button', { name: /delete all transactions/i })).toBeInTheDocument();
+  });
+
+  it('does not show Delete All button when no handler provided', () => {
+    renderWithTheme(<SettingsPage {...defaultProps} />);
+    expect(screen.queryByRole('button', { name: /delete all transactions/i })).not.toBeInTheDocument();
+  });
+
+  it('Delete All opens dialog requiring DELETE confirmation', () => {
+    const onDeleteAllTransactions = jest.fn().mockResolvedValue(undefined);
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    fireEvent.click(screen.getByRole('button', { name: /delete all transactions/i }));
+    expect(screen.getByPlaceholderText('DELETE')).toBeInTheDocument();
+    const deleteAllBtn = screen.getByRole('button', { name: /^delete all$/i });
+    expect(deleteAllBtn).toBeDisabled();
+  });
+
+  it('Delete All confirm button enables only after typing DELETE', async () => {
+    const onDeleteAllTransactions = jest.fn().mockResolvedValue(undefined);
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    fireEvent.click(screen.getByRole('button', { name: /delete all transactions/i }));
+    const input = screen.getByPlaceholderText('DELETE');
+    fireEvent.change(input, { target: { value: 'DELETE' } });
+    const confirmBtn = screen.getByRole('button', { name: /^delete all$/i });
+    expect(confirmBtn).not.toBeDisabled();
+  });
+
+  it('Delete All cancel dismisses dialog without calling handler', () => {
+    const onDeleteAllTransactions = jest.fn().mockResolvedValue(undefined);
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    fireEvent.click(screen.getByRole('button', { name: /delete all transactions/i }));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel' }));
+    expect(onDeleteAllTransactions).not.toHaveBeenCalled();
+  });
+
+  it('Delete All calls handler when DELETE is typed and confirmed', async () => {
+    const onDeleteAllTransactions = jest.fn().mockResolvedValue(undefined);
+    renderWithTheme(<SettingsPage {...defaultProps} onDeleteAllTransactions={onDeleteAllTransactions} />);
+    fireEvent.click(screen.getByRole('button', { name: /delete all transactions/i }));
+    const input = screen.getByPlaceholderText('DELETE');
+    fireEvent.change(input, { target: { value: 'DELETE' } });
+    fireEvent.click(screen.getByRole('button', { name: /^delete all$/i }));
+    await waitFor(() => expect(onDeleteAllTransactions).toHaveBeenCalledTimes(1));
   });
 });
