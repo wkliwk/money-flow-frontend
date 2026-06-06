@@ -96,6 +96,66 @@ const SpendingInsightsPage: React.FC<Props> = ({ transactions, convert, symbol }
       .map(([cat, amount]) => ({ cat, amount, pct: total > 0 ? Math.round((amount / total) * 100) : 0 }));
   }, [currentMonthTxns]);
 
+  const forecastCategories = useMemo(() => {
+    const currentMonth = dayjs().startOf('month');
+    const monthKeys = Array.from({ length: 3 }, (_, idx) => currentMonth.subtract(idx + 1, 'month').format('YYYY-MM'));
+    const daysInMonth = dayjs().daysInMonth();
+    const dayOfMonth = dayjs().date();
+    const remainingDays = Math.max(daysInMonth - dayOfMonth, 0);
+
+    const historicalByCategory: Record<string, Record<string, number>> = {};
+    const currentMonthByCategory: Record<string, number> = {};
+
+    transactions
+      .filter((t) => t.type === 'expense')
+      .forEach((t) => {
+        const key = dayjs(t.date || t.createdAt).format('YYYY-MM');
+        const category = t.category || 'Other';
+
+        if (monthKeys.includes(key)) {
+          if (!historicalByCategory[category]) historicalByCategory[category] = {};
+          historicalByCategory[category][key] = (historicalByCategory[category][key] || 0) + t.amount;
+        }
+
+        if (key === dayjs().format('YYYY-MM')) {
+          currentMonthByCategory[category] = (currentMonthByCategory[category] || 0) + t.amount;
+        }
+      });
+
+    return Object.entries(historicalByCategory)
+      .map(([category, monthly]) => {
+        const historicalSpendMonths = monthKeys.filter((m) => typeof monthly[m] === 'number');
+        if (historicalSpendMonths.length < 3) return null;
+
+        const historicalTotal = monthKeys.reduce((sum, m) => sum + (monthly[m] || 0), 0);
+        const averageMonthly = historicalTotal / 3;
+        const avgDailySpend = averageMonthly / daysInMonth;
+        const currentSpend = currentMonthByCategory[category] || 0;
+        const forecastRemaining = Math.max(avgDailySpend * remainingDays, 0);
+
+        return {
+          category,
+          actualSpend: currentSpend,
+          forecastRemainingSpend: forecastRemaining,
+          forecastTotal: currentSpend + forecastRemaining,
+        };
+      })
+      .filter((item): item is { category: string; actualSpend: number; forecastRemainingSpend: number; forecastTotal: number } => item !== null)
+      .filter((item) => item.forecastRemainingSpend > 0)
+      .sort((a, b) => b.forecastRemainingSpend - a.forecastRemainingSpend)
+      .slice(0, 5);
+  }, [transactions]);
+
+  const forecastChartData = useMemo(
+    () =>
+      forecastCategories.map((entry) => ({
+        category: entry.category,
+        Actual: Math.round(convert(entry.actualSpend)),
+        Forecast: Math.round(convert(entry.forecastTotal)),
+      })),
+    [forecastCategories, convert],
+  );
+
   const biggestExpense = useMemo(
     () =>
       currentMonthTxns
@@ -116,6 +176,8 @@ const SpendingInsightsPage: React.FC<Props> = ({ transactions, convert, symbol }
   const expenseColor = theme.palette.error.main;
   const cardBg = theme.palette.background.paper;
   const mutedText = theme.palette.text.secondary;
+  const forecastBase = theme.palette.warning.main;
+  const forecastAccent = theme.palette.info.main;
 
   return (
     <Box sx={{ pb: 4 }}>
@@ -180,8 +242,8 @@ const SpendingInsightsPage: React.FC<Props> = ({ transactions, convert, symbol }
             </Typography>
           ) : (
             <ResponsiveContainer width="100%" height={200}>
-              <BarChart data={chartData} barGap={4} barCategoryGap="30%">
-                <XAxis
+            <BarChart data={chartData} barGap={4} barCategoryGap="30%" data-testid="insights-chart">
+              <XAxis
                   dataKey="label"
                   tick={{ fontSize: 11, fill: mutedText }}
                   axisLine={false}
@@ -211,6 +273,72 @@ const SpendingInsightsPage: React.FC<Props> = ({ transactions, convert, symbol }
           )}
         </CardContent>
       </Card>
+
+      {/* Spending forecast — category projection */}
+      {forecastChartData.length > 0 && (
+        <Card elevation={0} sx={{ mb: 2.5, border: `1px solid ${theme.palette.divider}`, borderRadius: 2, bgcolor: cardBg }}>
+          <CardContent sx={{ pb: '12px !important' }}>
+            <Typography variant="subtitle2" fontWeight={700} sx={{ mb: 2 }}>
+              Spending Forecast
+            </Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.25 }}>
+              Projected remaining spend by category based on the last 3 months.
+            </Typography>
+            <ResponsiveContainer width="100%" height={220}>
+              <BarChart data={forecastChartData} barGap={4} barCategoryGap="30%" data-testid="forecast-chart">
+                <XAxis
+                  dataKey="category"
+                  tick={{ fontSize: 11, fill: mutedText }}
+                  axisLine={false}
+                  tickLine={false}
+                  interval={0}
+                  angle={-20}
+                  textAnchor="end"
+                  height={40}
+                />
+                <YAxis
+                  tick={{ fontSize: 10, fill: mutedText }}
+                  axisLine={false}
+                  tickLine={false}
+                  tickFormatter={(v) => `${symbol}${v >= 1000 ? `${Math.round(v / 1000)}k` : v}`}
+                  width={45}
+                />
+                <Tooltip
+                  formatter={(value) => `${symbol}${convert(Number(value)).toLocaleString(undefined, { maximumFractionDigits: 0 })}`}
+                  contentStyle={{
+                    background: theme.palette.background.paper,
+                    border: `1px solid ${theme.palette.divider}`,
+                    borderRadius: 8,
+                    fontSize: 12,
+                  }}
+                />
+                <Legend wrapperStyle={{ fontSize: 12 }} />
+                <Bar dataKey="Actual" fill={forecastBase} radius={[3, 3, 0, 0]} />
+                <Bar dataKey="Forecast" fill={forecastAccent} radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+
+            <Box sx={{ mt: 1.5, display: 'grid', gap: 0.75 }}>
+              {forecastCategories.map((entry) => (
+                <Box
+                  key={entry.category}
+                  sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1 }}
+                >
+                  <Typography variant="caption" color="text.secondary">
+                    {entry.category}
+                  </Typography>
+                  <Typography variant="caption" sx={{ color: mutedText }}>
+                    {symbol}
+                    {convert(entry.forecastRemainingSpend).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                    {' '}
+                    remaining
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Stats row */}
       <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5, mb: 2.5 }}>
