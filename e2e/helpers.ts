@@ -46,6 +46,7 @@ export const FAKE_TRANSACTION_2 = {
 export async function authenticateViaStorage(page: Page): Promise<void> {
   await page.addInitScript((token) => {
     window.localStorage.setItem('mf_token', token);
+    window.localStorage.setItem('mf_onboarding_complete', 'true');
   }, FAKE_TOKEN);
 }
 
