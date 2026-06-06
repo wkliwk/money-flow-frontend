@@ -4,7 +4,7 @@ import {
   Typography,
   Card,
   CardContent,
-  CircularProgress,
+  Skeleton,
   Chip,
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
@@ -169,8 +169,10 @@ const SpendingInsightsPage: React.FC<Props> = ({ transactions, convert, symbol }
             Income vs Expenses — last 6 months
           </Typography>
           {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress size={28} />
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: 1.5, py: 1 }}>
+              {Array.from({ length: 6 }).map((_, idx) => (
+                <Skeleton key={idx} variant="rounded" height={200} />
+              ))}
             </Box>
           ) : error ? (
             <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>

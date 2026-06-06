@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Box, Typography, TextField, Button, InputAdornment, CircularProgress } from '@mui/material';
+import { Box, Typography, TextField, Button, InputAdornment, Skeleton } from '@mui/material';
 import { useTheme } from '@mui/material/styles';
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { getNetWorth, getLatestNetWorth, createNetWorth, NetWorthSnapshot } from '../../services/api';
@@ -67,7 +67,25 @@ const NetWorthPage: React.FC<Props> = ({ convert, symbol }) => {
   }));
 
   if (loading) {
-    return <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}><CircularProgress size={28} /></Box>;
+    return (
+      <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+        <Skeleton variant="text" width={120} height={14} sx={{ mb: 1 }} />
+        <Box sx={{ p: 2.5, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)', mb: 2, textAlign: 'center' }}>
+          <Skeleton variant="text" width="35%" height={18} sx={{ mx: 'auto', mb: 1 }} />
+          <Skeleton variant="text" width="55%" height={44} sx={{ mx: 'auto' }} />
+          <Box sx={{ display: 'flex', justifyContent: 'center', gap: 3, mt: 1 }}>
+            <Skeleton variant="text" width={72} height={28} />
+            <Skeleton variant="text" width={72} height={28} />
+          </Box>
+        </Box>
+        <Box sx={{ mb: 2, p: 2, borderRadius: 2, bgcolor: 'rgba(148,163,184,0.04)', border: '1px solid rgba(148,163,184,0.08)' }}>
+          <Skeleton variant="text" width={80} height={14} sx={{ mb: 1 }} />
+          <Skeleton variant="rounded" width="100%" height={180} />
+        </Box>
+        <Skeleton variant="rounded" width="100%" height={44} sx={{ mb: 2 }} />
+        <Skeleton variant="rounded" width="100%" height={240} />
+      </Box>
+    );
   }
 
   return (

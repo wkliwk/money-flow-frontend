@@ -5,13 +5,13 @@ import {
   Card,
   CardContent,
   Chip,
-  CircularProgress,
   FormControl,
   InputLabel,
   LinearProgress,
   MenuItem,
   Select,
   SelectChangeEvent,
+  Skeleton,
   Typography,
 } from '@mui/material';
 import { useTheme, alpha } from '@mui/material/styles';
@@ -284,8 +284,11 @@ const MonthlyReportPage: React.FC<Props> = ({ transactions, convert, symbol }) =
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}>
-        <CircularProgress size={32} />
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, py: 1 }}>
+        <Skeleton variant="text" width={160} height={20} />
+        <Skeleton variant="rounded" width="100%" height={64} />
+        <Skeleton variant="rounded" width="100%" height={240} />
+        <Skeleton variant="rounded" width="100%" height={180} />
       </Box>
     );
   }

@@ -3,7 +3,6 @@ import { useSearchParams } from 'react-router-dom';
 import {
   Box,
   Typography,
-  CircularProgress,
   Button,
   Fab,
   useMediaQuery,
@@ -1267,7 +1266,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
             </>
           )}
 
-          <Suspense fallback={<Box sx={{ display: 'flex', justifyContent: 'center', py: 8 }}><CircularProgress /></Box>}>
+          <Suspense fallback={<Box sx={{ py: 4 }}><DashboardSkeleton /></Box>}>
             {activeTab === 2 && <NetWorthPage convert={convert} symbol={symbol} />}
             {activeTab === 3 && <SpendingInsightsPage transactions={transactions} convert={convert} symbol={symbol} />}
             {activeTab === 4 && <RecurringPage />}
