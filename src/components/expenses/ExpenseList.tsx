@@ -129,7 +129,7 @@ const PULL_DEBOUNCE_MS = 2000;
 
 const ExpenseList: React.FC<Props> = ({ transactions, onEdit, onDelete, convert, symbol, recurringLabels, filtersActive, monthLabel, onAddClick, onRefresh }) => {
   const theme = useTheme();
-  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const isDark = theme.palette.mode === 'dark';
   const [expandedNote, setExpandedNote] = useState<string | null>(null);
   const [swipedId, setSwipedId] = useState<string | null>(null);
