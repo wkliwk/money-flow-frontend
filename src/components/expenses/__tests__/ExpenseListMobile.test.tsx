@@ -43,13 +43,15 @@ describe('ExpenseList (mobile layout)', () => {
   });
 
   it('shows Today label for transactions dated today', () => {
-    const transactions = [makeTransaction({ date: dayjs().format('YYYY-MM-DD') })];
+    const transactions = [makeTransaction({ date: new Date().toISOString().split('T')[0] })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Today')).toBeInTheDocument();
   });
 
   it('shows Yesterday label for transactions dated yesterday', () => {
-    const transactions = [makeTransaction({ date: dayjs().subtract(1, 'day').format('YYYY-MM-DD') })];
+    const transactions = [
+      makeTransaction({ date: new Date(Date.now() - 86400000).toISOString().split('T')[0] }),
+    ];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Yesterday')).toBeInTheDocument();
   });
@@ -107,8 +109,8 @@ describe('ExpenseList (mobile layout)', () => {
   });
 
   it('groups multiple transactions by date', () => {
-    const today = dayjs().format('YYYY-MM-DD');
-    const yesterday = dayjs().subtract(1, 'day').format('YYYY-MM-DD');
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
     const transactions = [
       makeTransaction({ _id: '1', date: today, description: 'Today item' }),
       makeTransaction({ _id: '2', date: yesterday, description: 'Yesterday item' }),
@@ -121,7 +123,7 @@ describe('ExpenseList (mobile layout)', () => {
   });
 
   it('shows formatted date label for past transactions (not today or yesterday)', () => {
-    const pastDate = dayjs().subtract(14, 'day').format('YYYY-MM-DD');
+    const pastDate = new Date(Date.now() - 14 * 86400000).toISOString().split('T')[0];
     const transactions = [makeTransaction({ _id: 'past1', date: pastDate, description: 'Old lunch' })];
     render(<ExpenseList {...defaultProps} transactions={transactions} />);
     expect(screen.getByText('Old lunch')).toBeInTheDocument();

@@ -163,7 +163,7 @@ describe('Empty state on Home tab', () => {
       fireEvent.click(ctaButtons[0]);
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
     });
   });
 
