@@ -65,6 +65,8 @@ describe('SettingsPage', () => {
   it('shows Monthly Budgets section', () => {
     renderWithTheme(<SettingsPage {...defaultProps} />);
     expect(screen.getByText('Monthly Budgets')).toBeInTheDocument();
+    expect(screen.getByText('No budgets yet')).toBeInTheDocument();
+    expect(screen.getByText('Create your first budget')).toBeInTheDocument();
   });
 
   it('shows currency chips', () => {
