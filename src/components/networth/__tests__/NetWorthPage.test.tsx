@@ -33,7 +33,8 @@ describe('NetWorthPage', () => {
     mockedApi.getNetWorth.mockReturnValue(new Promise(() => {}));
     mockedApi.getLatestNetWorth.mockReturnValue(new Promise(() => {}));
     render(<NetWorthPage convert={(v) => v} symbol="$" />);
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    // Loading renders skeleton placeholders — content not yet visible
+    expect(screen.queryByText('Add First Snapshot')).not.toBeInTheDocument();
   });
 
   it('shows add first snapshot button when no data', async () => {

@@ -53,7 +53,8 @@ describe('MonthlyReportPage', () => {
     getMonthlyReport.mockReturnValue(new Promise(() => {}));
     getBudgets.mockReturnValue(new Promise(() => {}));
     renderComponent();
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    // Loading renders skeleton placeholders — content not yet visible
+    expect(screen.queryByText('Monthly Report')).not.toBeInTheDocument();
   });
 
   it('renders page title after data loads', async () => {

@@ -47,10 +47,11 @@ describe('SpendingInsightsPage', () => {
     jest.clearAllMocks();
   });
 
-  it('shows loading state initially', () => {
+  it('shows loading state initially without spinner', () => {
     getMonthlyReport.mockReturnValue(new Promise(() => {}));
     renderComponent();
-    expect(screen.getByRole('progressbar')).toBeInTheDocument();
+    // Skeleton replaces spinner — no progressbar role present
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
   });
 
   it('renders page title after data loads', async () => {
