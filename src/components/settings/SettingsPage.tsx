@@ -38,6 +38,7 @@ import { ThemePreference } from '../../theme';
 import { useTags } from '../../hooks/useTags';
 import SettingsSection from './SettingsSection';
 import SettingsProfile from './SettingsProfile';
+import EmptyState from '../ui/EmptyState';
 
 interface Props {
   currency: string;
@@ -108,6 +109,8 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
   const [tagNameDraft, setTagNameDraft] = useState('');
   const [tagDeleteConfirm, setTagDeleteConfirm] = useState<string | null>(null);
   const [signOutConfirm, setSignOutConfirm] = useState(false);
+  const hasAnyBudget = Object.values(budgets).some((limit) => limit > 0);
+  const budgetInputId = (category: string) => `budget-input-${category.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`;
 
   const handleBudgetBlur = (category: string) => {
     const val = parseFloat(drafts[category]);
@@ -322,6 +325,21 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
           <Typography sx={{ display: 'none' }}>
             Set limits per category — progress bars appear on the Home breakdown.
           </Typography>
+          {!hasAnyBudget && (
+            <Box sx={{ mb: 2 }}>
+              <EmptyState
+                title="No budgets yet"
+                body="Set limits per category to track progress on the Home breakdown."
+                cta={{
+                  label: 'Create your first budget',
+                  onClick: () => {
+                    const firstInput = document.getElementById(budgetInputId(BUDGET_CATEGORIES[0])) as HTMLInputElement | null;
+                    firstInput?.focus();
+                  },
+                }}
+              />
+            </Box>
+          )}
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
             {BUDGET_CATEGORIES.map((cat) => {
               const spent = categorySpend[cat] || 0;
@@ -341,12 +359,12 @@ const SettingsPage: React.FC<Props> = ({ currency, onCurrencyChange, categorySpe
                   size="small"
                   type="number"
                   placeholder="No limit"
+                  inputProps={{ min: 0, id: budgetInputId(cat) }}
                   value={drafts[cat]}
                   onChange={(e) => setDrafts((d) => ({ ...d, [cat]: e.target.value }))}
                   onBlur={() => handleBudgetBlur(cat)}
                   InputProps={{ startAdornment: <InputAdornment position="start"><Typography sx={{ fontSize: '0.78rem', color: 'text.disabled' }}>HK$</Typography></InputAdornment> }}
                   sx={{ width: 140, '& .MuiInputBase-input': { fontSize: '0.82rem', py: 0.75 } }}
-                  inputProps={{ min: 0 }}
                 />
               </Box>
               );
