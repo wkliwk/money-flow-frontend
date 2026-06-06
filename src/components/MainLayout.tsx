@@ -23,13 +23,13 @@ import {
 import useToast from '../hooks/useToast';
 import TableChartIcon from '@mui/icons-material/TableChart';
 import DataObjectIcon from '@mui/icons-material/DataObject';
-import dayjs, { Dayjs } from 'dayjs';
-import { Transaction, TransactionRequest, TransactionType, PaymentMethod } from '../types';
-import { getExpenses, getExpense, createExpense, deleteExpense, scanReceipt, getLastAmounts, ReceiptScanResult, getContacts } from '../services/api';
+import dayjs from 'dayjs';
+import { Transaction, TransactionRequest } from '../types';
+import { getExpenses, createExpense, deleteExpense, getContacts } from '../services/api';
 import { useTags } from '../hooks/useTags';
 import SummaryCards from './dashboard/SummaryCards';
 import DashboardSkeleton from './dashboard/DashboardSkeleton';
-import DateRangeControl, { DatePreset } from './dashboard/DateRangeControl';
+import DateRangeControl from './dashboard/DateRangeControl';
 import MobileHero from './dashboard/MobileHero';
 import CategoryChart from './dashboard/CategoryChart';
 import TrendsChart from './dashboard/TrendsChart';
@@ -41,7 +41,7 @@ import ExpenseList from './expenses/ExpenseList';
 import CalendarStrip from './expenses/CalendarStrip';
 import EmptyState from './EmptyState';
 import FilterBar from './expenses/FilterBar';
-import AddExpenseModal, { ReceiptPrefill } from './expenses/AddExpenseModal';
+import AddExpenseModal from './expenses/AddExpenseModal';
 import ReceiptScanButton from './expenses/ReceiptScanButton';
 import EditExpenseModal from './expenses/EditExpenseModal';
 import QuickExpenseInput from './expenses/QuickExpenseInput';
@@ -60,6 +60,9 @@ import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
 const GoalsPage = React.lazy(() => import('./goals/GoalsPage'));
 const ReportsPage = React.lazy(() => import('./reports/ReportsPage'));
 import { tokens } from '../theme';
+import { useModalState } from '../hooks/useModalState';
+import { useTransactionFilters } from '../hooks/useTransactionFilters';
+import { useTransactionHandlers } from '../hooks/useTransactionHandlers';
 
 // ── Design token constants ─────────────────────────────────────────────────
 const SIDEBAR_WIDTH = 232;
@@ -334,56 +337,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
 
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [searchParams, setSearchParams] = useSearchParams();
-  const [datePreset, setDatePreset] = useState<DatePreset>(() => {
-    const saved = localStorage.getItem('mf_date_preset') as DatePreset | null;
-    return saved ?? 'month';
-  });
-  const [selectedMonth, setSelectedMonth] = useState<Dayjs | null>(() => {
-    const monthParam = searchParams.get('month');
-    if (monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) {
-      const parsed = dayjs(`${monthParam}-01`);
-      if (parsed.isValid()) return parsed.startOf('month');
-    }
-    return dayjs();
-  });
-  const [customStart, setCustomStart] = useState('');
-  const [customEnd, setCustomEnd] = useState('');
-  const [search, setSearch] = useState('');
-  const [typeFilter, setTypeFilter] = useState<TransactionType | 'all'>('all');
-  const [paymentMethodFilter, setPaymentMethodFilter] = useState<PaymentMethod | 'all'>('all');
-  const [categoryFilter, setCategoryFilter] = useState<string | 'all'>('all');
-  const [tagFilter, setTagFilter] = useState<string | 'all'>('all');
-  const [sortBy, setSortBy] = useState<'date' | 'amount'>('date');
-  const [calendarFilterDate, setCalendarFilterDate] = useState<string | null>(null);
   const [exportMenuAnchor, setExportMenuAnchor] = useState<null | HTMLElement>(null);
-  const [addReceiptOpen, setAddReceiptOpen] = useState(false);
-  const [quickExpenseOpen, setQuickExpenseOpen] = useState(false);
-  const [editTransaction, setEditTransaction] = useState<Transaction | null>(null);
-  const toast = useToast();
-  const pendingDelete = useRef<Transaction | null>(null);
-  const [scanLoading, setScanLoading] = useState(false);
-  const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
-  const receiptImageUrlRef = useRef<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
   const [wizardOpen, setWizardOpen] = useState(() => !isWizardComplete());
   const [onboardingOpen, setOnboardingOpen] = useState(() => !isOnboardingComplete() && isWizardComplete());
 
-  const handleWizardDismiss = useCallback(() => {
-    markWizardComplete();
-    setWizardOpen(false);
-  }, []);
-
-  const handleOnboardingDismiss = useCallback(() => {
-    markOnboardingComplete();
-    setOnboardingOpen(false);
-  }, []);
-
-  const handleOnboardingFab = useCallback(() => {
-    markOnboardingComplete();
-    setOnboardingOpen(false);
-    setAddReceiptOpen(true);
-  }, []);
-
+  const toast = useToast();
   const showSnackbar = useCallback(
     (message: string, severity: 'success' | 'error' = 'success') => {
       if (severity === 'error') toast.error(message);
@@ -407,6 +366,41 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     fetchTransactions();
   }, []);
 
+  // ── Filter state & derived computations ──────────────────────────────────
+  const initialDatePreset = (() => {
+    const saved = localStorage.getItem('mf_date_preset');
+    return (saved ?? 'month') as import('../components/dashboard/DateRangeControl').DatePreset;
+  })();
+
+  const initialSelectedMonth = (() => {
+    const monthParam = searchParams.get('month');
+    if (monthParam && /^\d{4}-(0[1-9]|1[0-2])$/.test(monthParam)) {
+      const parsed = dayjs(`${monthParam}-01`);
+      if (parsed.isValid()) return parsed.startOf('month');
+    }
+    return dayjs();
+  })();
+
+  const filters = useTransactionFilters(transactions, initialDatePreset, initialSelectedMonth);
+
+  const {
+    search, setSearch,
+    typeFilter, setTypeFilter,
+    paymentMethodFilter, setPaymentMethodFilter,
+    categoryFilter, setCategoryFilter,
+    tagFilter, setTagFilter,
+    sortBy, setSortBy,
+    calendarFilterDate, setCalendarFilterDate,
+    datePreset, setDatePreset,
+    selectedMonth, setSelectedMonth,
+    customStart, customEnd,
+    handlePresetChange, handleCustomChange,
+    monthFiltered, prevMonthFiltered,
+    filteredTransactions, existingCategories,
+    streak, categorySpend,
+  } = filters;
+
+  // ── URL sync for month param ──────────────────────────────────────────────
   useEffect(() => {
     const current = searchParams.get('month');
     if (datePreset === 'month' && selectedMonth) {
@@ -439,6 +433,18 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchParams]);
 
+  // ── Modal state ───────────────────────────────────────────────────────────
+  const receiptImageUrlRef = useRef<string | null>(null);
+  const modalState = useModalState(receiptImageUrlRef);
+  const {
+    addReceiptOpen, setAddReceiptOpen,
+    quickExpenseOpen, setQuickExpenseOpen,
+    editTransaction, setEditTransaction,
+    closeAddReceipt,
+    receiptPrefill, setReceiptPrefill,
+  } = modalState;
+
+  // ── Keyboard shortcut ─────────────────────────────────────────────────────
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
       const tag = (document.activeElement as HTMLElement)?.tagName?.toLowerCase();
@@ -458,219 +464,65 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [addReceiptOpen, editTransaction, quickExpenseOpen]);
+  }, [addReceiptOpen, editTransaction, quickExpenseOpen, setQuickExpenseOpen, setAddReceiptOpen]);
 
-  const handleAdd = async (data: Omit<TransactionRequest, 'owner'>) => {
-    const owner = getOwnerFromToken();
-    const created = await createExpense({ ...data, owner });
-    setTransactions((prev) => [created, ...prev]);
-    if (receiptImageUrlRef.current) {
-      URL.revokeObjectURL(receiptImageUrlRef.current);
-      receiptImageUrlRef.current = null;
-    }
-    setReceiptPrefill(undefined);
-    showSnackbar('Transaction added');
-  };
+  // ── Transaction handlers ──────────────────────────────────────────────────
+  const handlers = useTransactionHandlers({
+    transactions,
+    setTransactions,
+    filteredTransactions,
+    contactNames,
+    search,
+    datePreset,
+    selectedMonth,
+    customStart,
+    customEnd,
+    typeFilter,
+    convert,
+    symbol,
+    setAddReceiptOpen,
+    setReceiptPrefill,
+    setEditTransaction,
+    showSnackbar,
+  });
 
-  const handleScanReceipt = async (file: File) => {
-    setScanLoading(true);
-    const previewUrl = URL.createObjectURL(file);
-    receiptImageUrlRef.current = previewUrl;
-    try {
-      const result: ReceiptScanResult = await scanReceipt(file);
-      setReceiptPrefill({
-        amount: result.amount,
-        description: result.description || result.merchant || '',
-        category: result.category,
-        date: result.date,
-        confidence: result.confidence,
-        imagePreviewUrl: previewUrl,
-      });
-      setAddReceiptOpen(true);
-    } catch {
-      URL.revokeObjectURL(previewUrl);
-      receiptImageUrlRef.current = null;
-      showSnackbar('Could not read receipt — fill in manually', 'error');
-      setReceiptPrefill(undefined);
-      setAddReceiptOpen(true);
-    } finally {
-      setScanLoading(false);
-    }
-  };
+  const {
+    handleAdd,
+    handleDelete,
+    handleSaved,
+    handleDeleteAllTransactions,
+    handleExport,
+    handleExportJson,
+    handleScanReceipt,
+    scanLoading,
+    recentItems,
+    knownParticipants,
+    descriptionsByItem,
+    amountsByDescription,
+    categoriesByDescription,
+  } = handlers;
 
-  const commitDelete = useCallback(
-    async (t: Transaction) => {
-      try {
-        await deleteExpense(t._id);
-      } catch {
-        setTransactions((prev) => [t, ...prev]);
-        toast.error('Failed to delete transaction');
-      }
-    },
-    [toast]
-  );
+  // ── Onboarding ────────────────────────────────────────────────────────────
+  const handleWizardDismiss = useCallback(() => {
+    markWizardComplete();
+    setWizardOpen(false);
+  }, []);
 
-  const handleDelete = useCallback(
-    (id: string) => {
-      const tx = transactions.find((t) => t._id === id);
-      if (!tx) return;
-      setTransactions((prev) => prev.filter((t) => t._id !== id));
-      pendingDelete.current = tx;
-      const label = tx.item || tx.description || 'Transaction';
-      const sign = tx.type === 'income' ? '+' : '-';
-      const amount = `${symbol}${convert(tx.amount).toLocaleString(undefined, { maximumFractionDigits: 0 })}`;
-      const message = `Deleted "${label}" (${sign}${amount})`;
-      toast.success(message, {
-        duration: 5000,
-        action: {
-          label: 'Undo',
-          onClick: () => {
-            if (pendingDelete.current?._id !== tx._id) return;
-            pendingDelete.current = null;
-            setTransactions((prev) =>
-              [tx, ...prev].sort(
-                (a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
-              )
-            );
-          },
-        },
-        onTimeout: () => {
-          if (pendingDelete.current?._id !== tx._id) return;
-          pendingDelete.current = null;
-          commitDelete(tx);
-        },
-      });
-    },
-    [toast, commitDelete, symbol, convert, transactions]
-  );
+  const handleOnboardingDismiss = useCallback(() => {
+    markOnboardingComplete();
+    setOnboardingOpen(false);
+  }, []);
 
-  const handleSaved = async (updated: Transaction) => {
-    setTransactions((prev) => prev.map((t) => (t._id === updated._id ? updated : t)));
-    showSnackbar('Transaction updated');
-    try {
-      const fresh = await getExpense(updated._id);
-      setTransactions((prev) => prev.map((t) => (t._id === fresh._id ? fresh : t)));
-    } catch {}
-  };
+  const handleOnboardingFab = useCallback(() => {
+    markOnboardingComplete();
+    setOnboardingOpen(false);
+    setAddReceiptOpen(true);
+  }, [setAddReceiptOpen]);
 
-  const existingCategories = useMemo(
-    () => Array.from(new Set(transactions.map((t) => t.category).filter(Boolean) as string[])),
-    [transactions]
-  );
-
-  const recentItems = useMemo(() => {
-    const seen: string[] = [];
-    [...transactions]
-      .sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
-      .forEach((t) => { if (t.item && !seen.includes(t.item)) seen.push(t.item); });
-    return seen.slice(0, 5);
-  }, [transactions]);
-
-  const knownParticipants = useMemo(() => {
-    const seen = new Set<string>(contactNames);
-    transactions.forEach((t) => (t.participants ?? []).forEach((p) => seen.add(p)));
-    return Array.from(seen).slice(0, 20);
-  }, [transactions, contactNames]);
-
-  const descriptionsByItem = useMemo(() => {
-    const map: Record<string, string[]> = {};
-    transactions.forEach((t) => {
-      const key = t.item || '';
-      if (!key || !t.description?.trim()) return;
-      if (!map[key]) map[key] = [];
-      if (!map[key].includes(t.description.trim())) map[key].push(t.description.trim());
-    });
-    return map;
-  }, [transactions]);
-
-  const [amountsByDescription, setAmountsByDescription] = useState<Record<string, number>>({});
-  useEffect(() => {
-    try {
-      const result = getLastAmounts();
-      if (result && typeof result.then === 'function') {
-        result.then(setAmountsByDescription).catch(() => {});
-      }
-    } catch {
-      // Silently handle mock/test environments
-    }
-  }, [transactions.length]);
-
-  const categoriesByDescription = useMemo(() => {
-    const map: Record<string, string> = {};
-    [...transactions]
-      .sort((a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime())
-      .forEach((t) => {
-        const key = (t.description?.trim() || t.item || '').toLowerCase();
-        if (key && t.category && !map[key]) map[key] = t.category;
-      });
-    return map;
-  }, [transactions]);
-
+  // ── Smart suggestions ─────────────────────────────────────────────────────
   const smartSuggestions = useSmartSuggestions(transactions);
 
-  const handlePresetChange = (p: DatePreset) => {
-    setDatePreset(p);
-    localStorage.setItem('mf_date_preset', p);
-    if (p === 'month' && !selectedMonth) setSelectedMonth(dayjs());
-  };
-
-  const handleCustomChange = (start: string, end: string) => {
-    setCustomStart(start);
-    setCustomEnd(end);
-  };
-
-  const monthFiltered = useMemo(() => {
-    if (datePreset === 'all-time') return transactions;
-    if (datePreset === 'week') {
-      const start = dayjs().startOf('week');
-      return transactions.filter((t) => {
-        const d = dayjs(t.date || t.createdAt);
-        return d.isValid() && !d.isBefore(start);
-      });
-    }
-    if (datePreset === 'last-month') {
-      const lm = dayjs().subtract(1, 'month');
-      return transactions.filter((t) => {
-        const d = dayjs(t.date || t.createdAt);
-        return d.isValid() && d.isSame(lm, 'month');
-      });
-    }
-    if (datePreset === 'custom' && customStart && customEnd) {
-      const start = dayjs(customStart).startOf('day');
-      const end = dayjs(customEnd).endOf('day');
-      return transactions.filter((t) => {
-        const d = dayjs(t.date || t.createdAt);
-        return d.isValid() && !d.isBefore(start) && !d.isAfter(end);
-      });
-    }
-    if (!selectedMonth) return transactions;
-    return transactions.filter((t) => {
-      const d = dayjs(t.date || t.createdAt);
-      return d.isValid() && d.isSame(selectedMonth, 'month');
-    });
-  }, [transactions, datePreset, selectedMonth, customStart, customEnd]);
-
-  const prevMonthFiltered = useMemo(() => {
-    if (datePreset !== 'month' || !selectedMonth) return [];
-    const prev = selectedMonth.subtract(1, 'month');
-    return transactions.filter((t) => {
-      const d = dayjs(t.date || t.createdAt);
-      return d.isValid() && d.isSame(prev, 'month');
-    });
-  }, [transactions, datePreset, selectedMonth]);
-
-  const streak = useMemo(() => {
-    const days = new Set(transactions.map((t) => dayjs(t.date || t.createdAt).format('YYYY-MM-DD')));
-    let count = 0;
-    let cursor = dayjs();
-    if (!days.has(cursor.format('YYYY-MM-DD'))) cursor = cursor.subtract(1, 'day');
-    while (days.has(cursor.format('YYYY-MM-DD'))) {
-      count++;
-      cursor = cursor.subtract(1, 'day');
-    }
-    return count;
-  }, [transactions]);
-
+  // ── Recurring ─────────────────────────────────────────────────────────────
   const currentMonthKey = dayjs().format('YYYY-MM');
   const pendingRecurring = useMemo(
     () => recurringItems.filter((r) => r.lastApplied !== currentMonthKey),
@@ -699,101 +551,6 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     markApplied(pendingRecurring.map((r) => r.id), currentMonthKey);
     await fetchTransactions();
     showSnackbar(`${pendingRecurring.length} recurring transaction${pendingRecurring.length > 1 ? 's' : ''} added`);
-  };
-
-  const categorySpend = useMemo(() => {
-    const map: Record<string, number> = {};
-    monthFiltered.filter((t) => t.type === 'expense').forEach((t) => {
-      const cat = t.category || 'Other';
-      map[cat] = (map[cat] || 0) + t.amount;
-    });
-    return map;
-  }, [monthFiltered]);
-
-  const filteredTransactions = useMemo(() => {
-    const pool = search !== '' ? transactions : monthFiltered;
-    const filtered = pool.filter((t) => {
-      const searchLow = search.toLowerCase();
-      const matchesSearch =
-        search === '' ||
-        (t.description || '').toLowerCase().includes(searchLow) ||
-        (t.item || '').toLowerCase().includes(searchLow) ||
-        (t.category || '').toLowerCase().includes(searchLow) ||
-        (t.participants || []).some((p) => p.toLowerCase().includes(searchLow)) ||
-        (t.notes || '').toLowerCase().includes(searchLow) ||
-        (t.tags || []).some((tag) => tag.name.toLowerCase().includes(searchLow));
-      const matchesType = typeFilter === 'all' || t.type === typeFilter;
-      const matchesPayment = paymentMethodFilter === 'all' || t.paymentMethod === paymentMethodFilter;
-      const matchesCategory = categoryFilter === 'all' || t.category === categoryFilter;
-      const matchesTag = tagFilter === 'all' || (t.tags || []).some((tag) => tag._id === tagFilter);
-      const matchesCalendar = !calendarFilterDate || (t.date || '').slice(0, 10) === calendarFilterDate;
-      return matchesSearch && matchesType && matchesPayment && matchesCategory && matchesTag && matchesCalendar;
-    });
-    if (sortBy === 'amount') {
-      return [...filtered].sort((a, b) => b.amount - a.amount);
-    }
-    return filtered;
-  }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy, calendarFilterDate]);
-
-  const handleDeleteAllTransactions = async () => {
-    const ids = [...transactions].map((t) => t._id);
-    await Promise.all(ids.map((id) => deleteExpense(id)));
-    setTransactions([]);
-  };
-
-  const handleExport = () => {
-    const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
-    const rows = filteredTransactions.map((t) => [
-      new Date(t.date || t.createdAt).toISOString().split('T')[0],
-      t.item ? `"${t.item.replace(/"/g, '""')}"` : '',
-      `"${t.description.replace(/"/g, '""')}"`,
-      t.type,
-      t.category ? `"${t.category.replace(/"/g, '""')}"` : '',
-      t.amount,
-      t.paymentMethod || '',
-      t.participants?.length ? `"${t.participants.join(', ')}"` : '',
-    ]);
-    const csv = [header.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    const fileSuffix = datePreset === 'month' && selectedMonth
-      ? selectedMonth.format('YYYY-MM')
-      : datePreset === 'last-month' ? dayjs().subtract(1, 'month').format('YYYY-MM')
-      : datePreset === 'week' ? `week-${dayjs().startOf('week').format('YYYY-MM-DD')}`
-      : datePreset === 'custom' && customStart ? `${customStart}_${customEnd}`
-      : 'all';
-    a.download = search ? 'money-flow-search.csv' : `money-flow-${fileSuffix}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleExportJson = () => {
-    const fileSuffix = datePreset === 'month' && selectedMonth
-      ? selectedMonth.format('YYYY-MM')
-      : datePreset === 'last-month' ? dayjs().subtract(1, 'month').format('YYYY-MM')
-      : datePreset === 'week' ? `week-${dayjs().startOf('week').format('YYYY-MM-DD')}`
-      : datePreset === 'custom' && customStart ? `${customStart}_${customEnd}`
-      : 'all';
-    const payload = {
-      exportDate: new Date().toISOString(),
-      transactionCount: filteredTransactions.length,
-      filters: {
-        from: customStart || null,
-        to: customEnd || null,
-        type: typeFilter === 'all' ? null : typeFilter,
-      },
-      transactions: filteredTransactions,
-    };
-    const json = JSON.stringify(payload, null, 2);
-    const blob = new Blob([json], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = search ? 'money-flow-search.json' : `money-flow-${fileSuffix}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
   // Page title per tab
@@ -1417,14 +1174,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
       {/* Modals */}
       <AddExpenseModal
         open={addReceiptOpen}
-        onClose={() => {
-          setAddReceiptOpen(false);
-          if (receiptImageUrlRef.current) {
-            URL.revokeObjectURL(receiptImageUrlRef.current);
-            receiptImageUrlRef.current = null;
-          }
-          setReceiptPrefill(undefined);
-        }}
+        onClose={closeAddReceipt}
         onSubmit={handleAdd}
         existingCategories={existingCategories}
         descriptionsByItem={descriptionsByItem}
@@ -1455,7 +1205,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
           handleDelete(id);
           setEditTransaction(null);
         }}
-        onDuplicate={async (data) => {
+        onDuplicate={async (data: Omit<TransactionRequest, 'owner'>) => {
           const owner = getOwnerFromToken();
           const created = await createExpense({ ...data, owner });
           setTransactions((prev) => [created, ...prev]);
