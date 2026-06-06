@@ -331,18 +331,39 @@ describe('MainLayout', () => {
     expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
 
-  it.skip('submitting AddExpenseModal calls createExpense and updates transactions', async () => {
-    // Skipped: original test was tied to the removed AddTransactionSheet's flat
-    // Amount/Category form. AddExpenseModal uses a custom NumPad + ItemPicker
-    // that needs a dedicated test fixture. Tracked separately.
-    mockCreateExpense.mockResolvedValueOnce(makeTransaction({ _id: 'new1', description: 'Food & Drink' }));
+  it('submitting AddExpenseModal calls createExpense and updates transactions', async () => {
+    mockCreateExpense.mockResolvedValueOnce(makeTransaction({ _id: 'new1', description: '午餐' }));
     renderMainLayout();
+
     await waitFor(() => document.querySelector('[data-testid="fab-record"]'));
-    const fabBtn = document.querySelector('[data-testid="fab-record"]') as HTMLButtonElement | null;
-    if (fabBtn) {
-      await act(async () => { fireEvent.click(fabBtn); });
-    }
+    const fabBtn = document.querySelector('[data-testid="fab-record"]') as HTMLButtonElement;
+    await act(async () => { fireEvent.click(fabBtn); });
     await waitFor(() => screen.getByText('Record Transaction'));
+
+    // Pick 'Lunch' (午餐) from ItemPicker — sets item + category
+    const lunchBtn = screen.getByText('Lunch').closest('button') as HTMLButtonElement;
+    await act(async () => { fireEvent.click(lunchBtn); });
+
+    // Enter amount via NumPad's compact text input (placeholder="0")
+    const amountInput = screen.getByPlaceholderText('0') as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(amountInput, { target: { value: '150' } });
+    });
+
+    // Submit
+    const saveBtn = screen.getByRole('button', { name: /^Save$/i });
+    await act(async () => { fireEvent.click(saveBtn); });
+
+    await waitFor(() => {
+      expect(mockCreateExpense).toHaveBeenCalledWith(
+        expect.objectContaining({
+          item: '午餐',
+          category: 'Food & Drink',
+          amount: 150,
+          type: 'expense',
+        }),
+      );
+    });
   }, 30000);
 
   it('commitDelete is called after undo snackbar closes', async () => {
