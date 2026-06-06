@@ -240,7 +240,7 @@ describe('MainLayout', () => {
       await act(async () => { fireEvent.click(fabBtn); });
     }
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
     });
   });
 
@@ -307,7 +307,7 @@ describe('MainLayout', () => {
       fireEvent.keyDown(window, { key: 'n' });
     });
     await waitFor(() => {
-      expect(screen.getByText('Add transaction')).toBeInTheDocument();
+      expect(screen.getByText('Record Transaction')).toBeInTheDocument();
     });
   });
 
@@ -326,9 +326,9 @@ describe('MainLayout', () => {
     if (fabBtn) {
       await act(async () => { fireEvent.click(fabBtn); });
     }
-    await waitFor(() => screen.getByText('Add transaction'));
+    await waitFor(() => screen.getByText('Record Transaction'));
     // Verify sheet opens without crashing
-    expect(screen.getByText('Add transaction')).toBeInTheDocument();
+    expect(screen.getByText('Record Transaction')).toBeInTheDocument();
   });
 
   it.skip('submitting AddExpenseModal calls createExpense and updates transactions', async () => {
