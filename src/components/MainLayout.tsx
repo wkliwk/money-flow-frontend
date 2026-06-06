@@ -735,6 +735,12 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
     return filtered;
   }, [transactions, monthFiltered, search, typeFilter, paymentMethodFilter, categoryFilter, tagFilter, sortBy, calendarFilterDate]);
 
+  const handleDeleteAllTransactions = async () => {
+    const ids = [...transactions].map((t) => t._id);
+    await Promise.all(ids.map((id) => deleteExpense(id)));
+    setTransactions([]);
+  };
+
   const handleExport = () => {
     const header = ['Date', 'Item', 'Description', 'Type', 'Category', 'Amount', 'Payment Method', 'Participants'];
     const rows = filteredTransactions.map((t) => [
@@ -1293,6 +1299,9 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                 onCurrencyChange={(c: Currency) => setCurrency(c)}
                 categorySpend={categorySpend}
                 onTransactionsImported={fetchTransactions}
+                onExportCsv={handleExport}
+                onExportJson={handleExportJson}
+                onDeleteAllTransactions={handleDeleteAllTransactions}
               />
             )}
           </Suspense>

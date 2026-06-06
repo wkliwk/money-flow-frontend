@@ -7,13 +7,6 @@ interface Props {
   description?: string;
 }
 
-/**
- * iOS-style settings section per MoneyFlow Hi-Fi spec (#332 phase 5).
- *
- * Uppercase section header sits in the gutter ABOVE a white card with
- * the section's controls. Stack multiple SettingsSection components for
- * the iOS grouped list look.
- */
 const SettingsSection: React.FC<Props> = ({ title, children, description }) => {
   return (
     <Box sx={{ mb: 2.5 }}>
@@ -23,7 +16,7 @@ const SettingsSection: React.FC<Props> = ({ title, children, description }) => {
           fontFamily: '"Plus Jakarta Sans", sans-serif',
           fontSize: '0.68rem',
           fontWeight: 600,
-          color: '#A8A29E',
+          color: 'text.disabled',
           textTransform: 'uppercase',
           letterSpacing: '0.06em',
           mb: 0.75,
@@ -34,9 +27,10 @@ const SettingsSection: React.FC<Props> = ({ title, children, description }) => {
       </Typography>
       <Box
         sx={{
-          bgcolor: '#FFFFFF',
+          bgcolor: 'background.paper',
           borderRadius: '14px',
-          border: '1px solid #E6E3DC',
+          border: '1px solid',
+          borderColor: 'divider',
           overflow: 'hidden',
         }}
       >
@@ -47,7 +41,7 @@ const SettingsSection: React.FC<Props> = ({ title, children, description }) => {
           sx={{
             fontFamily: '"Plus Jakarta Sans", sans-serif',
             fontSize: '0.7rem',
-            color: '#A8A29E',
+            color: 'text.disabled',
             mt: 0.75,
             ml: 1,
             lineHeight: 1.5,
