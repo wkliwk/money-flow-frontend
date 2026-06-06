@@ -106,4 +106,27 @@ export async function stubSideEffects(page: Page): Promise<void> {
   await page.route('**/api/expenses/price-history/**', (route) =>
     route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ history: [], avg: null }) }),
   );
+  // Templates
+  await page.route('**/api/templates**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }),
+  );
+  // Exchange rates (backend)
+  await page.route('**/api/exchange-rates**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ rates: {} }) }),
+  );
+  // Contacts
+  await page.route('**/api/contacts**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify({ contacts: [] }) }),
+  );
+  // Tags
+  await page.route('**/api/tags**', (route) =>
+    route.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify([]) }),
+  );
+  // User preferences PATCH
+  await page.route('**/api/users/preferences**', (route) => {
+    if (route.request().method() === 'PATCH') {
+      return route.fulfill({ status: 204, body: '' });
+    }
+    return route.continue();
+  });
 }
