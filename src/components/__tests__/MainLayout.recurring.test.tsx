@@ -118,6 +118,7 @@ jest.setTimeout(30000);
 
 beforeEach(() => {
   localStorage.setItem('mf_onboarding_complete', 'true');
+  localStorage.setItem('mf_onboarded', 'true');
 });
 
 afterEach(() => {

@@ -129,6 +129,7 @@ const navigateToTransactionsTab = async () => {
 
 beforeEach(() => {
   localStorage.setItem('mf_onboarding_complete', 'true');
+  localStorage.setItem('mf_onboarded', 'true');
 });
 
 afterEach(() => {

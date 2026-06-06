@@ -53,6 +53,7 @@ const SettingsPage = React.lazy(() => import('./settings/SettingsPage'));
 const RecurringPage = React.lazy(() => import('./recurring/RecurringPage'));
 import { useBudgets } from '../hooks/useBudgets';
 import OnboardingFlow, { isOnboardingComplete, markOnboardingComplete } from './onboarding/OnboardingFlow';
+import OnboardingWizard, { isWizardComplete, markWizardComplete } from './onboarding/OnboardingWizard';
 const SpendingInsightsPage = React.lazy(() => import('./insights/SpendingInsightsPage'));
 import SpendingPulse from './dashboard/SpendingPulse';
 import { useSmartSuggestions } from '../hooks/useSmartSuggestions';
@@ -364,7 +365,13 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const [receiptPrefill, setReceiptPrefill] = useState<ReceiptPrefill | undefined>(undefined);
   const receiptImageUrlRef = useRef<string | null>(null);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [onboardingOpen, setOnboardingOpen] = useState(() => !isOnboardingComplete());
+  const [wizardOpen, setWizardOpen] = useState(() => !isWizardComplete());
+  const [onboardingOpen, setOnboardingOpen] = useState(() => !isOnboardingComplete() && isWizardComplete());
+
+  const handleWizardDismiss = useCallback(() => {
+    markWizardComplete();
+    setWizardOpen(false);
+  }, []);
 
   const handleOnboardingDismiss = useCallback(() => {
     markOnboardingComplete();
@@ -1452,6 +1459,8 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
         availableTags={tags}
         onCreateTag={(name) => addTag(name)}
       />
+
+      <OnboardingWizard open={wizardOpen} onDismiss={handleWizardDismiss} />
 
       <OnboardingFlow
         open={onboardingOpen}
