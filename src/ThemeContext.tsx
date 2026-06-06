@@ -29,8 +29,15 @@ const DEBOUNCE_MS = 500;
 
 export const AppThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preference, setPreferenceState] = useState<ThemePreference>(getStoredThemePreference);
-  const [systemDark] = useState(() => window.matchMedia(MEDIA_QUERY).matches);
+  const [systemDark, setSystemDark] = useState(() => window.matchMedia(MEDIA_QUERY).matches);
   const debounceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    const mq = window.matchMedia(MEDIA_QUERY);
+    const handler = (e: MediaQueryListEvent) => setSystemDark(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   // Fetch theme preference from backend on mount if user is authenticated.
   useEffect(() => {
