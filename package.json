@@ -39,7 +39,8 @@
     "lint": "eslint --fix . && prettier --write .",
     "test:e2e": "playwright test",
     "test:e2e:headed": "playwright test --headed",
-    "build:check": "VITE_API_URL=https://money-flow-backend.fly.dev vite build"
+    "build:check": "VITE_API_URL=https://money-flow-backend.fly.dev vite build",
+    "postinstall": "node scripts/install-hooks.mjs"
   },
   "browserslist": {
     "production": [
