@@ -309,7 +309,7 @@ interface MainLayoutProps {
 
 const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
   const theme = useTheme();
-  const isDesktop = useMediaQuery(theme.breakpoints.up('sm'));
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'));
   const { currency, setCurrency, convert, symbol } = useFxRates();
   const { items: recurringItems, markApplied } = useRecurring();
   const { budgets } = useBudgets();
@@ -1021,7 +1021,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                   <SpendingPulse />
 
                   {/* Mobile dashboard */}
-                  <Box sx={{ display: { xs: 'block', sm: 'none' } }}>
+                  <Box sx={{ display: { xs: 'block', lg: 'none' } }}>
                     <Box sx={{ mb: 1.5 }}>
                       <DateRangeControl
                         preset={datePreset}
@@ -1091,7 +1091,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ initialTab = 0 }) => {
                   </Box>
 
                   {/* Desktop dashboard */}
-                  <Box sx={{ display: { xs: 'none', sm: 'block' } }}>
+                  <Box sx={{ display: { xs: 'none', lg: 'block' } }}>
                     <Box sx={{ mb: 2 }}>
                       <DateRangeControl
                         preset={datePreset}
